@@ -7,18 +7,28 @@ mappings applications et utilisateurs
 import hashlib
 from server import db
 
-
 class User(db.Model):
-    '''
-    Représente un utilisateur
-    '''
+
     __tablename__ = 't_roles'
-    id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.Unicode)
-    _password = db.Column('password', db.Unicode)
+    __table_args__ = {'schema':'utilisateurs'}
+    groupe = db.Column(db.Boolean)
+    id_role = db.Column(db.Integer, primary_key=True)
+    identifiant = db.Column(db.Unicode)
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
+    desc_role = db.Column(db.Unicode)
+    _password = db.Column('pass', db.Unicode)
     email = db.Column(db.Unicode)
-    token = db.Column(db.Unicode)
-    applications = db.relationship('AppUser', lazy='joined')
+    id_organisme = db.Column(db.Integer)
+    organisme = db.Column(db.Unicode)
+    id_unite = db.Column(db.Integer)
+    remarques = db.Column(db.Unicode)
+    pn = db.Column(db.Boolean)
+    session_appli = db.Column(db.Unicode)
+    date_insert = db.Column(db.DateTime)
+    date_update = db.Column(db.DateTime)
+
+    # applications_droits = db.relationship('AppUser', lazy='joined')
 
     @property
     def password(self):
@@ -34,45 +44,54 @@ class User(db.Model):
 
     def to_json(self):
         out = {
-                'id': self.id,
-                'login': self.login,
-                'email': self.email,
-                'applications': []
-                }
-        for app_data in self.applications:
+            'id': self.id_role,
+            'login': self.identifiant,
+            'email': self.email,
+            'applications': []
+        }
+        for app_data in self.applications_droits:
             app = {
                     'id': app_data.application_id,
-                    'nom': app_data.application.nom,
-                    'niveau': app_data.niveau
+                    'nom': app_data.application.nom_application,
+                    'niveau': app_data.id_droit_max
                     }
             out['applications'].append(app)
         return out
-
-
-
 
 class Application(db.Model):
     '''
     Représente une application ou un module
     '''
-    __tablename__ = 'application'
-    id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.Unicode)
-
-
-
+    __tablename__ = 't_applications'
+    __table_args__ = {'schema':'utilisateurs'}
+    id_application = db.Column(db.Integer, primary_key=True)
+    nom_application = db.Column(db.Unicode)
+    desc_application = db.Column(db.Unicode)
 
 class AppUser(db.Model):
     '''
     Relations entre applications et utilisateurs
     '''
-    __tablename__ = 'rel_app_user'
-    user_id = db.Column(db.Integer,
-            db.ForeignKey('utilisateur.id'), primary_key=True)
-    application_id = db.Column(db.Integer,
-            db.ForeignKey('application.id'), primary_key=True)
-    niveau = db.Column(db.Integer)
-    user = db.relationship('User',
-            backref='relations', lazy='joined')
-    application = db.relationship('Application',
-            backref='relations', lazy='joined')
+    __tablename__ = 'v_userslist_forall_applications'
+    __table_args__ = {'schema':'utilisateurs'}
+    id_role = db.Column(db.Integer,
+            db.ForeignKey('utilisateurs.t_roles.id_role'), primary_key=True)
+    id_application = db.Column(db.Integer,
+            db.ForeignKey('utilisateurs.application.id_application'), primary_key=True)
+    identifiant = db.Column(db.Unicode)
+    _password = db.Column('pass', db.Unicode)
+    id_droit_max = db.Column(db.Integer, primary_key=True)
+    # user = db.relationship('User', backref='relations', lazy='joined')
+    # application = db.relationship('Application', backref='relations', lazy='joined')
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, pwd):
+        self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
+
+    def check_password(self, pwd):
+        print(pwd)
+        return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
