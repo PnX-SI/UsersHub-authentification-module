@@ -53,13 +53,9 @@ def login():
             raise
 
         #Génération d'un token
-        session['logged_in'] = True
-
         s = Serializer(init_app().config['SECRET_KEY'], expires_in = 24*60*60)
-        print(s)
         token = s.dumps({'id_role':user.id_role, 'id_application':user.id_application})
-        print(token)
-        resp = Response(json.dumps({'login':session['logged_in'], 'token': token.decode('ascii')}))
+        resp = Response(json.dumps({'user':user.as_dict(), 'token': token.decode('ascii')}))
 
         return resp
     except Exception as e:

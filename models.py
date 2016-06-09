@@ -95,3 +95,6 @@ class AppUser(db.Model):
     def check_password(self, pwd):
         print(pwd)
         return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name != 'pass' }
