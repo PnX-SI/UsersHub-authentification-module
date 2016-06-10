@@ -29,8 +29,8 @@ def check_auth(level):
                     .filter(models.AppUser.id_role==data['id_role'])\
                     .filter(models.AppUser.id_application==data['id_application'])\
                     .one()
-                print(user)
                 if user.id_droit_max < level:
+                    print('Niveau de droit insufissants')
                     return Response('Forbidden', 403)
 
                 return fn(*args, **kwargs)
@@ -56,7 +56,8 @@ def login():
         s = Serializer(init_app().config['SECRET_KEY'], expires_in = 24*60*60)
         token = s.dumps({'id_role':user.id_role, 'id_application':user.id_application})
         resp = Response(json.dumps({'user':user.as_dict(), 'token': token.decode('ascii')}))
-
+        cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
+        resp.set_cookie('token', token, expires=cookie_exp)
         return resp
     except Exception as e:
         print(e)
