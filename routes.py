@@ -11,7 +11,7 @@ from functools import wraps
 from flask import Blueprint, Flask, request, jsonify, session, g, Response
 from server import db,init_app
 from . import models
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
 
 routes = Blueprint('auth', __name__)
 
@@ -34,7 +34,15 @@ def check_auth(level):
                     return Response('Forbidden', 403)
 
                 return fn(*args, **kwargs)
+            except SignatureExpired:
+                print('expired')
+                return Response('Token Expired', 403) # valid token, but expired
+            except BadSignature:
+                print('BadSignature')
+                return Response('Token BadSignature', 403) # valid token, but expired
             except Exception as e:
+                print('Exception')
+                print(e)
                 return Response('Forbidden', 403)
         return __check_auth
     return _check_auth
@@ -44,20 +52,27 @@ def check_auth(level):
 def login():
     try:
         user_data = request.json
-        user = models.AppUser.query\
-            .filter(models.AppUser.identifiant==user_data['login'])\
-            .filter(models.AppUser.id_application==user_data['id_application'])\
-            .one()
+        try :
+            user = models.AppUser.query\
+                .filter(models.AppUser.identifiant==user_data['login'])\
+                .filter(models.AppUser.id_application==user_data['id_application'])\
+                .one()
+        except Exception as e:
+            resp = Response(json.dumps({'type':'login', 'msg':'Identifiant invalide'}), status=490)
+            return resp
 
         if not user.check_password(user_data['password']):
-            raise
+            resp = Response(json.dumps({'type':'password', 'msg':'Mot de passe invalide'}), status=490)
+            return resp
 
         #Génération d'un token
-        s = Serializer(init_app().config['SECRET_KEY'], expires_in = 24*60*60)
-        token = s.dumps({'id_role':user.id_role, 'id_application':user.id_application})
-        resp = Response(json.dumps({'user':user.as_dict(), 'token': token.decode('ascii')}))
-        cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
+        s = Serializer(init_app().config['SECRET_KEY'], expires_in = init_app().config['COOKIE_EXPIRATION'])
+        token = s.dumps({'id_role':user.id_role})
+        cookie_exp = datetime.datetime.now() + datetime.timedelta(seconds= init_app().config['COOKIE_EXPIRATION'])
+
+        resp = Response(json.dumps({'user':user.as_dict(), 'expires':str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
+
         return resp
     except Exception as e:
         print(e)
