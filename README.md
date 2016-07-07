@@ -21,7 +21,7 @@ Prévu pour être utilisé comme un submodule git
 
 ```
   #Import de la librairie
-  fnauth = importlib.import_module("apptax.flaskmodule-UserHub-auth.routes")
+  fnauth = importlib.import_module("apptax.UsersHub-authentification-module.routes")
   
   #Ajout d'un test d'authentification avec niveau de droit
   @adresses.route('/', methods=['POST', 'PUT'])
