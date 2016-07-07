@@ -1,6 +1,6 @@
-# flaskmodule-UserHub-auth
+# UsersHub-authentification-module
 
-Module flask permettant de gérer l'authentification suivant le modèle UserHub.
+Module Flask (Python) permettant de gérer l'authentification suivant le modèle de [UsersHub](https://github.com/PnEcrins/UsersHub/).
 
 Prévu pour être utilisé comme un submodule git
 
