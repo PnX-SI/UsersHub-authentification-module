@@ -68,7 +68,7 @@ def login():
         #Génération d'un token
         s = Serializer(init_app().config['SECRET_KEY'], expires_in = init_app().config['COOKIE_EXPIRATION'])
         token = s.dumps(user.as_dict())
-        cookie_exp = datetime.datetime.now() + datetime.timedelta(seconds= init_app().config['COOKIE_EXPIRATION'])
+        cookie_exp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds= init_app().config['COOKIE_EXPIRATION'])
 
         resp = Response(json.dumps({'user':user.as_dict(), 'expires':str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
