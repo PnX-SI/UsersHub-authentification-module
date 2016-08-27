@@ -43,7 +43,7 @@ def check_auth(level):
             except Exception as e:
                 print('Exception')
                 print(e)
-                return Response('Forbidden', 403)
+                return Response(json.dumps({'type':'Exception', 'msg':repr(e)}) , 403)
         return __check_auth
     return _check_auth
 
@@ -68,13 +68,12 @@ def login():
         #Génération d'un token
         s = Serializer(init_app().config['SECRET_KEY'], expires_in = init_app().config['COOKIE_EXPIRATION'])
         token = s.dumps(user.as_dict())
-        cookie_exp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds= init_app().config['COOKIE_EXPIRATION'])
+        cookie_exp = datetime.datetime.utcnow() + datetime.timedelta(seconds= init_app().config['COOKIE_EXPIRATION'])
 
         resp = Response(json.dumps({'user':user.as_dict(), 'expires':str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
 
         return resp
     except Exception as e:
-        print(e)
-        resp = Response(json.dumps({'login': False}), status=403)
+        resp = Response(json.dumps({'login': False, 'msg' : repr(e)}), status=403)
         return resp
