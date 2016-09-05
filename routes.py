@@ -16,11 +16,10 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, Signatur
 routes = Blueprint('auth', __name__)
 
 
-def check_auth(level):
+def check_auth(level, get_role=False):
     def _check_auth(fn):
         @wraps(fn)
         def __check_auth(*args, **kwargs):
-            print('check auth')
             try:
                 s = Serializer(init_app().config['SECRET_KEY'])
                 data = s.loads(request.cookies['token'])
@@ -32,6 +31,8 @@ def check_auth(level):
                 if user.id_droit_max < level:
                     print('Niveau de droit insufissants')
                     return Response('Forbidden', 403)
+                if (get_role) :
+                    kwargs['id_role'] = user.id_role
 
                 return fn(*args, **kwargs)
             except SignatureExpired:

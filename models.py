@@ -39,7 +39,6 @@ class User(db.Model):
         self._password = hashlib.sha256(pwd.encode('utf8')).hexdigest()
 
     def check_password(self, pwd):
-        print(pwd)
         return self._password == hashlib.sha256(pwd.encode('utf8')).hexdigest()
 
     def to_json(self):
@@ -93,7 +92,6 @@ class AppUser(db.Model):
         self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
 
     def check_password(self, pwd):
-        print(pwd)
         return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
 
     def as_dict(self):
