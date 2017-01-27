@@ -81,7 +81,6 @@ class ConfigurableBlueprint(Blueprint):
 routes = ConfigurableBlueprint('auth', __name__)
 
 
-@routes.route('/login', methods= ['POST'])
 def check_auth(level, get_role=False):
     def _check_auth(fn):
         @wraps(fn)
@@ -127,6 +126,7 @@ def check_auth(level, get_role=False):
     return _check_auth
 
 
+@routes.route('/login', methods= ['POST'])
 def login():
     try:
         user_data = request.json
