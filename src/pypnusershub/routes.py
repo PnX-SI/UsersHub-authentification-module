@@ -9,13 +9,21 @@ routes relatives aux application, utilisateurs et à l'authentification
 '''
 
 import json
+
 import datetime
 from functools import wraps
-from flask import Blueprint, request, Response, current_app
+
+from flask import Blueprint, request, Response, current_app, redirect, g
+
+from sqlalchemy.orm import exc
+
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from pypnusershub.db import models
-from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
-                          SignatureExpired, BadSignature)
+from pypnusershub.db.tools import (
+    user_from_token, UnreadableAccessRightsError,
+    AccessRightsExpiredError
+)
 
 
 # This module was originally designed as a submodule of designed
@@ -48,14 +56,17 @@ class ConfigurableBlueprint(Blueprint):
 
         # set cookie autorenew
         expiration = app.config.get('COOKIE_EXPIRATION', 3600)
-        cookie_autorenew = app.config.get('COOKIE_AUTORENEW', False)
+        cookie_autorenew = app.config.get('COOKIE_AUTORENEW', True)
 
         if cookie_autorenew:
 
             @app.after_request
             def after_request(response):
                 try:
-                    if 'token' in request.cookies:
+                    set_cookie = response.headers.get('Set-Cookie', '')
+                    is_setting_token = set_cookie.startswith('token=')
+                    is_token_set = request.cookies.get('token')
+                    if is_token_set and not is_setting_token:
                         cookie_exp = datetime.datetime.utcnow()
                         cookie_exp += datetime.timedelta(seconds=expiration)
                         response.set_cookie('token',
@@ -81,21 +92,12 @@ class ConfigurableBlueprint(Blueprint):
 routes = ConfigurableBlueprint('auth', __name__)
 
 
-def check_auth(level, get_role=False):
+def check_auth(level, get_role=False, redirect_on_expiration=None):
     def _check_auth(fn):
         @wraps(fn)
         def __check_auth(*args, **kwargs):
             try:
-                s = Serializer(current_app.config['SECRET_KEY'])
-                data = s.loads(request.cookies['token'])
-
-                id_role = data['id_role']
-                id_app = data['id_application']
-                user = (models.AppUser
-                              .query
-                              .filter(models.AppUser.id_role == id_role)
-                              .filter(models.AppUser.id_application == id_app)
-                              .one())
+                user = user_from_token(request.cookies['token'])
 
                 if user.id_droit_max < level:
                     print('Niveau de droit insufissants')
@@ -104,14 +106,24 @@ def check_auth(level, get_role=False):
                 if get_role:
                     kwargs['id_role'] = user.id_role
 
+                g.user = user
+
                 return fn(*args, **kwargs)
 
-            except SignatureExpired:
+            except AccessRightsExpiredError:
                 print('expired')  # TODO: turn prints into logging
-                # valid token, but expired
+                if redirect_on_expiration:
+                    return redirect(redirect_on_expiration, code=302)
                 return Response('Token Expired', 403)
 
-            except BadSignature:
+            except KeyError as e:
+                if 'token' not in e.args:
+                    raise
+                if redirect_on_expiration:
+                    return redirect(redirect_on_expiration, code=302)
+                return Response('No token', 403)
+
+            except UnreadableAccessRightsError:
                 print('BadSignature')
                 # invalid token,
                 return Response('Token BadSignature', 403)
@@ -126,8 +138,9 @@ def check_auth(level, get_role=False):
     return _check_auth
 
 
-@routes.route('/login', methods= ['POST'])
+@routes.route('/login', methods=['POST'])
 def login():
+
     try:
         user_data = request.json
 
@@ -141,18 +154,44 @@ def login():
                           .filter(models.AppUser.id_application == id_app)
                           .one())
 
-        # TODO: replace this generic exception with specific ones.
-        # With this current setup, we can't tell the user if his credential
-        # are invalid or if we have a bug. Any bug would trigger the display of
-        # "invalid identifiers".
+        except KeyError as e:
+            parameters = ", ".join(e.args)
+            msg = json.dumps({
+                'type': 'login',
+                'msg': 'The following parameters are required: %s' % parameters
+            })
+            # Initially the status code used was 490, so it's kept as a
+            # default value to maintain compat. However, 400 is the
+            # appropriate code and you can choose to set it
+            # up that way with the BAD_LOGIN_STATUS_CODE setting.
+            status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
+            return Response(msg, status=status_code)
+
+        except exc.NoResultFound as e:
+            msg = json.dumps({
+                'type': 'login',
+                'msg': ('No user found with the username "{login}" for '
+                        'the application with id "{id_app}"').format(
+                            login=login, id_app=id_app
+                         )
+            })
+            status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
+            return Response(msg, status=status_code)
+
         except Exception as e:
-            msg = json.dumps({'type': 'login', 'msg': 'Identifiant invalide'})
-            return Response(json.dumps(msg, status=490))
+            msg = json.dumps({
+                'type': 'bug',
+                'msg': 'Unkown error during login'
+            })
+            return Response(msg, status=500)
 
         if not user.check_password(user_data['password']):
-            msg = json.dumps({'type': 'password',
-                              'msg': 'Mot de passe invalide'})
-            return Response(json.dumps(msg, status=490))
+            msg = json.dumps({
+                'type': 'password',
+                'msg': 'Mot de passe invalide'
+            })
+            status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
+            return Response(msg, status=status_code)
 
         # Génération d'un token
         expiration = current_app.config['COOKIE_EXPIRATION']
@@ -168,3 +207,10 @@ def login():
     except Exception as e:
         msg = json.dumps({'login': False, 'msg': repr(e)})
         return Response(msg, status=403)
+
+
+@routes.route('/logout', methods=['GET', 'POST'])
+def logout():
+    resp = redirect("/", code=302)
+    resp.delete_cookie('token')
+    return resp

@@ -21,6 +21,7 @@ class User(db.Model):
     __table_args__ = {'schema': 'utilisateurs'}
     groupe = db.Column(db.Boolean)
     id_role = db.Column(db.Integer, primary_key=True)
+    # TODO: make that unique ?
     identifiant = db.Column(db.Unicode)
     nom_role = db.Column(db.Unicode)
     prenom_role = db.Column(db.Unicode)
@@ -42,12 +43,14 @@ class User(db.Model):
     def password(self):
         return self._password
 
+    # TODO: change password digest algorithm for something stronger such
+    # as bcrypt. This need to be done at usershub level first.
     @password.setter
     def password(self, pwd):
-        self._password = hashlib.sha256(pwd.encode('utf8')).hexdigest()
+        self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
 
     def check_password(self, pwd):
-        return self._password == hashlib.sha256(pwd.encode('utf8')).hexdigest()
+        return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
 
     def to_json(self):
         out = {
@@ -65,6 +68,9 @@ class User(db.Model):
             out['applications'].append(app)
         return out
 
+    def __repr__(self):
+        return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
+
 
 class Application(db.Model):
     '''
@@ -76,6 +82,39 @@ class Application(db.Model):
     nom_application = db.Column(db.Unicode)
     desc_application = db.Column(db.Unicode)
 
+    def __repr__(self):
+        return "<Application {!r}>".format(self.nom_application)
+
+
+class ApplicationRight(db.Model):
+    '''
+    Droit d'acces a une application
+    '''
+    __tablename__ = 'bib_droits'
+    __table_args__ = {'schema': 'utilisateurs'}
+    id_droit = db.Column(db.Integer, primary_key=True)
+    nom_droit = db.Column(db.Unicode)
+    desc_droit = db.Column(db.UnicodeText)
+
+    def __repr__(self):
+        return "<ApplicationRight {!r}>".format(self.desc_droit)
+
+
+class UserApplicationRight(db.Model):
+    '''
+    Droit d'acces d'un user particulier a une application particuliere
+    '''
+    __tablename__ = 'cor_role_droit_application'
+    __table_args__ = {'schema': 'utilisateurs'}
+    id_role = db.Column(db.Integer, primary_key=True)
+    id_droit = db.Column(db.Integer, primary_key=True)
+    id_application = db.Column(db.Integer, primary_key=True)
+
+    def __repr__(self):
+        return "<UserApplicationRight role='{}' droit='{}' app='{}'>".format(
+            self.id_role, self.id_droit, self.id_application
+        )
+
 
 class AppUser(db.Model):
     '''
@@ -83,27 +122,35 @@ class AppUser(db.Model):
     '''
     __tablename__ = 'v_userslist_forall_applications'
     __table_args__ = {'schema': 'utilisateurs'}
-    id_role = db.Column(db.Integer,
-            db.ForeignKey('utilisateurs.t_roles.id_role'), primary_key=True)
-    id_application = db.Column(db.Integer,
-            db.ForeignKey('utilisateurs.t_applications.id_application'), primary_key=True)
+    id_role = db.Column(
+        db.Integer,
+        db.ForeignKey('utilisateurs.t_roles.id_role'),
+        primary_key=True
+    )
+    id_application = db.Column(
+        db.Integer,
+        db.ForeignKey('utilisateurs.t_applications.id_application'),
+        primary_key=True
+    )
     identifiant = db.Column(db.Unicode)
     _password = db.Column('pass', db.Unicode)
     id_droit_max = db.Column(db.Integer, primary_key=True)
     # user = db.relationship('User', backref='relations', lazy='joined')
-    # application = db.relationship('Application', backref='relations', lazy='joined')
+    # application = db.relationship('Application',
+    #                               backref='relations', lazy='joined')
 
     @property
     def password(self):
         return self._password
 
-    @password.setter
-    def password(self, pwd):
-        self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
-
     def check_password(self, pwd):
         return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
 
     def as_dict(self):
-        cols = self.__table__.columns
-        return {c.name: getattr(self, c.name) for c in cols if c.name != 'pass'}
+        cols = (c for c in self.__table__.columns if c.name != 'pass')
+        return {c.name: getattr(self, c.name) for c in cols}
+
+    def __repr__(self):
+        return "<AppUser role='{}' app='{}'>".format(
+            self.id_role, self.id_application
+        )
