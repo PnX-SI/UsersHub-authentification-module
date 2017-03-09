@@ -1,11 +1,12 @@
 # coding: utf-8
 
-from __future__ import (unicode_literals, print_function,
+#Do not import unicode_literals it generate an error when install module with pip
+from __future__ import ( print_function,
                         absolute_import, division)
 
 import re
 import setuptools
-
+from io import open
 
 def get_version(path="src/pypnusershub/__init__.py"):
     """ Return the version of by with regex intead of importing it"""
