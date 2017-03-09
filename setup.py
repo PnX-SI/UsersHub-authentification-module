@@ -6,7 +6,6 @@ from __future__ import ( print_function,
 
 import re
 import setuptools
-from io import open
 
 def get_version(path="src/pypnusershub/__init__.py"):
     """ Return the version of by with regex intead of importing it"""
