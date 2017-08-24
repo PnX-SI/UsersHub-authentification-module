@@ -142,6 +142,12 @@ def check_auth(
                 return Response('Token BadSignature', 403)
 
             except Exception as e:
+                trap_all_exceptions = current_app.config.get(
+                    'TRAP_ALL_EXCEPTIONS',
+                    True
+                )
+                if not trap_all_exceptions:
+                    raise
                 print('Exception')
                 print(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
@@ -183,10 +189,10 @@ def login():
         except exc.NoResultFound as e:
             msg = json.dumps({
                 'type': 'login',
-                'msg': ('No user found with the username "{login}" for '
-                        'the application with id "{id_app}"').format(
-                            login=login, id_app=id_app
-                         )
+                'msg': (
+                    'No user found with the username "{login}" for '
+                    'the application with id "{id_app}"'
+                ).format(login=login, id_app=id_app)
             })
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
             return Response(msg, status=status_code)
