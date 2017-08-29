@@ -11,6 +11,7 @@ import hashlib
 
 from flask_sqlalchemy import SQLAlchemy
 
+from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
@@ -127,11 +128,13 @@ class AppUser(db.Model):
         db.ForeignKey('utilisateurs.t_roles.id_role'),
         primary_key=True
     )
+    role = relationship("User", backref="app_users")
     id_application = db.Column(
         db.Integer,
         db.ForeignKey('utilisateurs.t_applications.id_application'),
         primary_key=True
     )
+    application = relationship("Application", backref="app_users")
     identifiant = db.Column(db.Unicode)
     _password = db.Column('pass', db.Unicode)
     id_droit_max = db.Column(db.Integer, primary_key=True)
