@@ -92,14 +92,21 @@ class ConfigurableBlueprint(Blueprint):
 routes = ConfigurableBlueprint('auth', __name__)
 
 
-def check_auth(level, get_role=False, redirect_on_expiration=None):
+def check_auth(
+    level,
+    get_role=False,
+    redirect_on_expiration=None,
+    redirect_on_invalid_token=None,
+):
     def _check_auth(fn):
         @wraps(fn)
         def __check_auth(*args, **kwargs):
             try:
+                # TODO: better name and configurability for the token
                 user = user_from_token(request.cookies['token'])
 
                 if user.id_droit_max < level:
+                    # TODO: english error message ?
                     print('Niveau de droit insufissants')
                     return Response('Forbidden', 403)
 
@@ -113,7 +120,9 @@ def check_auth(level, get_role=False, redirect_on_expiration=None):
             except AccessRightsExpiredError:
                 print('expired')  # TODO: turn prints into logging
                 if redirect_on_expiration:
-                    return redirect(redirect_on_expiration, code=302)
+                    res = redirect(redirect_on_expiration, code=302)
+                    res.set_cookie('token', '', expires=0)
+                    return res
                 return Response('Token Expired', 403)
 
             except KeyError as e:
@@ -126,9 +135,19 @@ def check_auth(level, get_role=False, redirect_on_expiration=None):
             except UnreadableAccessRightsError:
                 print('BadSignature')
                 # invalid token,
+                if redirect_on_invalid_token:
+                    res = redirect(redirect_on_invalid_token, code=302)
+                    res.set_cookie('token', '', expires=0)
+                    return res
                 return Response('Token BadSignature', 403)
 
             except Exception as e:
+                trap_all_exceptions = current_app.config.get(
+                    'TRAP_ALL_EXCEPTIONS',
+                    True
+                )
+                if not trap_all_exceptions:
+                    raise
                 print('Exception')
                 print(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
@@ -170,10 +189,10 @@ def login():
         except exc.NoResultFound as e:
             msg = json.dumps({
                 'type': 'login',
-                'msg': ('No user found with the username "{login}" for '
-                        'the application with id "{id_app}"').format(
-                            login=login, id_app=id_app
-                         )
+                'msg': (
+                    'No user found with the username "{login}" for '
+                    'the application with id "{id_app}"'
+                ).format(login=login, id_app=id_app)
             })
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
             return Response(msg, status=status_code)

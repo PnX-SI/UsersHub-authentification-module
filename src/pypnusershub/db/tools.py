@@ -86,12 +86,12 @@ def user_from_token(token, secret_key=None):
                       .one())
 
     except NoResultFound:
-        return UnreadableAccessRightsError(
+        raise UnreadableAccessRightsError(
             'No user withd id "{}" for app "{}"'.format(id_role, id_app)
         )
     except SignatureExpired:
         raise AccessRightsExpiredError("Token expired")
 
     except BadSignature:
-        return UnreadableAccessRightsError('Token BadSignature', 403)
+        raise UnreadableAccessRightsError('Token BadSignature', 403)
 
