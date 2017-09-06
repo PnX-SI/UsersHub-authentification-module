@@ -72,6 +72,9 @@ class User(db.Model):
     def __repr__(self):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
+    def __str__(self):
+        return self.identifiant
+
 
 class Application(db.Model):
     '''
@@ -86,6 +89,9 @@ class Application(db.Model):
     def __repr__(self):
         return "<Application {!r}>".format(self.nom_application)
 
+    def __str__(self):
+        return self.nom_application
+
 
 class ApplicationRight(db.Model):
     '''
@@ -99,6 +105,9 @@ class ApplicationRight(db.Model):
 
     def __repr__(self):
         return "<ApplicationRight {!r}>".format(self.desc_droit)
+
+    def __str__(self):
+        return self.nom_droit
 
 
 class UserApplicationRight(db.Model):
