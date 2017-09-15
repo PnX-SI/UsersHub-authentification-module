@@ -84,7 +84,7 @@ class User(db.Model):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
     def __str__(self):
-        return self.identifiant
+        return self.identifiant or ''
 
 
 class Application(db.Model):
