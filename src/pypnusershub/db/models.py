@@ -11,17 +11,26 @@ import hashlib
 
 from flask_sqlalchemy import SQLAlchemy
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Sequence
 
 db = SQLAlchemy()
+
 
 
 class User(db.Model):
 
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
+
+    TABLE_ID = Sequence('t_roles_id_seq', start=1000)
+
     groupe = db.Column(db.Boolean)
-    id_role = db.Column(db.Integer, primary_key=True)
+    id_role = db.Column(
+        db.Integer,
+        TABLE_ID,
+        primary_key=True,
+        server_default=TABLE_ID.next_value()
+    )
     # TODO: make that unique ?
     identifiant = db.Column(db.Unicode)
     nom_role = db.Column(db.Unicode)
