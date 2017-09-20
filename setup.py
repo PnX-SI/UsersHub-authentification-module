@@ -7,6 +7,8 @@ from __future__ import ( print_function,
 import re
 import setuptools
 
+from codecs import open
+
 def get_version(path="src/pypnusershub/__init__.py"):
     """ Return the version of by with regex intead of importing it"""
     init_content = open(path, "rt").read()
@@ -18,7 +20,7 @@ setuptools.setup(
     name='pypnusershub',
     version=get_version(),
     description="Python lib to authenticate using PN's UsersHub",
-    long_description=open('README.md').read().strip(),
+    long_description=open('README.md', encoding="utf8").read().strip(),
     author="Les parcs nationaux de France",
     url='https://github.com/PnX-SI/UsersHub-authentification-module',
     packages=setuptools.find_packages('src'),

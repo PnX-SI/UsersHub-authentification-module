@@ -12,6 +12,7 @@ import hashlib
 from flask_sqlalchemy import SQLAlchemy
 
 from sqlalchemy.orm import relationship
+from sqlalchemy import Sequence
 
 db = SQLAlchemy()
 
@@ -20,8 +21,18 @@ class User(db.Model):
 
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
+
+    TABLE_ID = Sequence(
+        't_roles_id_seq',
+        schema="utilisateurs",
+    )
+
     groupe = db.Column(db.Boolean)
-    id_role = db.Column(db.Integer, primary_key=True)
+    id_role = db.Column(
+        db.Integer,
+        TABLE_ID,
+        primary_key=True,
+    )
     # TODO: make that unique ?
     identifiant = db.Column(db.Unicode)
     nom_role = db.Column(db.Unicode)
@@ -73,7 +84,7 @@ class User(db.Model):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
     def __str__(self):
-        return self.identifiant
+        return self.identifiant or ''
 
 
 class Application(db.Model):
