@@ -160,7 +160,6 @@ def check_auth(
 
 def check_auth_cruved(
     action,
-    type,
     get_role=False,
     redirect_on_expiration=None,
     redirect_on_invalid_token=None,
@@ -173,13 +172,12 @@ def check_auth_cruved(
 
                 user = user_from_token_foraction(request.cookies['token'], action)
 
-                if user.max_gn_data_type < type:
-                    # TODO: english error message ?
+                if (user is None):
                     print('Niveau de droit insufissants')
                     return Response('Forbidden', 403)
 
                 if get_role:
-                    kwargs['id_role'] = user.id_role
+                    kwargs['info_role'] = (user.id_role, user.max_gn_data_type)
 
                 g.user = user
 
