@@ -154,6 +154,7 @@ class AppUser(db.Model):
         db.ForeignKey('utilisateurs.t_applications.id_application'),
         primary_key=True
     )
+    id_organisme = db.Column(db.Integer)
     application = relationship("Application", backref="app_users")
     identifiant = db.Column(db.Unicode)
     _password = db.Column('pass', db.Unicode)

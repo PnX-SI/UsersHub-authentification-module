@@ -228,9 +228,8 @@ def login():
 
     try:
         user_data = request.json
-
+        print(user_data)
         try:
-
             id_app = user_data['id_application']
             login = user_data['login']
             user = (models.AppUser
@@ -238,6 +237,20 @@ def login():
                           .filter(models.AppUser.identifiant == login)
                           .filter(models.AppUser.id_application == id_app)
                           .one())
+
+            user_dict = user.as_dict()
+
+            if ('with_cruved' in user_data):
+                cruved = (models.VUsersactionForallGnModules.query
+                 .filter(models.VUsersactionForallGnModules.id_role == user.id_role)
+                 .all())
+
+                user_dict['rights'] = {}
+                for c in cruved:
+                    if (c.id_application in user_dict['rights']):
+                        user_dict['rights'][c.id_application][c.gn_action_code] = c.max_gn_data_type
+                    else:
+                        user_dict['rights'][c.id_application] = {c.gn_action_code: c.max_gn_data_type}
 
         except KeyError as e:
             parameters = ", ".join(e.args)
@@ -264,6 +277,7 @@ def login():
             return Response(msg, status=status_code)
 
         except Exception as e:
+            print(e)
             msg = json.dumps({
                 'type': 'bug',
                 'msg': 'Unkown error during login'
@@ -284,7 +298,7 @@ def login():
         token = s.dumps(user.as_dict())
         cookie_exp = datetime.datetime.utcnow()
         cookie_exp += datetime.timedelta(seconds=expiration)
-        resp = Response(json.dumps({'user': user.as_dict(),
+        resp = Response(json.dumps({'user': user_dict,
                                     'expires': str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
 
