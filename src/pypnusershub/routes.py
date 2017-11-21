@@ -21,7 +21,8 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from pypnusershub.db import models
 from pypnusershub.db.tools import (
-    user_from_token, UnreadableAccessRightsError,
+    user_from_token, user_from_token_foraction,
+    UnreadableAccessRightsError,
     AccessRightsExpiredError
 )
 
@@ -164,14 +165,16 @@ def check_auth_cruved(
     redirect_on_expiration=None,
     redirect_on_invalid_token=None,
 ):
-    def _check_auth(fn):
+    def _check_auth_cruved(fn):
         @wraps(fn)
-        def __check_auth(*args, **kwargs):
+        def __check_auth_cruved(*args, **kwargs):
             try:
                 # TODO: better name and configurability for the token
-                user = user_from_token_foraction(request.cookies['token'], action)
 
-                if user.max_gn_data_type < level:
+                # user = user_from_token_foraction(request.cookies['token'], action)
+                user = user_from_token_foraction(1, action)
+
+                if user.max_gn_data_type < type:
                     # TODO: english error message ?
                     print('Niveau de droit insufissants')
                     return Response('Forbidden', 403)
@@ -219,8 +222,8 @@ def check_auth_cruved(
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
                 return Response(msg, 403)
 
-        return __check_auth
-    return _check_auth
+        return __check_auth_cruved
+    return _check_auth_cruved
 
 
 @routes.route('/login', methods=['POST'])

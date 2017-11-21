@@ -106,6 +106,7 @@ def user_from_token_foraction(token, action, secret_key=None):
 
         id_role = data['id_role']
         id_app = data['id_application']
+
         return (models.VUsersactionForallGnModules
                       .query
                       .filter(models.VUsersactionForallGnModules.id_role == id_role)
