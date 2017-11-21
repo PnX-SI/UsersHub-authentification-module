@@ -171,8 +171,7 @@ def check_auth_cruved(
             try:
                 # TODO: better name and configurability for the token
 
-                # user = user_from_token_foraction(request.cookies['token'], action)
-                user = user_from_token_foraction(1, action)
+                user = user_from_token_foraction(request.cookies['token'], action)
 
                 if user.max_gn_data_type < type:
                     # TODO: english error message ?
