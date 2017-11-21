@@ -177,3 +177,26 @@ class AppUser(db.Model):
         return "<AppUser role='{}' app='{}'>".format(
             self.id_role, self.id_application
         )
+
+
+# ---------- Géonature model ----------
+
+class VUsersactionForallGnModules(db.Model):
+    '''
+    Droit d'acces d'un user particulier a une application particuliere
+    '''
+    __tablename__ = 'v_usersaction_forall_gn_modules'
+    __table_args__ = {'schema': 'gn_users'}
+    id_role = db.Column(db.Integer, primary_key=True)
+    id_application = db.Column(db.Integer, primary_key=True)
+    id_organisme = db.Column(db.Integer)
+    id_gn_action = db.Column(db.Integer, primary_key=True)
+    gn_action_code = db.Column(db.Unicode)
+    max_gn_data_type = db.Column(db.Integer, primary_key=True)
+
+    def __repr__(self):
+        return "VUsersactionForallGnModules role='{}' action='{}' droit='{}' app='{}'>"\
+            .format(
+                self.id_role, self.gn_action_code,
+                self.max_gn_data_type, self.id_application
+            )

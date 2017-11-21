@@ -95,3 +95,30 @@ def user_from_token(token, secret_key=None):
     except BadSignature:
         raise UnreadableAccessRightsError('Token BadSignature', 403)
 
+
+def user_from_token_foraction(token, action, secret_key=None):
+
+    secret_key = secret_key or current_app.config['SECRET_KEY']
+
+    try:
+        s = Serializer(current_app.config['SECRET_KEY'])
+        data = s.loads(token)
+
+        id_role = data['id_role']
+        id_app = data['id_application']
+        return (models.VUsersactionForallGnModules
+                      .query
+                      .filter(models.VUsersactionForallGnModules.id_role == id_role)
+                      .filter(models.VUsersactionForallGnModules.id_application == id_app)
+                      .filter(models.VUsersactionForallGnModules.id_gn_action == action)
+                      .one())
+
+    except NoResultFound:
+        raise UnreadableAccessRightsError(
+            'No user withd id "{}" for app "{}"'.format(id_role, id_app)
+        )
+    except SignatureExpired:
+        raise AccessRightsExpiredError("Token expired")
+
+    except BadSignature:
+        raise UnreadableAccessRightsError('Token BadSignature', 403)

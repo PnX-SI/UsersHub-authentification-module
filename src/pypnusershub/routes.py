@@ -157,6 +157,72 @@ def check_auth(
     return _check_auth
 
 
+def check_auth_cruved(
+    action,
+    type,
+    get_role=False,
+    redirect_on_expiration=None,
+    redirect_on_invalid_token=None,
+):
+    def _check_auth(fn):
+        @wraps(fn)
+        def __check_auth(*args, **kwargs):
+            try:
+                # TODO: better name and configurability for the token
+                user = user_from_token_foraction(request.cookies['token'], action)
+
+                if user.max_gn_data_type < level:
+                    # TODO: english error message ?
+                    print('Niveau de droit insufissants')
+                    return Response('Forbidden', 403)
+
+                if get_role:
+                    kwargs['id_role'] = user.id_role
+
+                g.user = user
+
+                return fn(*args, **kwargs)
+
+            except AccessRightsExpiredError:
+                print('expired')  # TODO: turn prints into logging
+                if redirect_on_expiration:
+                    res = redirect(redirect_on_expiration, code=302)
+                    res.set_cookie('token', '', expires=0)
+                    return res
+                return Response('Token Expired', 403)
+
+            except KeyError as e:
+                if 'token' not in e.args:
+                    raise
+                if redirect_on_expiration:
+                    return redirect(redirect_on_expiration, code=302)
+                return Response('No token', 403)
+
+            except UnreadableAccessRightsError:
+                print('BadSignature')
+                # invalid token,
+                if redirect_on_invalid_token:
+                    res = redirect(redirect_on_invalid_token, code=302)
+                    res.set_cookie('token', '', expires=0)
+                    return res
+                return Response('Token BadSignature', 403)
+
+            except Exception as e:
+                trap_all_exceptions = current_app.config.get(
+                    'TRAP_ALL_EXCEPTIONS',
+                    True
+                )
+                if not trap_all_exceptions:
+                    raise
+                print('Exception')
+                print(e)
+                msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
+                return Response(msg, 403)
+
+        return __check_auth
+    return _check_auth
+
+
 @routes.route('/login', methods=['POST'])
 def login():
 
