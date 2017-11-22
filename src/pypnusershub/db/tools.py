@@ -111,7 +111,7 @@ def user_from_token_foraction(token, action, secret_key=None):
                       .query
                       .filter(models.VUsersactionForallGnModules.id_role == id_role)
                       .filter(models.VUsersactionForallGnModules.id_application == id_app)
-                      .filter(models.VUsersactionForallGnModules.id_gn_action == action)
+                      .filter(models.VUsersactionForallGnModules.tag_action_code == action)
                       .one())
 
     except NoResultFound:
