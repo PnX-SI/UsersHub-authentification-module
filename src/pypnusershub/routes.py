@@ -16,10 +16,11 @@ from functools import wraps
 from flask import Blueprint, request, Response, current_app, redirect, g
 
 from sqlalchemy.orm import exc
+import sqlalchemy as sa
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from pypnusershub.db import models
+from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
     user_from_token, user_from_token_foraction,
     UnreadableAccessRightsError,
@@ -228,7 +229,6 @@ def login():
 
     try:
         user_data = request.json
-        print(user_data)
         try:
             id_app = user_data['id_application']
             login = user_data['login']
@@ -242,15 +242,22 @@ def login():
 
             if ('with_cruved' in user_data):
                 cruved = (models.VUsersactionForallGnModules.query
-                 .filter(models.VUsersactionForallGnModules.id_role == user.id_role)
-                 .all())
+                    .join(models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action)
+                    .filter(models.TTags.id_tag_type == 2)
+                    .filter(models.VUsersactionForallGnModules.id_role == user.id_role)
+                    .filter(
+                        models.VUsersactionForallGnModules.id_application.in_(
+                            sa.func.gn_users.find_all_modules_childs(id_app).select()
+                        )
+                    ).all()
+                )
 
                 user_dict['rights'] = {}
                 for c in cruved:
                     if (c.id_application in user_dict['rights']):
-                        user_dict['rights'][c.id_application][c.gn_action_code] = c.max_gn_data_type
+                        user_dict['rights'][c.id_application][c.tag_action_code] = c.tag_object_code
                     else:
-                        user_dict['rights'][c.id_application] = {c.gn_action_code: c.max_gn_data_type}
+                        user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
 
         except KeyError as e:
             parameters = ", ".join(e.args)

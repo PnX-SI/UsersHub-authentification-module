@@ -191,13 +191,33 @@ class VUsersactionForallGnModules(db.Model):
     id_role = db.Column(db.Integer, primary_key=True)
     id_application = db.Column(db.Integer, primary_key=True)
     id_organisme = db.Column(db.Integer)
-    id_gn_action = db.Column(db.Integer, primary_key=True)
-    gn_action_code = db.Column(db.Unicode)
-    max_gn_data_type = db.Column(db.Integer, primary_key=True)
+    id_tag_action = db.Column(db.Integer, primary_key=True)
+    tag_action_code = db.Column(db.Unicode)
+    id_tag_object = db.Column(db.Integer, primary_key=True)
+    tag_object_code = db.Column(db.Unicode)
 
     def __repr__(self):
-        return "VUsersactionForallGnModules role='{}' action='{}' droit='{}' app='{}'>"\
-            .format(
-                self.id_role, self.gn_action_code,
-                self.max_gn_data_type, self.id_application
+        return """VUsersactionForallGnModules
+            role='{}' action='{}' porté='{}' app='{}'>""".format(
+                self.id_role, self.tag_action_code,
+                self.tag_object_code, self.id_application
+            )
+
+
+class TTags(db.Model):
+    '''
+    Droit d'acces d'un user particulier a une application particuliere
+    '''
+    __tablename__ = 't_tags'
+    __table_args__ = {'schema': 'gn_users'}
+    id_tag = db.Column(db.Integer, primary_key=True)
+    id_tag_type = db.Column(db.Integer)
+    tag_code = db.Column(db.Unicode)
+    tag_name = db.Column(db.Unicode)
+    tag_label = db.Column(db.Unicode)
+    tag_desc = db.Column(db.Unicode)
+
+    def __repr__(self):
+        return """TTags id='{}' code='{}' name='{}'>""".format(
+                self.id_tag, self.tag_code, self.tag_name
             )
