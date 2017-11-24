@@ -17,6 +17,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
 from pypnusershub.db import models
 from pypnusershub.utils import text_resource_stream
 
+
 class AccessRightsError(Exception):
     pass
 
@@ -108,11 +109,11 @@ def user_from_token_foraction(token, action, secret_key=None):
         id_app = data['id_application']
 
         return (models.VUsersactionForallGnModules
-                      .query
-                      .filter(models.VUsersactionForallGnModules.id_role == id_role)
-                      .filter(models.VUsersactionForallGnModules.id_application == id_app)
-                      .filter(models.VUsersactionForallGnModules.tag_action_code == action)
-                      .one())
+                  .query
+                  .filter(models.VUsersactionForallGnModules.id_role == id_role)
+                  .filter(models.VUsersactionForallGnModules.id_application == id_app)
+                  .filter(models.VUsersactionForallGnModules.tag_action_code == action)
+                  .first())
 
     except NoResultFound:
         raise UnreadableAccessRightsError(
