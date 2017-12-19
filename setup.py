@@ -25,7 +25,7 @@ setuptools.setup(
     url='https://github.com/PnX-SI/UsersHub-authentification-module',
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
-    install_requires=list(open('requirements.txt')),
+    install_requires=list(open('requirements.txt', 'r')),
     include_package_data=True,
     zip_safe=False,
     keywords='ww',

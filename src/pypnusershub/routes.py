@@ -178,7 +178,7 @@ def check_auth_cruved(
                     return Response('Forbidden', 403)
 
                 if get_role:
-                    kwargs['info_role'] = (user.id_role, user.tag_object_code)
+                    kwargs['info_role'] = (user, user.tag_object_code)
 
                 g.user = user
 
@@ -222,6 +222,11 @@ def check_auth_cruved(
 
         return __check_auth_cruved
     return _check_auth_cruved
+
+def get_cruved(id_role, id_application):
+    data = db.session.query(sa.func.gn_users.cruved_for_user_in_module(id_role, id_application)).one()
+    if data:
+        return data[0]
 
 
 @routes.route('/login', methods=['POST'])
