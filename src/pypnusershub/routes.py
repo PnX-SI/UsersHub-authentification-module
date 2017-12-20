@@ -224,7 +224,7 @@ def check_auth_cruved(
     return _check_auth_cruved
 
 def get_cruved(id_role, id_application):
-    data = db.session.query(sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)).one()
+    data = db.session.query(sa.func.gn_users.cruved_for_user_in_module(id_role, id_application)).one()
     if data:
         return data[0]
 
