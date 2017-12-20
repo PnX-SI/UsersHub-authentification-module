@@ -253,7 +253,7 @@ def login():
                         .filter(models.VUsersactionForallGnModules.id_role == user.id_role)
                         .filter(
                             models.VUsersactionForallGnModules.id_application.in_(
-                                sa.func.utilisateurs.find_all_modules_childs(id_app).select()
+                                sa.func.gn_users.find_all_modules_childs(id_app).select()
                             )
                         ).all()
                         )
