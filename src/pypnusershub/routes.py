@@ -125,7 +125,9 @@ def check_auth(
                     res = redirect(redirect_on_expiration, code=302)
                     res.set_cookie('token', '', expires=0)
                     return res
-                return Response('Token Expired', 403)
+                resp = Response('Token Expired', 403)
+                resp.set_cookie('token', '', expires=0)
+                return resp
 
             except KeyError as e:
                 if 'token' not in e.args:
@@ -141,7 +143,9 @@ def check_auth(
                     res = redirect(redirect_on_invalid_token, code=302)
                     res.set_cookie('token', '', expires=0)
                     return res
-                return Response('Token BadSignature', 403)
+                resp = Response('Token Expired', 403)
+                resp.set_cookie('token', '', expires=0)
+                return resp
 
             except Exception as e:
                 trap_all_exceptions = current_app.config.get(
@@ -190,7 +194,9 @@ def check_auth_cruved(
                     res = redirect(redirect_on_expiration, code=302)
                     res.set_cookie('token', '', expires=0)
                     return res
-                return Response('Token Expired', 403)
+                resp = Response('Token Expired', 403)
+                resp.set_cookie('token', '', expires=0)
+                return resp
 
             except KeyError as e:
                 if 'token' not in e.args:
@@ -206,7 +212,9 @@ def check_auth_cruved(
                     res = redirect(redirect_on_invalid_token, code=302)
                     res.set_cookie('token', '', expires=0)
                     return res
-                return Response('Token BadSignature', 403)
+                resp = Response('Token Expired', 403)
+                resp.set_cookie('token', '', expires=0)
+                return resp
 
             except Exception as e:
                 trap_all_exceptions = current_app.config.get(
