@@ -117,8 +117,6 @@ def check_auth(
 
                 g.user = user
 
-                return fn(*args, **kwargs)
-
             except AccessRightsExpiredError:
                 print('expired')  # TODO: turn prints into logging
                 if redirect_on_expiration:
@@ -158,6 +156,8 @@ def check_auth(
                 print(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
                 return Response(msg, 403)
+            
+            return fn(*args, **kwargs)
 
         return __check_auth
     return _check_auth
@@ -186,8 +186,6 @@ def check_auth_cruved(
 
                 g.user = user
 
-                return fn(*args, **kwargs)
-
             except AccessRightsExpiredError:
                 print('expired')  # TODO: turn prints into logging
                 if redirect_on_expiration:
@@ -227,6 +225,8 @@ def check_auth_cruved(
                 print(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
                 return Response(msg, 403)
+            
+            return fn(*args, **kwargs)
 
         return __check_auth_cruved
     return _check_auth_cruved
