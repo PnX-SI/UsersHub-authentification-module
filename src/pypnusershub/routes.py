@@ -182,7 +182,7 @@ def check_auth_cruved(
                     return Response('Forbidden', 403)
 
                 if get_role:
-                    kwargs['info_role'] = (user, user.tag_object_code)
+                    kwargs['info_role'] = user
 
                 g.user = user
                 return fn(*args, **kwargs)
