@@ -120,12 +120,12 @@ def check_auth(
                 return fn(*args, **kwargs)
 
             except AccessRightsExpiredError:
-                print('expired')  # TODO: turn prints into logging
                 if redirect_on_expiration:
                     res = redirect(redirect_on_expiration, code=302)
-                    res.set_cookie('token', '', expires=0)
-                    return res
-                return Response('Token Expired', 403)
+                else:
+                    res = Response('Token Expired', 403)
+                res.set_cookie('token', '', expires=0)
+                return res
 
             except KeyError as e:
                 if 'token' not in e.args:
@@ -139,9 +139,10 @@ def check_auth(
                 # invalid token,
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
-                    res.set_cookie('token', '', expires=0)
-                    return res
-                return Response('Token BadSignature', 403)
+                else:
+                    res = Response('Token BadSignature', 403)
+                res.set_cookie('token', '', expires=0)
+                return res
 
             except Exception as e:
                 trap_all_exceptions = current_app.config.get(
@@ -171,7 +172,10 @@ def check_auth_cruved(
             try:
                 # TODO: better name and configurability for the token
 
-                user = user_from_token_foraction(request.cookies['token'], action)
+                user = user_from_token_foraction(
+                    request.cookies['token'],
+                    action
+                )
 
                 if (user is None):
                     print('Niveau de droit insufissants')
@@ -181,16 +185,15 @@ def check_auth_cruved(
                     kwargs['info_role'] = (user, user.tag_object_code)
 
                 g.user = user
-
                 return fn(*args, **kwargs)
 
             except AccessRightsExpiredError:
-                print('expired')  # TODO: turn prints into logging
                 if redirect_on_expiration:
                     res = redirect(redirect_on_expiration, code=302)
-                    res.set_cookie('token', '', expires=0)
-                    return res
-                return Response('Token Expired', 403)
+                else:
+                    res = Response('Token Expired', 403)
+                res.set_cookie('token', expires=0)
+                return res
 
             except KeyError as e:
                 if 'token' not in e.args:
@@ -204,9 +207,10 @@ def check_auth_cruved(
                 # invalid token,
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
-                    res.set_cookie('token', '', expires=0)
-                    return res
-                return Response('Token BadSignature', 403)
+                else:
+                    Response('Token BadSignature', 403)
+                res.set_cookie('token', '', expires=0)
+                return res
 
             except Exception as e:
                 trap_all_exceptions = current_app.config.get(
@@ -224,7 +228,9 @@ def check_auth_cruved(
     return _check_auth_cruved
 
 def get_cruved(id_role, id_application):
-    data = db.session.query(sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)).one()
+    data = db.session.query(
+        sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
+    ).one()
     if data:
         return data[0]
 
