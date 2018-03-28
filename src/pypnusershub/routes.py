@@ -9,6 +9,7 @@ routes relatives aux application, utilisateurs et à l'authentification
 '''
 
 import json
+import logging
 
 import datetime
 from functools import wraps
@@ -28,6 +29,7 @@ from pypnusershub.db.tools import (
 )
 
 
+log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
 # to be a submodule for https://github.com/PnX-SI/TaxHub/
 # The original behavior from the lib is to rely on the side effects of
@@ -108,8 +110,7 @@ def check_auth(
                 user = user_from_token(request.cookies['token'])
 
                 if user.id_droit_max < level:
-                    # TODO: english error message ?
-                    print('Niveau de droit insufissants')
+                    log.info('Privilege too low')
                     return Response('Forbidden', 403)
 
                 if get_role:
@@ -135,7 +136,7 @@ def check_auth(
                 return Response('No token', 403)
 
             except UnreadableAccessRightsError:
-                print('BadSignature')
+                log.info('Invalid Token : BadSignature')
                 # invalid token,
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
@@ -151,8 +152,7 @@ def check_auth(
                 )
                 if not trap_all_exceptions:
                     raise
-                print('Exception')
-                print(e)
+                log.critical(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
                 return Response(msg, 403)
 
@@ -178,7 +178,7 @@ def check_auth_cruved(
                 )
 
                 if (user is None):
-                    print('Niveau de droit insufissants')
+                    log.info('Privilege too low')
                     return Response('Forbidden', 403)
 
                 if get_role:
@@ -203,13 +203,13 @@ def check_auth_cruved(
                 return Response('No token', 403)
 
             except UnreadableAccessRightsError:
-                print('BadSignature')
+                log.info('Invalid Token : BadSignature')
                 # invalid token,
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
                     Response('Token BadSignature', 403)
-                res.set_cookie('token', '', expires=0)
+                res.set_cookie('token',  expires=0)
                 return res
 
             except Exception as e:
@@ -219,13 +219,13 @@ def check_auth_cruved(
                 )
                 if not trap_all_exceptions:
                     raise
-                print('Exception')
-                print(e)
+                log.critical(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
                 return Response(msg, 403)
 
         return __check_auth_cruved
     return _check_auth_cruved
+
 
 def get_cruved(id_role, id_application):
     data = db.session.query(
@@ -253,16 +253,19 @@ def login():
 
             if ('with_cruved' in user_data):
                 if (user_data['with_cruved'] is True):
-                    cruved = (models.VUsersactionForallGnModules.query
-                        .join(models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action)
-                        .filter(models.TTags.id_tag_type == 2)
-                        .filter(models.VUsersactionForallGnModules.id_role == user.id_role)
-                        .filter(
+                    cruved = (
+                        models.VUsersactionForallGnModules.query.join(
+                            models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
+                        ).filter(
+                            models.TTags.id_tag_type == 2
+                        ).filter(
+                            models.VUsersactionForallGnModules.id_role == user.id_role
+                        ).filter(
                             models.VUsersactionForallGnModules.id_application.in_(
                                 sa.func.utilisateurs.find_all_modules_childs(id_app).select()
                             )
                         ).all()
-                        )
+                    )
 
                     user_dict['rights'] = {}
                     for c in cruved:
@@ -296,7 +299,7 @@ def login():
             return Response(msg, status=status_code)
 
         except Exception as e:
-            print(e)
+            log.critical(e)
             msg = json.dumps({
                 'type': 'bug',
                 'msg': 'Unkown error during login'
