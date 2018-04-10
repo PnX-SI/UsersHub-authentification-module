@@ -251,7 +251,7 @@ def login():
 
             user_dict = user.as_dict()
 
-            if user_data.get( 'with_cruved', False) is True:
+            if user_data.get('with_cruved', False) is True:
                 cruved = (
                     models.VUsersactionForallGnModules.query.join(
                         models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
