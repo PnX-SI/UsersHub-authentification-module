@@ -241,13 +241,17 @@ def cruved_for_user_in_app(id_role=None, id_application=None):
     user_cruved = q.all()
     # all actions are defined
     if len(user_cruved) == 6:
-        return {d[0]:d[1] for d in user_cruved}
+        return [{'action': d[0], 'level': d[1]} for d in user_cruved]
     # some actions are missing
     else:
         cruved = ['C', 'R', 'U', 'V', 'E', 'D']
-        updated_cruved = {}
+        updated_cruved = []
         for action in cruved:
-            updated_cruved[action] = level_for_action(action, user_cruved)
+            action_level = {
+                'action': action,
+                'level': level_for_action(action, user_cruved)
+            }
+            updated_cruved.append(action_level)
     return updated_cruved
 
 def level_for_action(action, user_cruved):
