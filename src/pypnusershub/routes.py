@@ -227,12 +227,40 @@ def check_auth_cruved(
     return _check_auth_cruved
 
 
-def get_cruved(id_role, id_application):
-    data = db.session.query(
-        sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
-    ).one()
-    if data:
-        return data[0]
+def cruved_for_user_in_app(id_role=None, id_application=None):
+    q = db.session.query(
+            models.VUsersactionForallGnModules.tag_action_code,
+            sa.func.max(models.VUsersactionForallGnModules.tag_object_code)
+        ).group_by(
+            models.VUsersactionForallGnModules.tag_action_code
+        ).filter(
+            models.VUsersactionForallGnModules.id_role == id_role
+        ).filter(
+            models.VUsersactionForallGnModules.id_application == id_application
+        )
+    user_cruved = q.all()
+    # all actions are defined
+    if len(user_cruved) == 6:
+        return {d[0]:d[1] for d in user_cruved}
+    # some actions are missing
+    else:
+        cruved = ['C', 'R', 'U', 'V', 'E', 'D']
+        updated_cruved = {}
+        for action in cruved:
+            updated_cruved[action] = level_for_action(action, user_cruved)
+    return updated_cruved
+
+def level_for_action(action, user_cruved):
+    """
+    check if the action in parameter is defined in the user cruved
+    and return the level for this action, 0 if not exist
+    """
+    level = 0
+    for a in user_cruved:
+        if action == a[0]:
+            level = a[1]
+            break
+    return level
 
 
 @routes.route('/login', methods=['POST'])
