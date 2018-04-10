@@ -185,9 +185,9 @@ class AppUser(db.Model):
 
     def check_password(self, pwd):
         if (current_app.config['PASS_METHOD'] == 'md5'):
-            return self._password
+            return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
         elif (current_app.config['PASS_METHOD'] == 'hash'):
-            return self._password_plus
+            return checkpw(pwd.encode('utf8'), self._password_plus.encode('utf8'))
         else:
             raise
 
