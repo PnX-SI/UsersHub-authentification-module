@@ -15,7 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import current_app
 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Sequence
+from sqlalchemy import Sequence, func
 db = SQLAlchemy()
 
 
@@ -222,6 +222,43 @@ class VUsersactionForallGnModules(db.Model):
                 self.id_role, self.tag_action_code,
                 self.tag_object_code, self.id_application
             )
+
+    @staticmethod
+    def cruved_for_user_in_app(id_role=None, id_application=None):
+        q = db.session.query(
+                VUsersactionForallGnModules.tag_action_code,
+                func.max(VUsersactionForallGnModules.tag_object_code)
+            ).group_by(
+                VUsersactionForallGnModules.tag_action_code
+            ).filter(
+                VUsersactionForallGnModules.id_role == id_role
+            ).filter(
+                VUsersactionForallGnModules.id_application == id_application
+            )
+        user_cruved = q.all()
+        # all actions are defined
+        if len(user_cruved) == 6:
+            return {d[0]:d[1] for d in user_cruved}
+        # some actions are missing
+        else:
+            cruved = ['C', 'R', 'U', 'V', 'E', 'D']
+            updated_cruved = {}
+            for action in cruved:
+                updated_cruved[action] = level_for_action(action, user_cruved)
+        return updated_cruved
+
+
+def level_for_action(action, user_cruved):
+    """
+    check if the action in parameter is defined in the user cruved
+    and return the level for this action, 0 if not exist
+    """
+    level = 0
+    for a in user_cruved:
+        if action == a[0]:
+            level = a[1]
+            break
+    return level
 
 
 class TTags(db.Model):
