@@ -251,28 +251,37 @@ def login():
 
             user_dict = user.as_dict()
 
-            if ('with_cruved' in user_data):
-                if (user_data['with_cruved'] is True):
-                    cruved = (
-                        models.VUsersactionForallGnModules.query.join(
-                            models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
-                        ).filter(
-                            models.TTags.id_tag_type == 2
-                        ).filter(
-                            models.VUsersactionForallGnModules.id_role == user.id_role
-                        ).filter(
-                            models.VUsersactionForallGnModules.id_application.in_(
-                                sa.func.utilisateurs.find_all_modules_childs(id_app).select()
-                            )
-                        ).all()
-                    )
+            if user_data.get('with_cruved', False) is True:
+                cruved = (
+                    models.VUsersactionForallGnModules.query.join(
+                        models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
+                    ).filter(
+                        models.TTags.id_tag_type == 2
+                    ).filter(
+                        models.VUsersactionForallGnModules.id_role == user.id_role
+                    ).filter(
+                        models.VUsersactionForallGnModules.id_application.in_(
+                            sa.func.utilisateurs.find_all_modules_childs(id_app).select()
+                        )
+                    ).all()
+                )
 
-                    user_dict['rights'] = {}
-                    for c in cruved:
-                        if (c.id_application in user_dict['rights']):
-                            user_dict['rights'][c.id_application][c.tag_action_code] = c.tag_object_code
-                        else:
-                            user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
+                user_dict['rights'] = {}
+                for c in cruved:
+                    if (c.id_application in user_dict['rights']):
+                        user_dict['rights'][c.id_application][c.tag_action_code] = c.tag_object_code
+                    else:
+                        user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
+            else:
+                # Return child application
+                sub_app = models.AppUser.query.join(
+                    models.Application, models.Application.id_application == models.AppUser.id_application
+                ).filter(
+                    models.Application.id_parent == id_app
+                ).all()
+
+                user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
+                
 
         except KeyError as e:
             parameters = ", ".join(e.args)

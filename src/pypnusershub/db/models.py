@@ -109,7 +109,8 @@ class Application(db.Model):
     id_application = db.Column(db.Integer, primary_key=True)
     nom_application = db.Column(db.Unicode)
     desc_application = db.Column(db.Unicode)
-
+    id_parent = db.Column(db.Integer)
+    
     def __repr__(self):
         return "<Application {!r}>".format(self.nom_application)
 
