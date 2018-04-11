@@ -21,6 +21,8 @@ from pypnusershub.utils import text_resource_stream
 class AccessRightsError(Exception):
     pass
 
+class CruvedImplementationError(Exception):
+    pass
 
 class InsufficientRightsError(AccessRightsError):
     pass
@@ -124,3 +126,6 @@ def user_from_token_foraction(token, action, secret_key=None):
 
     except BadSignature:
         raise UnreadableAccessRightsError('Token BadSignature', 403)
+
+
+
