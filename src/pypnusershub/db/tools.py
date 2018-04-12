@@ -9,12 +9,12 @@ from __future__ import (unicode_literals, print_function,
 from flask import current_app
 
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import create_engine
+import sqlalchemy as sa
 
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
                           SignatureExpired, BadSignature)
 
-from pypnusershub.db import models
+from pypnusershub.db import models, db
 from pypnusershub.utils import text_resource_stream
 
 
@@ -41,7 +41,7 @@ def init_schema(con_uri):
     with text_resource_stream('schema.sql', 'pypnusershub.db') as sql_file:
         sql = sql_file.read()
 
-    engine = create_engine(con_uri)
+    engine = sa.create_engine(con_uri)
     with engine.connect():
         engine.execute(sql)
         engine.execute("COMMIT")
@@ -49,7 +49,7 @@ def init_schema(con_uri):
 
 def delete_schema(con_uri):
 
-    engine = create_engine(con_uri)
+    engine = sa.create_engine(con_uri)
     with engine.connect():
         engine.execute("DROP SCHEMA IF EXISTS utilisateurs CASCADE")
         engine.execute("COMMIT")
@@ -63,7 +63,7 @@ def reset_schema(con_uri):
 def load_fixtures(con_uri):
     with text_resource_stream('fixtures.sql', 'pypnusershub.db') as sql_file:
 
-        engine = create_engine(con_uri)
+        engine = sa.create_engine(con_uri)
         with engine.connect():
             for line in sql_file:
                 if line.strip():
@@ -126,6 +126,76 @@ def user_from_token_foraction(token, action, secret_key=None):
 
     except BadSignature:
         raise UnreadableAccessRightsError('Token BadSignature', 403)
+
+def cruved_for_user_in_app(
+    id_role=None,
+    id_application=None,
+    id_application_parent=None
+    ):
+    """
+    Return the user cruved for an application
+    if no cruved for an app, the cruverd parent app is taken
+    Child app cruved alway overright parent app cruved 
+    """
+    user_cruved_app = db.session.query(
+        sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
+        ).one_or_none()
+    if user_cruved_app[0]:
+        user_cruved_app = user_cruved_app[0]
+        user_cruved_app = {d['action']:d['level'] for d in user_cruved_app}
+    else:
+        user_cruved_app = {}
+    if len(user_cruved_app) == 6:
+            return user_cruved_app   
+    #if the cruved is not complet, get the parent cruved
+    else:
+        try:
+            user_cruved_parent_app = db.session.query(
+                sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application_parent)
+                ).one()
+            assert user_cruved_parent_app[0] is not None
+        except AssertionError:
+                raise CruvedImplementationError("No Cruved definition for parent app")
+        
+        user_cruved_parent_app = {d['action']:d['level'] for d in user_cruved_parent_app[0]}
+        updated_cruved = {}
+        cruved = ['C', 'R', 'U', 'V', 'E', 'D']
+
+        for action in cruved:
+            if action in user_cruved_app:
+                updated_cruved[action] = user_cruved_app[action]
+            elif action in user_cruved_parent_app:
+                updated_cruved[action] = user_cruved_parent_app[action]
+            else:
+                updated_cruved[action] = '0'
+        return updated_cruved
+
+
+
+def get_or_fetch_user_cruved(
+    session=None,
+    id_role=None,
+    id_application=None,
+    id_application_parent=None
+):
+    """
+        Check if the cruved is in the session
+        if not, get the cruved from the DB with 
+        cruved_for_user_in_app()
+    """
+    str_id_app = str(id_application)
+    if str_id_app in session and 'user_cruved' in session[str_id_app]:
+        return session[str_id_app]['user_cruved']
+    else:
+        user_cruved = cruved_for_user_in_app(
+        id_role=id_role,
+        id_application=id_application,
+        id_application_parent=id_application_parent
+    )
+        session[str_id_app] = {}
+        session[str_id_app]['user_cruved'] = user_cruved
+    return user_cruved
+
 
 
 

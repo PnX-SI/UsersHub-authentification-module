@@ -117,6 +117,12 @@ class Application(db.Model):
     def __str__(self):
         return self.nom_application
 
+    @staticmethod
+    def get_application(nom_application):
+        return (Application.query
+        .filter(Application.nom_application == nom_application)
+        .one())
+
 
 class ApplicationRight(db.Model):
     '''

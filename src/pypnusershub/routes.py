@@ -14,7 +14,7 @@ import logging
 import datetime
 from functools import wraps
 
-from flask import Blueprint, request, Response, current_app, redirect, g
+from flask import Blueprint, request, Response, current_app, redirect, g, jsonify
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
@@ -26,7 +26,6 @@ from pypnusershub.db.tools import (
     user_from_token, user_from_token_foraction,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
-    CruvedImplementationError
 )
 
 
@@ -228,53 +227,6 @@ def check_auth_cruved(
     return _check_auth_cruved
 
 
-def cruved_for_user_in_app(
-    id_role=None,
-    id_application=None,
-    id_application_parent=None
-    ):
-    user_cruved_app = db.session.query(
-        sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
-        ).one_or_none()
-    if user_cruved_app[0]:
-        user_cruved_app = user_cruved_app[0]
-        user_cruved_app = {d['action']:d['level'] for d in user_cruved_app}
-    else:
-        user_cruved_app = {}
-    cruved = ['C', 'R', 'U', 'V', 'E', 'D']
-    updated_cruved = {}
-    if id_application_parent:
-        try:
-            user_cruved_parent_app = db.session.query(
-                sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application_parent)
-                ).one()
-            assert user_cruved_parent_app[0] is not None
-        except AssertionError:
-                raise CruvedImplementationError("No Cruved definition for parent app")
-        
-        user_cruved_parent_app = {d['action']:d['level'] for d in user_cruved_parent_app[0]}
-        
-        
-        if len(user_cruved_app) == 6:
-            return user_cruved_app
-        else:      
-            for action in cruved:
-                if action in user_cruved_app:
-                    updated_cruved[action] = user_cruved_app[action]
-                elif action in user_cruved_parent_app:
-                    updated_cruved[action] = user_cruved_parent_app[action]
-                else:
-                    updated_cruved[action] = 0
-        return updated_cruved
-    # if no application parent in parameter
-    else:
-        for action in cruved:
-            if action in user_cruved_app:
-                updated_cruved[action] = user_cruved_app[action]
-            else:
-                updated_cruved[action] = 0
-        return updated_cruved
-
 
 @routes.route('/login', methods=['POST'])
 def login():
@@ -386,12 +338,3 @@ def logout():
     resp.delete_cookie('token')
     return resp
 
-
-@routes.route('/test', methods=['GET', 'POST'])
-def test():
-    truc = cruved_for_user_in_app(
-        id_role=1,
-        id_application=28,
-    )
-    print(truc)
-    return 'resp'
