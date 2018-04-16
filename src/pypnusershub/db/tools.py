@@ -186,42 +186,6 @@ def cruved_for_user_in_app(
 
 
 
-    # user_cruved_app = db.session.query(
-    #     sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
-    #     ).one_or_none()
-    # if user_cruved_app[0]:
-    #     user_cruved_app = user_cruved_app[0]
-    #     user_cruved_app = {d['action']:d['level'] for d in user_cruved_app}
-    # else:
-    #     user_cruved_app = {}
-    # if len(user_cruved_app) == 6:
-    #         return user_cruved_app   
-    # #if the cruved is not complet, get the parent cruved
-    # else:
-    #     try:
-    #         user_cruved_parent_app = db.session.query(
-    #             sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application_parent)
-    #             ).one()
-    #         assert user_cruved_parent_app[0] is not None
-    #     except AssertionError:
-    #             raise CruvedImplementationError("No Cruved definition for parent app")
-        
-    #     user_cruved_parent_app = {d['action']:d['level'] for d in user_cruved_parent_app[0]}
-    #     updated_cruved = {}
-    #     cruved = ['C', 'R', 'U', 'V', 'E', 'D']
-
-    #     for action in cruved:
-    #         if action in user_cruved_app:
-    #             updated_cruved[action] = user_cruved_app[action]
-    #         elif action in user_cruved_parent_app:
-    #             updated_cruved[action] = user_cruved_parent_app[action]
-    #         else:
-    #             updated_cruved[action] = '0'
-    #     return updated_cruved
-
-
-
-
 
 
 
