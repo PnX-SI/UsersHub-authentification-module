@@ -99,8 +99,7 @@ def user_from_token(token, secret_key=None):
         raise UnreadableAccessRightsError('Token BadSignature', 403)
 
 
-def user_from_token_foraction(token, action, secret_key=None):
-
+def user_from_token_foraction(token, action, id_app, secret_key=None):
     secret_key = secret_key or current_app.config['SECRET_KEY']
 
     try:
@@ -108,18 +107,30 @@ def user_from_token_foraction(token, action, secret_key=None):
         data = s.loads(token)
 
         id_role = data['id_role']
-        id_app = data['id_application']
+        id_app_parent = data['id_application']
 
-        return (models.VUsersactionForallGnModules
-                  .query
-                  .filter(models.VUsersactionForallGnModules.id_role == id_role)
-                  .filter(models.VUsersactionForallGnModules.id_application == id_app)
-                  .filter(models.VUsersactionForallGnModules.tag_action_code == action)
-                  .first())
+        ors = [models.VUsersactionForallGnModules.id_application == id_app_parent]
+        q = (
+            models.VUsersactionForallGnModules
+                .query
+                .filter(models.VUsersactionForallGnModules.id_role == id_role)
+                .filter(models.VUsersactionForallGnModules.tag_action_code == action)
+        )
+        if id_app:
+            ors.append(models.VUsersactionForallGnModules.id_application == id_app['id_application'])
+
+        user_cruved = q.filter(sa.or_(*ors))
+
+        for user in user_cruved:
+            if user.id_application == id_app:
+                return user
+            else:
+                parent_app_user = user
+        return parent_app_user
 
     except NoResultFound:
         raise UnreadableAccessRightsError(
-            'No user withd id "{}" for app "{}"'.format(id_role, id_app)
+            'No cruved for user with id "{}" for app "{}"'.format(id_role, id_app)
         )
     except SignatureExpired:
         raise AccessRightsExpiredError("Token expired")
@@ -137,38 +148,80 @@ def cruved_for_user_in_app(
     if no cruved for an app, the cruverd parent app is taken
     Child app cruved alway overright parent app cruved 
     """
-    user_cruved_app = db.session.query(
-        sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
-        ).one_or_none()
-    if user_cruved_app[0]:
-        user_cruved_app = user_cruved_app[0]
-        user_cruved_app = {d['action']:d['level'] for d in user_cruved_app}
-    else:
-        user_cruved_app = {}
-    if len(user_cruved_app) == 6:
-            return user_cruved_app   
-    #if the cruved is not complet, get the parent cruved
-    else:
-        try:
-            user_cruved_parent_app = db.session.query(
-                sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application_parent)
-                ).one()
-            assert user_cruved_parent_app[0] is not None
-        except AssertionError:
-                raise CruvedImplementationError("No Cruved definition for parent app")
-        
-        user_cruved_parent_app = {d['action']:d['level'] for d in user_cruved_parent_app[0]}
-        updated_cruved = {}
-        cruved = ['C', 'R', 'U', 'V', 'E', 'D']
+    ors = [models.VUsersactionForallGnModules.id_application == id_application]
+    q = (
+        models.VUsersactionForallGnModules
+                .query
+                .filter(models.VUsersactionForallGnModules.id_role == id_role)
+    )
 
-        for action in cruved:
-            if action in user_cruved_app:
-                updated_cruved[action] = user_cruved_app[action]
-            elif action in user_cruved_parent_app:
-                updated_cruved[action] = user_cruved_parent_app[action]
-            else:
-                updated_cruved[action] = '0'
-        return updated_cruved
+    if id_application_parent:
+        ors.append(models.VUsersactionForallGnModules.id_application == id_application_parent)
+
+    q = q.filter(sa.or_(*ors))
+    
+    users_cruved = q.all()
+
+    parent_app_cruved = {}
+    child_cruved = {}
+
+    for user_cruved in users_cruved:
+        if user_cruved.id_application == id_application:
+            child_cruved[user_cruved.tag_action_code] = user_cruved.tag_object_code
+        else:
+            parent_app_cruved[user_cruved.tag_action_code] = user_cruved.tag_object_code
+    
+
+    cruved = ['C', 'R', 'U', 'V', 'E', 'D']
+    updated_cruved = {}
+
+    for action in cruved:
+        if action in child_cruved:
+            updated_cruved[action] = child_cruved[action]
+        elif action in parent_app_cruved:
+            updated_cruved[action] = parent_app_cruved[action]
+        else:
+            updated_cruved[action] = '0'
+    return updated_cruved
+
+
+
+    # user_cruved_app = db.session.query(
+    #     sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application)
+    #     ).one_or_none()
+    # if user_cruved_app[0]:
+    #     user_cruved_app = user_cruved_app[0]
+    #     user_cruved_app = {d['action']:d['level'] for d in user_cruved_app}
+    # else:
+    #     user_cruved_app = {}
+    # if len(user_cruved_app) == 6:
+    #         return user_cruved_app   
+    # #if the cruved is not complet, get the parent cruved
+    # else:
+    #     try:
+    #         user_cruved_parent_app = db.session.query(
+    #             sa.func.utilisateurs.cruved_for_user_in_module(id_role, id_application_parent)
+    #             ).one()
+    #         assert user_cruved_parent_app[0] is not None
+    #     except AssertionError:
+    #             raise CruvedImplementationError("No Cruved definition for parent app")
+        
+    #     user_cruved_parent_app = {d['action']:d['level'] for d in user_cruved_parent_app[0]}
+    #     updated_cruved = {}
+    #     cruved = ['C', 'R', 'U', 'V', 'E', 'D']
+
+    #     for action in cruved:
+    #         if action in user_cruved_app:
+    #             updated_cruved[action] = user_cruved_app[action]
+    #         elif action in user_cruved_parent_app:
+    #             updated_cruved[action] = user_cruved_parent_app[action]
+    #         else:
+    #             updated_cruved[action] = '0'
+    #     return updated_cruved
+
+
+
+
 
 
 

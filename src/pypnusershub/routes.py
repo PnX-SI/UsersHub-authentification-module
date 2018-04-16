@@ -163,6 +163,7 @@ def check_auth(
 def check_auth_cruved(
     action,
     get_role=False,
+    id_app=None,
     redirect_on_expiration=None,
     redirect_on_invalid_token=None,
 ):
@@ -174,7 +175,8 @@ def check_auth_cruved(
 
                 user = user_from_token_foraction(
                     request.cookies['token'],
-                    action
+                    action,
+                    id_app
                 )
 
                 if (user is None):
