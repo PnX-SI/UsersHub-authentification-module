@@ -166,8 +166,6 @@ def cruved_for_user_in_app(
     q = q.filter(sa.or_(*ors))
     
     users_cruved = q.all()
-    print('LAAAAAAAAAA')
-    print(users_cruved)
 
     parent_app_cruved = {}
     child_cruved = {}
