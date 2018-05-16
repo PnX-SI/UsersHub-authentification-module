@@ -100,6 +100,10 @@ def user_from_token(token, secret_key=None):
 
 
 def user_from_token_foraction(token, action, id_app, secret_key=None):
+    """
+        Return a user from a token
+        Take 
+    """
     secret_key = secret_key or current_app.config['SECRET_KEY']
 
     try:
@@ -119,8 +123,9 @@ def user_from_token_foraction(token, action, id_app, secret_key=None):
         if id_app:
             ors.append(models.VUsersactionForallGnModules.id_application == id_app['id_application'])
 
-        user_cruved = q.filter(sa.or_(*ors))
-
+        user_cruved = q.filter(sa.or_(*ors)).all()
+        
+        assert len(user_cruved) > 0
         for user in user_cruved:
             if user.id_application == id_app:
                 return user
@@ -128,9 +133,9 @@ def user_from_token_foraction(token, action, id_app, secret_key=None):
                 parent_app_user = user
         return parent_app_user
 
-    except NoResultFound:
-        raise UnreadableAccessRightsError(
-            'No cruved for user with id "{}" for app "{}"'.format(id_role, id_app)
+    except AssertionError:
+        raise InsufficientRightsError(
+            'User "{}" cannot "{}" in app "{}" or "{}"'.format(id_role, action, id_app, id_app_parent)
         )
     except SignatureExpired:
         raise AccessRightsExpiredError("Token expired")
@@ -161,6 +166,8 @@ def cruved_for_user_in_app(
     q = q.filter(sa.or_(*ors))
     
     users_cruved = q.all()
+    print('LAAAAAAAAAA')
+    print(users_cruved)
 
     parent_app_cruved = {}
     child_cruved = {}

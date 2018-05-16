@@ -26,6 +26,7 @@ from pypnusershub.db.tools import (
     user_from_token, user_from_token_foraction,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
+    InsufficientRightsError
 )
 
 
@@ -178,11 +179,6 @@ def check_auth_cruved(
                     action,
                     id_app
                 )
-
-                if (user is None):
-                    log.info('Privilege too low')
-                    return Response('Forbidden', 403)
-
                 if get_role:
                     kwargs['info_role'] = user
 
@@ -196,7 +192,13 @@ def check_auth_cruved(
                     res = Response('Token Expired', 403)
                 res.set_cookie('token', expires=0)
                 return res
-
+            except InsufficientRightsError as e:
+                log.info(e)
+                if redirect_on_expiration:
+                    res = redirect(redirect_on_expiration, code=302)
+                else:
+                    res = Response('Forbidden', 403)
+                return res
             except KeyError as e:
                 if 'token' not in e.args:
                     raise
@@ -210,7 +212,7 @@ def check_auth_cruved(
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
-                    Response('Token BadSignature', 403)
+                    res = Response('Token BadSignature', 403)
                 res.set_cookie('token',  expires=0)
                 return res
 
