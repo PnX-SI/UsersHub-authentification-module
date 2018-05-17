@@ -10,7 +10,7 @@ CHANGELOG
 
 **Nouveautés**
 
-* Repercussion du changement du modèle de UsersHub. Le sous-module permet maintenant l'authentification en utilisant une des deux méthode de cryptage de mot de passe (MD5 et HASH). Ajout du paramètre ``PASS_METHOD`` (valeur possible : 'hash' ou 'md5') qui contrôle ce comportement.
+* Répercussion du changement du modèle de UsersHub. Le sous-module permet maintenant l'authentification en utilisant une des deux méthode de cryptage de mot de passe (MD5 et HASH). Ajout du paramètre ``PASS_METHOD`` (valeur possible : 'hash' ou 'md5') qui contrôle ce comportement.
 * Prise en compte des évolutions de la version 1.3.1 de UsersHub intégrant la gestion des droits utilisateurs via des 'tags'.
 * Ajout de fonctionnalités nécessaires à GeoNature v2 (gestion des droits avec le CRUVED) :
 
@@ -20,7 +20,7 @@ CHANGELOG
 
 **Notes de version**
 
-Cette release n'est compatible avec UsersHub 1.3.1 minimum (qui inclut d'importantes évolutions de la BDD (https://github.com/PnEcrins/UsersHub/blob/develop/data/update_1.3.0to1.3.1.sql).
+Cette release n'est compatible avec UsersHub 1.3.1 minimum, qui inclut d'importantes évolutions de la BDD (https://github.com/PnEcrins/UsersHub/blob/develop/data/update_1.3.0to1.3.1.sql).
 
 
 1.0.2 (2017-12-15)
