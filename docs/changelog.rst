@@ -2,7 +2,7 @@ CHANGELOG
 *********
 
 
-1.0.3
+1.1.0
 -----
 
 **Nouveautés**
@@ -22,4 +22,4 @@ CHANGELOG
 
 **Notes de version**
 
-Cette release n'est compatible qu'avec UsersHub 1.3.1
+Cette release n'est compatible qu'avec UsersHub 1.3.1 (Voir les changement à réaliser si vous êtes sur la version 1.3.0 : https://github.com/PnEcrins/UsersHub/blob/develop/data/update_1.3.0to1.3.1.sql)
