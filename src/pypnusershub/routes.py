@@ -9,23 +9,28 @@ routes relatives aux application, utilisateurs et à l'authentification
 '''
 
 import json
+import logging
 
 import datetime
 from functools import wraps
 
-from flask import Blueprint, request, Response, current_app, redirect, g
+from flask import Blueprint, request, Response, current_app, redirect, g, jsonify
 
 from sqlalchemy.orm import exc
+import sqlalchemy as sa
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from pypnusershub.db import models
+from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
-    user_from_token, UnreadableAccessRightsError,
-    AccessRightsExpiredError
+    user_from_token, user_from_token_foraction,
+    UnreadableAccessRightsError,
+    AccessRightsExpiredError,
+    InsufficientRightsError
 )
 
 
+log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
 # to be a submodule for https://github.com/PnX-SI/TaxHub/
 # The original behavior from the lib is to rely on the side effects of
@@ -106,8 +111,7 @@ def check_auth(
                 user = user_from_token(request.cookies['token'])
 
                 if user.id_droit_max < level:
-                    # TODO: english error message ?
-                    print('Niveau de droit insufissants')
+                    log.info('Privilege too low')
                     return Response('Forbidden', 403)
 
                 if get_role:
@@ -118,12 +122,12 @@ def check_auth(
                 return fn(*args, **kwargs)
 
             except AccessRightsExpiredError:
-                print('expired')  # TODO: turn prints into logging
                 if redirect_on_expiration:
                     res = redirect(redirect_on_expiration, code=302)
-                    res.set_cookie('token', '', expires=0)
-                    return res
-                return Response('Token Expired', 403)
+                else:
+                    res = Response('Token Expired', 403)
+                res.set_cookie('token', '', expires=0)
+                return res
 
             except KeyError as e:
                 if 'token' not in e.args:
@@ -133,13 +137,14 @@ def check_auth(
                 return Response('No token', 403)
 
             except UnreadableAccessRightsError:
-                print('BadSignature')
+                log.info('Invalid Token : BadSignature')
                 # invalid token,
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
-                    res.set_cookie('token', '', expires=0)
-                    return res
-                return Response('Token BadSignature', 403)
+                else:
+                    res = Response('Token BadSignature', 403)
+                res.set_cookie('token', '', expires=0)
+                return res
 
             except Exception as e:
                 trap_all_exceptions = current_app.config.get(
@@ -148,8 +153,7 @@ def check_auth(
                 )
                 if not trap_all_exceptions:
                     raise
-                print('Exception')
-                print(e)
+                log.critical(e)
                 msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
                 return Response(msg, 403)
 
@@ -157,14 +161,83 @@ def check_auth(
     return _check_auth
 
 
+def check_auth_cruved(
+    action,
+    get_role=False,
+    id_app=None,
+    redirect_on_expiration=None,
+    redirect_on_invalid_token=None,
+):
+    def _check_auth_cruved(fn):
+        @wraps(fn)
+        def __check_auth_cruved(*args, **kwargs):
+            try:
+                # TODO: better name and configurability for the token
+
+                user = user_from_token_foraction(
+                    request.cookies['token'],
+                    action,
+                    id_app
+                )
+                if get_role:
+                    kwargs['info_role'] = user
+
+                g.user = user
+                return fn(*args, **kwargs)
+
+            except AccessRightsExpiredError:
+                if redirect_on_expiration:
+                    res = redirect(redirect_on_expiration, code=302)
+                else:
+                    res = Response('Token Expired', 403)
+                res.set_cookie('token', expires=0)
+                return res
+            except InsufficientRightsError as e:
+                log.info(e)
+                if redirect_on_expiration:
+                    res = redirect(redirect_on_expiration, code=302)
+                else:
+                    res = Response('Forbidden', 403)
+                return res
+            except KeyError as e:
+                if 'token' not in e.args:
+                    raise
+                if redirect_on_expiration:
+                    return redirect(redirect_on_expiration, code=302)
+                return Response('No token', 403)
+
+            except UnreadableAccessRightsError:
+                log.info('Invalid Token : BadSignature')
+                # invalid token,
+                if redirect_on_invalid_token:
+                    res = redirect(redirect_on_invalid_token, code=302)
+                else:
+                    res = Response('Token BadSignature', 403)
+                res.set_cookie('token',  expires=0)
+                return res
+
+            except Exception as e:
+                trap_all_exceptions = current_app.config.get(
+                    'TRAP_ALL_EXCEPTIONS',
+                    True
+                )
+                if not trap_all_exceptions:
+                    raise
+                log.critical(e)
+                msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
+                return Response(msg, 403)
+
+        return __check_auth_cruved
+    return _check_auth_cruved
+
+
+
 @routes.route('/login', methods=['POST'])
 def login():
 
     try:
         user_data = request.json
-
         try:
-
             id_app = user_data['id_application']
             login = user_data['login']
             user = (models.AppUser
@@ -172,6 +245,40 @@ def login():
                           .filter(models.AppUser.identifiant == login)
                           .filter(models.AppUser.id_application == id_app)
                           .one())
+
+            user_dict = user.as_dict()
+
+            if user_data.get('with_cruved', False) is True:
+                cruved = (
+                    models.VUsersactionForallGnModules.query.join(
+                        models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
+                    ).filter(
+                        models.TTags.id_tag_type == 2
+                    ).filter(
+                        models.VUsersactionForallGnModules.id_role == user.id_role
+                    ).filter(
+                        models.VUsersactionForallGnModules.id_application.in_(
+                            sa.func.utilisateurs.find_all_modules_childs(id_app).select()
+                        )
+                    ).all()
+                )
+
+                user_dict['rights'] = {}
+                for c in cruved:
+                    if (c.id_application in user_dict['rights']):
+                        user_dict['rights'][c.id_application][c.tag_action_code] = c.tag_object_code
+                    else:
+                        user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
+            else:
+                # Return child application
+                sub_app = models.AppUser.query.join(
+                    models.Application, models.Application.id_application == models.AppUser.id_application
+                ).filter(
+                    models.Application.id_parent == id_app
+                ).all()
+
+                user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
+                
 
         except KeyError as e:
             parameters = ", ".join(e.args)
@@ -198,6 +305,7 @@ def login():
             return Response(msg, status=status_code)
 
         except Exception as e:
+            log.critical(e)
             msg = json.dumps({
                 'type': 'bug',
                 'msg': 'Unkown error during login'
@@ -218,7 +326,7 @@ def login():
         token = s.dumps(user.as_dict())
         cookie_exp = datetime.datetime.utcnow()
         cookie_exp += datetime.timedelta(seconds=expiration)
-        resp = Response(json.dumps({'user': user.as_dict(),
+        resp = Response(json.dumps({'user': user_dict,
                                     'expires': str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
 
@@ -233,3 +341,4 @@ def logout():
     resp = redirect("/", code=302)
     resp.delete_cookie('token')
     return resp
+
