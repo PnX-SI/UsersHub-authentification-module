@@ -121,7 +121,7 @@ def user_from_token_foraction(token, action, id_app, secret_key=None):
                 .filter(models.VUsersactionForallGnModules.tag_action_code == action)
         )
         if id_app:
-            ors.append(models.VUsersactionForallGnModules.id_application == id_app['id_application'])
+            ors.append(models.VUsersactionForallGnModules.id_application == id_app)
 
         user_cruved = q.filter(sa.or_(*ors)).all()
         
