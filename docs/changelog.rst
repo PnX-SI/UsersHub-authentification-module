@@ -1,9 +1,13 @@
 CHANGELOG
 *********
 
-1.1.1 (unreleased)
+1.1.2 (unreleased)
 ------------------
 
+1.1.1 (2018-06-18)
+------------------
+
+* Version corrective lié à la récupération du CRUVED des sous-modules
 
 1.1.0 (2018-05-17)
 ------------------
