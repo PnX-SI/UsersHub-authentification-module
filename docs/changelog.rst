@@ -4,6 +4,8 @@ CHANGELOG
 1.1.2 (unreleased)
 ------------------
 
+* Mise à jour des dépendances (``requirements.txt``)
+
 1.1.1 (2018-06-18)
 ------------------
 
