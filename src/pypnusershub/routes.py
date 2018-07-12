@@ -240,7 +240,6 @@ def login():
         try:
             id_app = user_data['id_application']
             login = user_data['login']
-            print(id_app, login)
 
             if user_data.get('with_cruved', False) is True:
                 user = (models.VUsersactionForallGnModules
