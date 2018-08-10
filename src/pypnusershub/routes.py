@@ -279,6 +279,8 @@ def login():
                     models.Application, models.Application.id_application == models.AppUser.id_application
                 ).filter(
                     models.Application.id_parent == id_app
+                ).filter(
+                    models.AppUser.id_role == user.id_role
                 ).all()
 
                 user_dict = user.as_dict()
