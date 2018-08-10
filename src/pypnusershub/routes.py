@@ -109,7 +109,6 @@ def check_auth(
             try:
                 # TODO: better name and configurability for the token
                 user = user_from_token(request.cookies['token'])
-
                 if user.id_droit_max < level:
                     log.info('Privilege too low')
                     return Response('Forbidden', 403)
@@ -278,7 +277,7 @@ def login():
                 ).all()
 
                 user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
-                
+
 
         except KeyError as e:
             parameters = ", ".join(e.args)
