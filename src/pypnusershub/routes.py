@@ -346,7 +346,7 @@ def login():
 
 @routes.route('/logout', methods=['GET', 'POST'])
 def logout():
-    resp = redirect("/", code=302)
+    resp = redirect("", code=302)
     resp.delete_cookie('token')
     return resp
 
