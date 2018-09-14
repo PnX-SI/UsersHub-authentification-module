@@ -213,6 +213,8 @@ class VUsersactionForallGnModules(db.Model):
     __tablename__ = 'v_usersaction_forall_gn_modules'
     __table_args__ = {'schema': 'utilisateurs'}
     id_role = db.Column(db.Integer, primary_key=True)
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
     id_application = db.Column(db.Integer, primary_key=True)
     id_organisme = db.Column(db.Integer)
     id_tag_action = db.Column(db.Integer, primary_key=True)
