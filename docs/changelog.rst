@@ -11,7 +11,7 @@ CHANGELOG
 **Corrections**
 
 * Correction des droits des applications filles retournées lors du login
-* Correction de la redirection après lgout
+* Correction de la redirection après logout
 
 1.1.1 (2018-06-18)
 ------------------
