@@ -1,10 +1,17 @@
 CHANGELOG
 *********
 
-1.1.2 (unreleased)
+1.2.0 (unreleased)
 ------------------
 
+* Modification de la route de login pour se connecter sans passer par la table ``cor_role_droit_application`` lorsqu'on fonctionne avec le CRUVED
 * Mise à jour des dépendances (``requirements.txt``)
+* Mise à jour de Flask (0.12.2 à 1.0.2)
+
+**Corrections**
+
+* Correction des droits des applications filles retournées lors du login
+* Correction de la redirection après lgout
 
 1.1.1 (2018-06-18)
 ------------------
