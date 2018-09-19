@@ -1,7 +1,7 @@
 CHANGELOG
 *********
 
-1.2.0 (unreleased)
+1.2.0 (2018-09-19)
 ------------------
 
 * Modification de la route de login pour se connecter sans passer par la table ``cor_role_droit_application`` lorsqu'on fonctionne avec le CRUVED
