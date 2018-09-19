@@ -240,15 +240,15 @@ def login():
         try:
             id_app = user_data['id_application']
             login = user_data['login']
-            user = (models.AppUser
-                          .query
-                          .filter(models.AppUser.identifiant == login)
-                          .filter(models.AppUser.id_application == id_app)
-                          .one())
-
-            user_dict = user.as_dict()
 
             if user_data.get('with_cruved', False) is True:
+                user = (models.VUsersactionForallGnModules
+                        .query
+                        .filter(models.VUsersactionForallGnModules.identifiant == login)
+                        .filter(models.VUsersactionForallGnModules.id_application == id_app)
+                        .first())
+                assert user is not None
+                user_dict = user.as_dict()
                 cruved = (
                     models.VUsersactionForallGnModules.query.join(
                         models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
@@ -262,7 +262,6 @@ def login():
                         )
                     ).all()
                 )
-
                 user_dict['rights'] = {}
                 for c in cruved:
                     if (c.id_application in user_dict['rights']):
@@ -270,16 +269,24 @@ def login():
                     else:
                         user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
             else:
+                user = (models.AppUser
+                        .query
+                        .filter(models.AppUser.identifiant == login)
+                        .filter(models.AppUser.id_application == id_app)
+                        .one())
                 # Return child application
                 sub_app = models.AppUser.query.join(
                     models.Application, models.Application.id_application == models.AppUser.id_application
                 ).filter(
                     models.Application.id_parent == id_app
+                ).filter(
+                    models.AppUser.id_role == user.id_role
                 ).all()
 
+                user_dict = user.as_dict()
                 user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
-                
 
+            
         except KeyError as e:
             parameters = ", ".join(e.args)
             msg = json.dumps({
@@ -293,7 +300,7 @@ def login():
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
             return Response(msg, status=status_code)
 
-        except exc.NoResultFound as e:
+        except (exc.NoResultFound, AssertionError) as e:
             msg = json.dumps({
                 'type': 'login',
                 'msg': (
@@ -301,6 +308,7 @@ def login():
                     'the application with id "{id_app}"'
                 ).format(login=login, id_app=id_app)
             })
+            log.info(msg)
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
             return Response(msg, status=status_code)
 
@@ -338,7 +346,7 @@ def login():
 
 @routes.route('/logout', methods=['GET', 'POST'])
 def logout():
-    resp = redirect("/", code=302)
+    resp = redirect("", code=302)
     resp.delete_cookie('token')
     return resp
 

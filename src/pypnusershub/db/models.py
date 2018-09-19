@@ -19,6 +19,14 @@ from sqlalchemy import Sequence, func
 db = SQLAlchemy()
 
 
+def fn_check_password(self, pwd):
+    if (current_app.config['PASS_METHOD'] == 'md5'):
+        return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
+    elif (current_app.config['PASS_METHOD'] == 'hash'):
+        return checkpw(pwd.encode('utf8'), self._password_plus.encode('utf8'))
+    else:
+        raise
+
 class User(db.Model):
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
@@ -68,14 +76,8 @@ class User(db.Model):
     @password.setter
     def password(self, pwd):
         self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
-
-    def check_password(self, pwd):
-        if (current_app.config['PASS_METHOD'] == 'md5'):
-            return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
-        elif (current_app.config['PASS_METHOD'] == 'hash'):
-            return checkpw(pwd.encode('utf8'), self._password_plus.encode('utf8'))
-        else:
-            raise
+    
+    check_password = fn_check_password
 
     def to_json(self):
         out = {
@@ -189,13 +191,8 @@ class AppUser(db.Model):
     def password(self):
         return self._password
 
-    def check_password(self, pwd):
-        if (current_app.config['PASS_METHOD'] == 'md5'):
-            return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
-        elif (current_app.config['PASS_METHOD'] == 'hash'):
-            return checkpw(pwd.encode('utf8'), self._password_plus.encode('utf8'))
-        else:
-            raise
+    check_password = fn_check_password
+
 
     def as_dict(self):
         cols = (c for c in self.__table__.columns if (c.name != 'pass_plus') and (c.name != 'pass'))
@@ -216,12 +213,23 @@ class VUsersactionForallGnModules(db.Model):
     __tablename__ = 'v_usersaction_forall_gn_modules'
     __table_args__ = {'schema': 'utilisateurs'}
     id_role = db.Column(db.Integer, primary_key=True)
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
     id_application = db.Column(db.Integer, primary_key=True)
     id_organisme = db.Column(db.Integer)
     id_tag_action = db.Column(db.Integer, primary_key=True)
     tag_action_code = db.Column(db.Unicode)
     id_tag_object = db.Column(db.Integer, primary_key=True)
     tag_object_code = db.Column(db.Unicode)
+    identifiant = db.Column(db.Unicode)
+    _password = db.Column('pass', db.Unicode)
+    _password_plus = db.Column('pass_plus', db.Unicode)
+
+    check_password = fn_check_password
+
+    def as_dict(self):
+        cols = (c for c in self.__table__.columns if (c.name != 'pass_plus') and (c.name != 'pass'))
+        return {c.name: getattr(self, c.name) for c in cols}
 
     def __repr__(self):
         return """VUsersactionForallGnModules
@@ -248,3 +256,6 @@ class TTags(db.Model):
         return """TTags id='{}' code='{}' name='{}'>""".format(
                 self.id_tag, self.tag_code, self.tag_name
             )
+
+
+    
