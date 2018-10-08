@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.2.1 (2018-10-08)
+------------------
+
+**Corrections**
+
+* Ajout d'un test sur la fonction ``fn_check_password`` pour vérifier si le mot de passe existe
+
 1.2.0 (2018-09-19)
 ------------------
 
