@@ -21,11 +21,15 @@ db = SQLAlchemy()
 
 def fn_check_password(self, pwd):
     if (current_app.config['PASS_METHOD'] == 'md5'):
+        if not self._password:
+            raise ValueError('User %s has no password' % (self.identifiant))
         return self._password == hashlib.md5(pwd.encode('utf8')).hexdigest()
     elif (current_app.config['PASS_METHOD'] == 'hash'):
+        if not self._password_plus:
+            raise ValueError('User %s has no password' % (self.identifiant))
         return checkpw(pwd.encode('utf8'), self._password_plus.encode('utf8'))
     else:
-        raise
+        raise ValueError('Undefine crypt method (PASS_METHOD)')
 
 class User(db.Model):
     __tablename__ = 't_roles'
