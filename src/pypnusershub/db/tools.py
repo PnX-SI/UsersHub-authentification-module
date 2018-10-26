@@ -21,8 +21,10 @@ from pypnusershub.utils import text_resource_stream
 class AccessRightsError(Exception):
     pass
 
+
 class CruvedImplementationError(Exception):
     pass
+
 
 class InsufficientRightsError(AccessRightsError):
     pass
@@ -116,15 +118,14 @@ def user_from_token_foraction(token, action, id_app, secret_key=None):
         ors = [models.VUsersactionForallGnModules.id_application == id_app_parent]
         q = (
             models.VUsersactionForallGnModules
-                .query
-                .filter(models.VUsersactionForallGnModules.id_role == id_role)
-                .filter(models.VUsersactionForallGnModules.tag_action_code == action)
+            .query
+            .filter(models.VUsersactionForallGnModules.id_role == id_role)
+            .filter(models.VUsersactionForallGnModules.tag_action_code == action)
         )
         if id_app:
             ors.append(models.VUsersactionForallGnModules.id_application == id_app)
 
         user_cruved = q.filter(sa.or_(*ors)).all()
-        
         assert len(user_cruved) > 0
         for user in user_cruved:
             if user.id_application == id_app:
@@ -143,11 +144,12 @@ def user_from_token_foraction(token, action, id_app, secret_key=None):
     except BadSignature:
         raise UnreadableAccessRightsError('Token BadSignature', 403)
 
+
 def cruved_for_user_in_app(
     id_role=None,
     id_application=None,
     id_application_parent=None
-    ):
+):
     """
     Return the user cruved for an application
     if no cruved for an app, the cruverd parent app is taken
@@ -156,15 +158,15 @@ def cruved_for_user_in_app(
     ors = [models.VUsersactionForallGnModules.id_application == id_application]
     q = (
         models.VUsersactionForallGnModules
-                .query
-                .filter(models.VUsersactionForallGnModules.id_role == id_role)
+        .query
+        .filter(models.VUsersactionForallGnModules.id_role == id_role)
     )
 
     if id_application_parent:
         ors.append(models.VUsersactionForallGnModules.id_application == id_application_parent)
 
     q = q.filter(sa.or_(*ors))
-    
+
     users_cruved = q.all()
 
     parent_app_cruved = {}
@@ -175,7 +177,6 @@ def cruved_for_user_in_app(
             child_cruved[user_cruved.tag_action_code] = user_cruved.tag_object_code
         else:
             parent_app_cruved[user_cruved.tag_action_code] = user_cruved.tag_object_code
-    
 
     cruved = ['C', 'R', 'U', 'V', 'E', 'D']
     updated_cruved = {}
@@ -188,10 +189,6 @@ def cruved_for_user_in_app(
         else:
             updated_cruved[action] = '0'
     return updated_cruved
-
-
-
-
 
 
 def get_or_fetch_user_cruved(
@@ -210,14 +207,10 @@ def get_or_fetch_user_cruved(
         return session[str_id_app]['user_cruved']
     else:
         user_cruved = cruved_for_user_in_app(
-        id_role=id_role,
-        id_application=id_application,
-        id_application_parent=id_application_parent
-    )
+            id_role=id_role,
+            id_application=id_application,
+            id_application_parent=id_application_parent
+        )
         session[str_id_app] = {}
         session[str_id_app]['user_cruved'] = user_cruved
     return user_cruved
-
-
-
-
