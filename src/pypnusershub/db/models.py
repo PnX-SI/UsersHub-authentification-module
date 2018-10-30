@@ -16,8 +16,7 @@ from flask import current_app
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import Sequence, func
-db = SQLAlchemy()
-
+db = current_app.config['DB']
 
 def fn_check_password(self, pwd):
     if (current_app.config['PASS_METHOD'] == 'md5'):
