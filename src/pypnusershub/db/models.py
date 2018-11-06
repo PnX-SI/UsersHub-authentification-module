@@ -104,6 +104,19 @@ class User(db.Model):
     def __str__(self):
         return self.identifiant or ''
 
+    def as_dict(self, recursif=False, columns=()):
+        nom_role = self.nom_role or ''
+        prenom_role = self.prenom_role or ''
+        return {
+            'id_role': self.id_role,
+            'identifiant': self.identifiant,
+            'nom_role': self.nom_role,
+            'prenom_role': self.prenom_role,
+            'id_organisme': self.id_organisme,
+            'groupe': self.groupe,
+            'nom_complet': nom_role+' '+prenom_role
+        }
+
 
 class Application(db.Model):
     '''
