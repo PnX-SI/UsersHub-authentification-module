@@ -38,8 +38,7 @@ class User(db.Model):
         't_roles_id_seq',
         schema="utilisateurs",
     )
-
-    groupe = db.Column(db.Boolean)
+    groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,
         TABLE_ID,
