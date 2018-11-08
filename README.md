@@ -111,7 +111,7 @@ postgresql://parcnational:secret@127.0.0.1:5432/ma_db
 
 Il vous faudra créer un schema nommé `utilisteurs` qui contient toutes les tables nécessaires. 
 
-**ATTENTION**, ce script SQL local n'est pas à jour (https://github.com/PnX-SI/UsersHub-authentification-module/issues/2). Il faut utiliser le SQL maintenu dans le dpôt de UsersHub : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
+**ATTENTION**, le script SQL local ci-dessous ainsi que la méthode ne sont pas à jour (https://github.com/PnX-SI/UsersHub-authentification-module/issues/2). Il faut utiliser le SQL maintenu dans le dépôt de UsersHub : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
 
 Ce module contient le SQL pour le faire dans le fichier `db/schema.sql`. Néanmoins une commande vous permet de le faire automatiquement :
 
