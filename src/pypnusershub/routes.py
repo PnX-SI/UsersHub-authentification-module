@@ -63,6 +63,7 @@ class ConfigurableBlueprint(Blueprint):
         # set cookie autorenew
         expiration = app.config.get('COOKIE_EXPIRATION', 3600)
         cookie_autorenew = app.config.get('COOKIE_AUTORENEW', True)
+        app.config['PASS_METHOD'] = app.config.get('PASS_METHOD', 'hash')
 
         if cookie_autorenew:
 
