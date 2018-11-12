@@ -6,6 +6,8 @@ Prévu pour être utilisé comme un submodule git.
 
 Nécessite le schéma ``utilisateurs`` de UsersHub dans la BDD de l'application l'utilisant. Pour cela installez UsersHub dans la même BDD ou uniquement son schéma : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
 
+Par défaut le sous-module utilise le mot de passe "pass_plus" (méthode de hashage bcrypt) pour s'authentifier. Si vous souhaitez utiliser le champ  "pass" (en md5), il faut passer le paramètre ``PASS_METHOD = 'md5'`` à la configuration Flask de l'application parent qui utilise le sous-module.
+
 
 ## Routes
 
