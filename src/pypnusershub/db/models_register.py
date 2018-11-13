@@ -28,7 +28,7 @@ def decrypt_str(s, secret_key):
 @serializable
 class TempUser(DB.Model):
     __tablename__ = 'temp_users'
-    __table_args__ = {'schema': 'oeasc', 'extend_existing': True}
+    __table_args__ = {'schema': 'utilisateursoeasc', 'extend_existing': True}
 
     id_temp_user = DB.Column(DB.Integer, primary_key=True)
     token_role = DB.Column(DB.Unicode)
@@ -85,7 +85,7 @@ class TempUser(DB.Model):
 class CorRoleToken(DB.Model):
 
     __tablename__ = 'cor_role_token'
-    __table_args__ = {'schema': 'oeasc', 'extend_existing': True}
+    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
 
     id_role = DB.Column(DB.Integer, primary_key=True)
     token = DB.Column(DB.Unicode)
