@@ -27,7 +27,8 @@ from pypnusershub.db.tools import (
     user_from_token, user_from_token_foraction,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
-    InsufficientRightsError
+    InsufficientRightsError,
+    cruved_for_user_in_app
 )
 
 
@@ -344,6 +345,26 @@ def login():
     except Exception as e:
         msg = json.dumps({'login': False, 'msg': repr(e)})
         return Response(msg, status=403)
+
+@routes.route('/cruved/<int:id_app>', methods=['GET'])
+@check_auth_cruved('R', True)
+def get_cruved(id_app, info_role):
+    """ return the cruved for a user
+    
+    Params:
+        id_app: (int): the id of the module or app we want the cruved
+        user: (User): the user who ask the route, auto kwargs via @check_auth_cruved
+        id_app_parent(int): the id of the parent_app (facultatif: via query string)
+
+    Returns
+        - dict of the CRUVED
+    """
+    cruved = cruved_for_user_in_app(
+        id_role=info_role.id_role,
+        id_application=id_app,
+        id_application_parent=request.args.get('id_app_parent', None)
+    )
+    return Response(json.dumps(cruved), 200)
 
 
 @routes.route('/logout', methods=['GET', 'POST'])
