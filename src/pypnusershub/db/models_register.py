@@ -85,7 +85,7 @@ class TempUser(DB.Model):
 class CorRoleToken(DB.Model):
 
     __tablename__ = 'cor_role_token'
-    __table_args__ = {'schema': 'utilisateursxtend_existing': True}
+    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
 
     id_role = DB.Column(DB.Integer, primary_key=True)
     token = DB.Column(DB.Unicode)
