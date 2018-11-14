@@ -45,6 +45,8 @@ class TempUser(DB.Model):
     id_organisme = DB.Column(DB.Integer)
     organisme = DB.Column(DB.String(250))
     email = DB.Column(DB.Unicode)
+    date_insert = DB.Column(DB.DateTime)
+    date_update = DB.Column(DB.DateTime)
 
     def encrypt_password(self, secret_key):
 
