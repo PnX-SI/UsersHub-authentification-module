@@ -301,7 +301,7 @@ def change_password_send_mail():
 
     # TODO Trouver une solution rendre cet url generique
     # url_validation = config['URL_APPLICATION'] + "/oeasc/change_password/" + token
-    url_validation = config['URL_APPLICATION'] + "/" + url_for(config['url_change_password'], token=token)
+    url_validation = config['URL_APPLICATION'] + "/" + url_for(config['route_change_password'], token=token)
 
     with MAIL.connect() as conn:
 
