@@ -220,7 +220,7 @@ def valid_temp_user(token):
             sender=config['ANIMATEUR_APPLICATION_MAIL'],
             recipients=[config['ANIMATEUR_APPLICATION_MAIL'], config['ADMIN_APPLICATION_MAIL']])
 
-        msg_html = "<p>Un nouvel utilisateur viens de s'enregister</p><p>Identifiant : {}</p><p>Nom : {}</p><p>Prenom : {}</p><p>Organisme : {}</p>".format(
+        msg_html = "<p>Un nouvel utilisateur viens de s'enregister</p><p>Identifiant : {}</p><p>Email : {}</p><p>Nom : {}</p><p>Prenom : {}</p><p>Organisme : {}</p>".format(
             role['identifiant'].strip(),
             role['email'].strip(),
             role['nom_role'].strip(),
