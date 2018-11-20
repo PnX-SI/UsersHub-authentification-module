@@ -19,19 +19,26 @@ import requests
 
 from flask_mail import Message
 
-import random
-
 from flask import (
     Blueprint,
     request,
     render_template,
-    redirect,
-    url_for
+    url_for,
+    session,
+    redirect
 )
 
-from .db.models import Application, User
+
+
+from functools import wraps
+
+from .db.models import Application, User, UserApplicationRight
 
 from flask import current_app
+
+# from .utils_register import connect_usershub, req_json_or_text
+# from .routes import check_auth
+
 
 config = current_app.config
 
@@ -44,283 +51,151 @@ s = requests.Session()
 bp = Blueprint('register', __name__)
 
 
-def change_password_default_template(url_validation):
+def get_json_request(r):
 
-    return "<p>Veuillez cliquer sur ce lien afin de pouvoir " + \
-        "<a href=" + url_validation + " > modifier votre mot de passe.</a></p>"
+    try:
+        r_json = r.json()
+    except Exception:
+        r_json = None
 
-
-def usershub_login():
-
-    id_app_usershub = DB.session.query(Application.id_application).filter(Application.nom_application == 'UsersHub').first()[0]
-
-    if not id_app_usershub:
-
-        return "Pas d'id app usersHub"
-
-    # test si on est déjà connecté
-    r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
-
-    # si on est pas connecté
-    if r.status_code != 200:
-        # connexion à usershub
-        r = s.post(config['URL_USERHUB'] + "/" + "pypn/auth/login", json={'login': config['ADMIN_APPLICATION_LOGIN'], 'password': config['ADMIN_APPLICATION_PASSWORD'], 'id_application': id_app_usershub})
-
-    return r
+    return r_json
 
 
-@bp.route('test', methods=['GET'])
+def req_json_or_text(r, msg_pypn=""):
+    '''
+        revoie r.json si possible
+        r.text sinon
+    '''
+    r_json = get_json_request(r)
+
+    if not r_json:
+
+        return msg_pypn + " : " + r.text, r.status_code
+
+    if msg_pypn:
+
+        r_json['msg_pypn'] = msg_pypn
+
+    return json.dumps(r_json), r.status_code
+
+
+def connect_admin():
+    '''
+        decorateur pour la connexion de l'admin a une appli
+        ici url sans / à la fin
+    '''
+    def _connect_admin(f):
+        @wraps(f)
+        def __connect_admin(*args, **kwargs):
+            # connexion à usershub
+
+            id_app_usershub = DB.session.query(Application.id_application).filter(Application.nom_application == 'UsersHub').first()[0]
+
+            if not id_app_usershub:
+
+                return "Pas d'id app usersHub", 500
+
+            # test si on est déjà connecté
+            r = s.post(config['URL_USERHUB'] + "/routes_register/test_connexion")
+            b_connexion = (r.status_code == 200)
+
+            # si on est pas connecté on se connecte
+            if not b_connexion:
+                # connexion à usershub
+                r = s.post(config['URL_USERHUB'] + "/" + "pypn/auth/login", json={'login': config['ADMIN_APPLICATION_LOGIN'], 'password': config['ADMIN_APPLICATION_PASSWORD'], 'id_application': id_app_usershub})
+
+            # si echec de connexion
+            if r.status_code != 200:
+
+                return req_json_or_text(r, "Problème de connexion à usershub"), r.status_code
+
+            return f(*args, **kwargs)
+
+        return __connect_admin
+
+    return _connect_admin
+
+
+@bp.route('test_uh', methods=['GET'])
+@connect_admin()
 def test():
 
-    r = usershub_login()
+    r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
 
-    print(r.text, r.status_code)
-
-    return r.text, r.status_code
+    return req_json_or_text(r, "Test pypn")
 
 
-@bp.route('add_application_right_to_role', methods=['POST'])
-def add_application_right_to_role():
-    '''
-        route pour faire une requete a l'application Usershub pour ajouter des droits à un utilisateur
-    '''
-    data = request.get_json()
+# route generiques a sécuriser avec crsf ?
+@bp.route("post_usershub/<string:type_req>", methods=['POST'])
+@connect_admin()
+def post_usershub(type_req):
 
-    # connexion à userhub
-    r = usershub_login()
+    # test pour savoir qui peut quoi
+    dict_type_rect_droit = {
+        'test_connexion': 0,
+        'valid_temp_user': 0,
+        'create_temp_user': 0,
+        'change_password': 0,
+        'create_cor_role_token': 0,
+        'add_application_right_to_role': 0,
 
-    if not r.status_code == 200:
+        'update_user': 1,
 
-        return "problème de connexion à usershub : " + r.text, r.status_code
-
-    # requete pour ajouter les droits
-    r = s.post(config['URL_USERHUB'] + "/" + "api_register/add_application_right_to_role", json=data)
-
-    return json.dumps({'msg': r.text}), r.status_code
-
-
-@bp.route('create_temp_user', methods=['POST'])
-def create_temp_user():
-    '''
-        route pour creer un compte temporaire en attendait la confirmation de l'adresse mail
-        les mot de passe seront stocké en crypté
-        1. on stocke les variables qui seront utilisées par la création de compte
-        2. on envoie un mail pour demander la confirmation du compte mail
-    '''
-
-    # a mettre dans usershub
-
-    # recuperation des parametres
-    data = request.get_json()
-
-    if not data.get("email", None):
-
-        return "email non reseigné dans les paramètres", 412
-
-    # tests? sachant que se sera fait dans userhub
-
-    # connexion à userhub
-    r = usershub_login()
-
-    if not r.status_code == 200:
-
-        return "problème de connexion à usershub : " + r.text, r.status_code
-
-    # requete pour la create d'utilisateur temporaires
-    r = s.post(config['URL_USERHUB'] + "/" + "api_register/create_temp_user", json=data)
-
-    if not r.status_code == 200:
-
-        return "erreur dans la requete à userhub de création d'utilisateur temporaire : " + r.text, r.status_code
-
-    if not MAIL and config.get('ANIMATEUR_APPLICATION_MAIL', None):
-
-        return "les paramètres d'envoie de mail ne sont pas correctement définis", 500
-
-    token = r.json().get('token')
-
-    email = data['email']
-
-    url_validation = config['URL_APPLICATION'] + url_for('register.valid_temp_user', token=token)
-
-    application = DB.session.query(Application).filter(Application.id_application == config['ID_APP']).one()
-
-    with MAIL.connect() as conn:
-
-        msg = Message(
-            '[' + application.nom_application + '] demande de création de compte',
-            sender=config['ANIMATEUR_APPLICATION_MAIL'],
-            recipients=[email])
-
-        template = config.get('template_demande_validation_compte', None)
-
-        if(template):
-
-            msg.html = render_template(
-                template,
-                url_validation=url_validation,
-                identifiant=data['identifiant'],
-                config=config
-            )
-
-        else:
-
-            msg.html = "<p>Veuillez cliquer sur ce lien pour " + \
-                "<a href=" + {{url_validation}} + "> valider votre inscription</a> " + \
-                "puis vous connecter au site afin de valider votre inscription.</p>"
-
-        conn.send(msg)
-
-    return json.dumps({'msg': 'Un mail de verification de compte vous a été envoyé. Veuillez cliquer sur le lien de confirmation dans l''email afin de valider votre compte'}), 200
-
-
-@bp.route('valid_temp_user/<string:token>', methods=['GET'])
-def valid_temp_user(token):
-    '''
-        route pour valider un compte temporire et en faire un utilisateur (requete a userbub)
-    '''
-
-    r = usershub_login()
-
-    if not r.status_code == 200:
-
-        return "problème de connexion à usershub : " + r.text, r.status_code
-
-    data = {
-        'token': token,
-        'id_application': config['ID_APP'],
-        'id_droit': 1,
+        'change_application_right': 4,
+        # 'delete_user': 6, ??
     }
 
-    r = s.post(config['URL_USERHUB'] + "/" + "api_register/valid_temp_user", json=data)
+    id_droit = 0
 
-    if r.status_code != 200:
+    if session.get('current_user', None):
 
-        return 'erreur dans la validation de compte temporaire : ' + r.text, r.status_code
+        id_role = session['current_user']['id_role']
 
-    role = r.json()
-    identifiant = role['identifiant']
+        id_droit = DB.session.query(UserApplicationRight.id_droit)\
+            .filter(UserApplicationRight.id_role == id_role)\
+            .filter(UserApplicationRight.id_application == config['ID_APP']).one()[0]
 
-    f_url = config.get('redirect_on_valid_temp_user', None)
+    id_droit_type_req = dict_type_rect_droit.get(type_req, 7)
 
-    if f_url:
+    if not id_droit >= id_droit_type_req:
 
-        url_redirect = f_url({'identifiant': identifiant})
+        return "Droits insuffisant pour la requête usershub : " + type_req, 400
 
-    else:
-
-        url_redirect = config['URL_APPLICATION']
-
-    application = DB.session.query(Application).filter(Application.id_application == config['ID_APP']).one()
-
-    with MAIL.connect() as conn:
-
-        msg = Message(
-            '[' + application.nom_application + '] [ANIMATEUR] création d'' un nouvel utilisateur',
-            sender=config['ANIMATEUR_APPLICATION_MAIL'],
-            recipients=[config['ANIMATEUR_APPLICATION_MAIL'], config['ADMIN_APPLICATION_MAIL']])
-
-        msg_html = "<p>Un nouvel utilisateur viens de s'enregister</p><p>Identifiant : {}</p><p>Email : {}</p><p>Nom : {}</p><p>Prenom : {}</p><p>Organisme : {}</p>".format(
-            role['identifiant'].strip(),
-            role['email'].strip(),
-            role['nom_role'].strip(),
-            role['prenom_role'].strip(),
-            role['organisme'].strip()
-        )
-
-        print(msg_html)
-
-        msg.html = msg_html
-
-        conn.send(msg)
-
-    return redirect(url_redirect)
-
-
-@bp.route("change_password", methods=['POST'])
-def change_password():
-
+    # les test de paramètres seront faits ds usershub
     data = request.get_json()
 
-    r = usershub_login()
+    url = config['URL_USERHUB'] + "/" + "api_register/" + type_req
 
-    if not r.status_code == 200:
+    r_usershub = s.post(url, json=data)
 
-        return "problème de connexion à usershub : " + r.text, r.status_code
+    # after request definir route dans app
+    # par ex. pour les mails1
+    if r_usershub.status_code == 200:
 
-    r = s.post(config['URL_USERHUB'] + "/" + "api_register/change_password", json=data)
+        r_after = after_request(type_req, get_json_request(r_usershub))
 
-    if r.status_code != 200:
+        print("r_after", r_after)
 
-        return "Erreur : " + r.text, r.status_code
+        if r_after != 0:
+            if r_after['msg'] != "ok":
+                print("erreur r_after")
+                return json.dumps({'msg': 'Problème after request pour post_usershub ' + type_req, 'msg_after': req_json_or_text(r_after)}), r_after.status_code
 
-    user = r.json()
-    identifiant = user['identifiant']
-
-    return json.dumps({'identifiant': identifiant})
-    # return redirect(url_for('oeasc.login', identifiant=identifiant))
+    return req_json_or_text(r_usershub)
 
 
-@bp.route("change_password_send_mail", methods=['POST'])
-def change_password_send_mail():
+def after_request(type_req, data):
 
-    r = usershub_login()
+    after_request_dict = config.get('after_USERSHUB_request', None)
 
-    if not r.status_code == 200:
+    if not after_request_dict:
 
-        return "problème de connexion à usershub : " + r.text, r.status_code
+        return 0
 
-    data = request.get_json()
+    f = after_request_dict.get(type_req, None)
 
-    email = data.get('email')
+    if not f:
 
-    # si email on envoie un mail
-    if not email:
+        return 0
 
-        return "Email non renseigné", 500
-
-    role = DB.session.query(User).filter(User.email == email).first()
-
-    if not role:
-
-        return "Pas d'utilisateur pour l'email " + email, 500
-
-    r = s.post(config['URL_USERHUB'] + "/" + "api_register/create_cor_role_token", json={'id_role': role.id_role})
-
-    if not r.status_code == 200:
-
-        return "erreur dans la requete a USERHUB : " + r.text, r.status_code
-
-    token = r.json()['token']
-
-    if not MAIL and config.get('ANIMATEUR_APPLICATION_MAIL', None):
-
-        return "les paramètres d'envoie de mail ne sont pas correctement définis", 500
-
-    application = DB.session.query(Application).filter(Application.id_application == config['ID_APP']).one()
-
-    # TODO Trouver une solution rendre cet url generique
-    # url_validation = config['URL_APPLICATION'] + "/oeasc/change_password/" + token
-    url_validation = config['URL_APPLICATION'] + "/" + url_for(config['route_change_password'], token=token)
-
-    with MAIL.connect() as conn:
-
-        msg = Message(
-            '[' + application.nom_application + '] changement de mot de passe',
-            sender=config['ANIMATEUR_APPLICATION_MAIL'],
-            recipients=[role.email])
-
-        template = config.get('template_change_password', None)
-
-        if(template):
-
-            msg.html = render_template(template, url_validation=url_validation)
-
-        else:
-
-            msg.html = "<p>Veuillez cliquer sur ce lien afin de pouvoir " + \
-                "<a href=" + {{url_validation}} + " > modifier votre mot de passe.</a></p>"
-
-        conn.send(msg)
-
-    return json.dumps({"msg": "ok"}), 200
+    return f(data)
