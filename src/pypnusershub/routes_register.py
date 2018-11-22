@@ -63,14 +63,15 @@ def get_json_request(r):
 
 def req_json_or_text(r, msg_pypn=""):
     '''
-        revoie r.json si possible
-        r.text sinon
+        revoie un tuple avec r.json si possible
+        {'msg': r.text} sinon
+        et status_code
     '''
     r_json = get_json_request(r)
 
     if not r_json:
 
-        return msg_pypn + " : " + r.text, r.status_code
+        r_json = {"msg :" + r.text}
 
     if msg_pypn:
 
@@ -93,11 +94,17 @@ def connect_admin():
 
             if not id_app_usershub:
 
-                return "Pas d'id app usersHub", 500
+                return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
+
+            print(config['ADMIN_APPLICATION_LOGIN'])
+            print(config['ADMIN_APPLICATION_PASSWORD'])
 
             # test si on est déjà connecté
-            r = s.post(config['URL_USERHUB'] + "/routes_register/test_connexion")
-            b_connexion = (r.status_code == 200)
+            try:
+                r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
+                b_connexion = (r.status_code == 200)
+            except requests.ConnectionError:
+                return json.dumps({"msg": "Erreur de connexion à USERSHUB (url fausse ou UH arrêté)"}), 500
 
             # si on est pas connecté on se connecte
             if not b_connexion:
@@ -106,8 +113,8 @@ def connect_admin():
 
             # si echec de connexion
             if r.status_code != 200:
-
-                return req_json_or_text(r, "Problème de connexion à usershub"), r.status_code
+                print("prout", req_json_or_text(r, "Problème de connexion à usershub"))
+                return req_json_or_text(r, "Problème de connexion à usershub")
 
             return f(*args, **kwargs)
 
@@ -119,19 +126,28 @@ def connect_admin():
 @bp.route('test_uh', methods=['GET'])
 @connect_admin()
 def test():
+    '''
+        route pour tester le décorateur connect_admin
+        ainsi que les paramètres de connexion à USERSHUB:
+            - config['ADMIN_APPLICATION_LOGIN']
+            - config['ADMIN_APPLICATION_PASSWORD']
+    '''
 
     r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
 
     return req_json_or_text(r, "Test pypn")
 
 
-# route generiques a sécuriser avec crsf ?
-@bp.route("post_usershub/<string:type_req>", methods=['POST'])
+@bp.route("post_usershub/<string:type_action>", methods=['POST'])
 @connect_admin()
-def post_usershub(type_req):
+def post_usershub(type_action):
+    '''
+        route generique pour appeler les route userhub en tant qu'administrateur de l'appli en cours
+        ex : post/usershub/test_connexion appelle la route URL_USERHUB/api_register/test_connexion
+    '''
 
     # test pour savoir qui peut quoi
-    dict_type_rect_droit = {
+    dict_type_action_droit = {
         'test_connexion': 0,
         'valid_temp_user': 0,
         'create_temp_user': 0,
@@ -142,7 +158,6 @@ def post_usershub(type_req):
         'update_user': 1,
 
         'change_application_right': 4,
-        # 'delete_user': 6, ??
     }
 
     id_droit = 0
@@ -155,36 +170,39 @@ def post_usershub(type_req):
             .filter(UserApplicationRight.id_role == id_role)\
             .filter(UserApplicationRight.id_application == config['ID_APP']).one()[0]
 
-    id_droit_type_req = dict_type_rect_droit.get(type_req, 7)
+    # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible
+    if id_droit < dict_type_action_droit.get(type_action, 7):
 
-    if not id_droit >= id_droit_type_req:
-
-        return "Droits insuffisant pour la requête usershub : " + type_req, 400
+        return json.dumps({"msg": "Droits insuffisant pour la requête usershub : " + type_action}), 403
 
     # les test de paramètres seront faits ds usershub
     data = request.get_json()
 
-    url = config['URL_USERHUB'] + "/" + "api_register/" + type_req
+    url = config['URL_USERHUB'] + "/" + "api_register/" + type_action
 
     r_usershub = s.post(url, json=data)
 
     # after request definir route dans app
-    # par ex. pour les mails1
+    # par ex. pour l'envoi de mails
     if r_usershub.status_code == 200:
 
-        r_after = after_request(type_req, get_json_request(r_usershub))
+        out_after = after_request(type_action, get_json_request(r_usershub))
 
-        print("r_after", r_after)
+        # 0 = pas d'action definis dans config['after_USERSHUB_request'][type_action]
+        if out_after != 0:
 
-        if r_after != 0:
-            if r_after['msg'] != "ok":
-                print("erreur r_after")
-                return json.dumps({'msg': 'Problème after request pour post_usershub ' + type_req, 'msg_after': req_json_or_text(r_after)}), r_after.status_code
+            if out_after['msg'] != "ok":
+                print(out_after['msg'])
+                return json.dumps({'msg': 'Problème after request pour post_usershub ' + type_action + ':' + out_after['msg']}), 500
 
     return req_json_or_text(r_usershub)
 
 
-def after_request(type_req, data):
+def after_request(type_action, data):
+    '''
+        lorsqu'une fonction est definie dans config['after_USERSHUB_request'][type_action]
+        elle est executée avec les données fournies en retour de la requete USERSHUB
+    '''
 
     after_request_dict = config.get('after_USERSHUB_request', None)
 
@@ -192,7 +210,7 @@ def after_request(type_req, data):
 
         return 0
 
-    f = after_request_dict.get(type_req, None)
+    f = after_request_dict.get(type_action, None)
 
     if not f:
 

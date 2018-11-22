@@ -4,6 +4,8 @@ from app.utils.utilssqlalchemy import (
     serializable
 )
 
+from .model import User
+
 from Crypto.Cipher import XOR
 
 import base64
@@ -79,6 +81,12 @@ class TempUser(DB.Model):
 
             msg += "email is not valid.\n"
             is_valid = False
+
+        role = DB.session.query(User).filter(User.email == self.email).first()
+
+        if role:
+
+            msg += "user with mail " + self.email + " exists"
 
         return (is_valid, msg)
 
