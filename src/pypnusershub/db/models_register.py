@@ -4,7 +4,7 @@ from app.utils.utilssqlalchemy import (
     serializable
 )
 
-from .model import User
+from .models import User
 
 from Crypto.Cipher import XOR
 
