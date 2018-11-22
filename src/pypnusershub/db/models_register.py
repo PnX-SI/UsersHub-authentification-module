@@ -68,25 +68,26 @@ class TempUser(DB.Model):
         if not self.password:
 
             is_valid = False
-            msg += "password is required.\n"
+            msg += "Password is required.\n"
 
         if self.password != self.password_confirmation:
 
-            msg += "password and password_confirmation are differents.\n"
             is_valid = False
+            msg += "Password and password_confirmation are differents.\n"
 
         re.compile(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
 
         if not re.match(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$", self.email):
 
-            msg += "email is not valid.\n"
             is_valid = False
+            msg += "E-mail is not valid.\n"
 
         role = DB.session.query(User).filter(User.email == self.email).first()
 
         if role:
 
-            msg += "user with mail " + self.email + " exists"
+            is_valid = False
+            msg += "User with mail " + self.email + " exists"
 
         return (is_valid, msg)
 
