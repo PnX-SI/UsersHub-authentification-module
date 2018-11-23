@@ -13,7 +13,6 @@ import logging
 
 import datetime
 from functools import wraps
-from copy import copy
 
 from flask import Blueprint, request, Response, current_app, redirect, g, jsonify, session
 
@@ -24,11 +23,10 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
-    user_from_token, user_from_token_foraction,
+    user_from_token,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
     InsufficientRightsError,
-    cruved_for_user_in_app
 )
 
 
@@ -244,50 +242,22 @@ def login():
             id_app = user_data['id_application']
             login = user_data['login']
 
-            if user_data.get('with_cruved', False) is True:
-                user = (models.VUsersactionForallGnModules
-                        .query
-                        .filter(models.VUsersactionForallGnModules.identifiant == login)
-                        .filter(models.VUsersactionForallGnModules.id_application == id_app)
-                        .first())
-                assert user is not None
-                user_dict = user.as_dict()
-                cruved = (
-                    models.VUsersactionForallGnModules.query.join(
-                        models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
-                    ).filter(
-                        models.TTags.id_tag_type == 2
-                    ).filter(
-                        models.VUsersactionForallGnModules.id_role == user.id_role
-                    ).filter(
-                        models.VUsersactionForallGnModules.id_application.in_(
-                            sa.func.utilisateurs.find_all_modules_childs(id_app).select()
-                        )
-                    ).all()
-                )
-                user_dict['rights'] = {}
-                for c in cruved:
-                    if (c.id_application in user_dict['rights']):
-                        user_dict['rights'][c.id_application][c.tag_action_code] = c.tag_object_code
-                    else:
-                        user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
-            else:
-                user = (models.AppUser
-                        .query
-                        .filter(models.AppUser.identifiant == login)
-                        .filter(models.AppUser.id_application == id_app)
-                        .one())
-                # Return child application
-                sub_app = models.AppUser.query.join(
-                    models.Application, models.Application.id_application == models.AppUser.id_application
-                ).filter(
-                    models.Application.id_parent == id_app
-                ).filter(
-                    models.AppUser.id_role == user.id_role
-                ).all()
+            user = (models.AppUser
+                    .query
+                    .filter(models.AppUser.identifiant == login)
+                    .filter(models.AppUser.id_application == id_app)
+                    .one())
+            # Return child application
+            sub_app = models.AppUser.query.join(
+                models.Application, models.Application.id_application == models.AppUser.id_application
+            ).filter(
+                models.Application.id_parent == id_app
+            ).filter(
+                models.AppUser.id_role == user.id_role
+            ).all()
 
-                user_dict = user.as_dict()
-                user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
+            user_dict = user.as_dict()
+            user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
 
             
         except KeyError as e:
@@ -346,42 +316,9 @@ def login():
         msg = json.dumps({'login': False, 'msg': repr(e)})
         return Response(msg, status=403)
 
-@routes.route('/cruved/<int:id_app>', methods=['GET'])
-@check_auth_cruved('R', True)
-def get_cruved(id_app, info_role):
-    """ return the cruved for a user
-    
-    Params:
-        id_app: (int): the id of the module or app we want the cruved
-        user: (User): the user who ask the route, auto kwargs via @check_auth_cruved
-        id_app_parent(int): the id of the parent_app (facultatif: via query string)
-
-    Returns
-        - dict of the CRUVED
-    """
-    cruved = cruved_for_user_in_app(
-        id_role=info_role.id_role,
-        id_application=id_app,
-        id_application_parent=request.args.get('id_app_parent', None)
-    )
-    return Response(json.dumps(cruved), 200)
-
 
 @routes.route('/logout', methods=['GET', 'POST'])
 def logout():
     resp = redirect("", code=302)
     resp.delete_cookie('token')
     return resp
-
-
-@routes.route('/logout_cruved', methods=['GET'])
-def logout_cruved():
-    """
-    Route to logout with cruved
-    To avoid multiples server call, we store the cruved in the session
-    when the user logout we need clear the session to get the new cruved session
-    """
-    copy_session_key = copy(session)
-    for key in copy_session_key:
-        session.pop(key)
-    return Response('Logout', 200)

@@ -54,8 +54,6 @@ class User(db.Model):
     _password_plus = db.Column('pass_plus', db.Unicode)
     email = db.Column(db.Unicode)
     id_organisme = db.Column(db.Integer)
-    organisme = db.Column(db.Unicode)
-    id_unite = db.Column(db.Integer)
     remarques = db.Column(db.Unicode)
     pn = db.Column(db.Boolean)
     session_appli = db.Column(db.Unicode)
@@ -219,58 +217,3 @@ class AppUser(db.Model):
         )
 
 
-# ---------- Géonature model ----------
-
-class VUsersactionForallGnModules(db.Model):
-    '''
-    Droit d'acces d'un user particulier a une application particuliere
-    '''
-    __tablename__ = 'v_usersaction_forall_gn_modules'
-    __table_args__ = {'schema': 'utilisateurs'}
-    id_role = db.Column(db.Integer, primary_key=True)
-    nom_role = db.Column(db.Unicode)
-    prenom_role = db.Column(db.Unicode)
-    id_application = db.Column(db.Integer, primary_key=True)
-    id_organisme = db.Column(db.Integer)
-    id_tag_action = db.Column(db.Integer, primary_key=True)
-    tag_action_code = db.Column(db.Unicode)
-    id_tag_object = db.Column(db.Integer, primary_key=True)
-    tag_object_code = db.Column(db.Unicode)
-    identifiant = db.Column(db.Unicode)
-    _password = db.Column('pass', db.Unicode)
-    _password_plus = db.Column('pass_plus', db.Unicode)
-
-    check_password = fn_check_password
-
-    def as_dict(self):
-        cols = (c for c in self.__table__.columns if (c.name != 'pass_plus') and (c.name != 'pass'))
-        return {c.name: getattr(self, c.name) for c in cols}
-
-    def __repr__(self):
-        return """VUsersactionForallGnModules
-            role='{}' action='{}' porté='{}' app='{}'>""".format(
-                self.id_role, self.tag_action_code,
-                self.tag_object_code, self.id_application
-            )
-
-
-class TTags(db.Model):
-    '''
-    Droit d'acces d'un user particulier a une application particuliere
-    '''
-    __tablename__ = 't_tags'
-    __table_args__ = {'schema': 'utilisateurs'}
-    id_tag = db.Column(db.Integer, primary_key=True)
-    id_tag_type = db.Column(db.Integer)
-    tag_code = db.Column(db.Unicode)
-    tag_name = db.Column(db.Unicode)
-    tag_label = db.Column(db.Unicode)
-    tag_desc = db.Column(db.Unicode)
-
-    def __repr__(self):
-        return """TTags id='{}' code='{}' name='{}'>""".format(
-                self.id_tag, self.tag_code, self.tag_name
-            )
-
-
-    
