@@ -45,7 +45,11 @@ bp = Blueprint('register', __name__)
 
 
 def get_json_request(r):
+    '''
+        r : retour de la requete requests
 
+        fonction pour recuperer la reponse json sans leveer d'erreur
+    '''
     try:
         r_json = r.json()
     except Exception:
@@ -56,9 +60,14 @@ def get_json_request(r):
 
 def req_json_or_text(r, msg_pypn=""):
     '''
-        revoie un tuple avec r.json si possible
+        r : retour de la requete requests
+        msg_pypn : message supplementaire rajouté a la reponse
+
+        revoie un tuple avec la réponse de la requete en json r.json si possible
         {'msg': r.text} sinon
         et status_code
+
+
     '''
     r_json = get_json_request(r)
 
@@ -80,7 +89,7 @@ def req_json_or_text(r, msg_pypn=""):
 def connect_admin():
     '''
         decorateur pour la connexion de l'admin a une appli
-        ici url sans / à la fin
+        ici url config['URL_USERHUB'] sans / à la fin
     '''
     def _connect_admin(f):
         @wraps(f)
