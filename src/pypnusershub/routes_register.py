@@ -17,22 +17,15 @@ import json
 
 import requests
 
-from flask_mail import Message
-
 from flask import (
     Blueprint,
     request,
-    render_template,
-    url_for,
     session,
-    redirect
 )
-
-
 
 from functools import wraps
 
-from .db.models import Application, User, UserApplicationRight
+from .db.models import Application, UserApplicationRight
 
 from flask import current_app
 
@@ -69,9 +62,13 @@ def req_json_or_text(r, msg_pypn=""):
     '''
     r_json = get_json_request(r)
 
-    if not r_json:
+    if not r_json and r.text:
 
-        r_json = {"msg :" + r.text}
+        r_json = {"msg": + r.text}
+
+    if not r_json and not r.text:
+
+        r_json = {"msg": "empty message"}
 
     if msg_pypn:
 
@@ -96,15 +93,12 @@ def connect_admin():
 
                 return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
 
-            print(config['ADMIN_APPLICATION_LOGIN'])
-            print(config['ADMIN_APPLICATION_PASSWORD'])
-
             # test si on est déjà connecté
             try:
                 r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
                 b_connexion = (r.status_code == 200)
             except requests.ConnectionError:
-                return json.dumps({"msg": "Erreur de connexion à USERSHUB (url fausse ou UH arrêté)"}), 500
+                return json.dumps({"msg": "Erreur de connexion a l'application USERSHUB (causes possbiles : url erronee, application USERSHUB ne fonctionne pas, ..;)"}), 500
 
             # si on est pas connecté on se connecte
             if not b_connexion:
@@ -113,7 +107,6 @@ def connect_admin():
 
             # si echec de connexion
             if r.status_code != 200:
-                print("prout", req_json_or_text(r, "Problème de connexion à usershub"))
                 return req_json_or_text(r, "Problème de connexion à usershub")
 
             return f(*args, **kwargs)
@@ -146,7 +139,7 @@ def post_usershub(type_action):
         ex : post/usershub/test_connexion appelle la route URL_USERHUB/api_register/test_connexion
     '''
 
-    # test pour savoir qui peut quoi
+    # attribution des droits pour les actions
     dict_type_action_droit = {
         'test_connexion': 0,
         'valid_temp_user': 0,
@@ -192,7 +185,7 @@ def post_usershub(type_action):
         if out_after != 0:
 
             if out_after['msg'] != "ok":
-                print(out_after['msg'])
+
                 return json.dumps({'msg': 'Problème after request pour post_usershub ' + type_action + ':' + out_after['msg']}), 500
 
     return req_json_or_text(r_usershub)
