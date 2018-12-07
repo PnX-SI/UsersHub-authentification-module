@@ -185,6 +185,8 @@ class AppUser(db.Model):
         primary_key=True
     )
     role = relationship("User", backref="app_users")
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
     id_application = db.Column(
         db.Integer,
         db.ForeignKey('utilisateurs.t_applications.id_application'),

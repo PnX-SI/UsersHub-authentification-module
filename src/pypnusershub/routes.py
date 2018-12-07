@@ -258,7 +258,6 @@ def login():
 
             user_dict = user.as_dict()
             user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
-
             
         except KeyError as e:
             parameters = ", ".join(e.args)
@@ -283,6 +282,7 @@ def login():
             })
             log.info(msg)
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
+            log.info(msg)            
             return Response(msg, status=status_code)
 
         except Exception as e:
@@ -291,6 +291,7 @@ def login():
                 'type': 'bug',
                 'msg': 'Unkown error during login'
             })
+            log.info(msg)
             return Response(msg, status=500)
 
         if not user.check_password(user_data['password']):
@@ -298,6 +299,7 @@ def login():
                 'type': 'password',
                 'msg': 'Mot de passe invalide'
             })
+            log.info(msg)
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
             return Response(msg, status=status_code)
 
