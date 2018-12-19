@@ -22,10 +22,6 @@ class AccessRightsError(Exception):
     pass
 
 
-class CruvedImplementationError(Exception):
-    pass
-
-
 class InsufficientRightsError(AccessRightsError):
     pass
 
