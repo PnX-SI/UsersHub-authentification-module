@@ -4,9 +4,16 @@ CHANGELOG
 1.2.2 (unreleased)
 ------------------
 
+**Nouveautés**
+
+* Optimisation des accès à la BDD en utilisant l'instance ``DB`` de l'application dans laquelle est utilisée ce sous-module
+* Suppression des routes et objets du modèle lié au CRUVED qui a été retiré de UsersHub pour le basculer dans GeoNature
+
 **Corrections**
 
-*
+* Précisions dans la documentation (README) sur le script SQL à utiliser depuis le dépôt de UsersHub
+
+PS : Virer le SQL local totalement caduque et revoir les commande d'installation qui l'utilisent ?
 
 1.2.1 (2018-10-08)
 ------------------
