@@ -249,8 +249,13 @@ def login():
         return Response(msg, status=403)
 
 
+
 @routes.route('/logout', methods=['GET', 'POST'])
 def logout():
-    resp = redirect("", code=302)
+    params = request.args
+    if 'redirect' in params:
+        resp = redirect(params['redirect'], code=302)
+    else:
+        resp = redirect("", code=302)
     resp.delete_cookie('token')
     return resp
