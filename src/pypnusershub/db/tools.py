@@ -34,15 +34,15 @@ class UnreadableAccessRightsError(AccessRightsError):
     pass
 
 
-def init_schema(con_uri):
+# def init_schema(con_uri):
 
-    with text_resource_stream('schema.sql', 'pypnusershub.db') as sql_file:
-        sql = sql_file.read()
+#     with text_resource_stream('schema.sql', 'pypnusershub.db') as sql_file:
+#         sql = sql_file.read()
 
-    engine = sa.create_engine(con_uri)
-    with engine.connect():
-        engine.execute(sql)
-        engine.execute("COMMIT")
+#     engine = sa.create_engine(con_uri)
+#     with engine.connect():
+#         engine.execute(sql)
+#         engine.execute("COMMIT")
 
 
 def delete_schema(con_uri):

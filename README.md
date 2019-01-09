@@ -4,33 +4,32 @@ Module Flask (Python) permettant de gérer l'authentification suivant le modèle
 
 Prévu pour être utilisé comme un submodule git.
 
-Nécessite le schéma ``utilisateurs`` de UsersHub dans la BDD de l'application l'utilisant. Pour cela installez UsersHub dans la même BDD ou uniquement son schéma : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
+Nécessite le schéma `utilisateurs` de UsersHub dans la BDD de l'application l'utilisant. Pour cela installez UsersHub dans la même BDD ou uniquement son schéma : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
 
-Par défaut le sous-module utilise le mot de passe "pass_plus" (méthode de hashage bcrypt) pour s'authentifier. Si vous souhaitez utiliser le champ  "pass" (en md5), il faut passer le paramètre ``PASS_METHOD = 'md5'`` à la configuration Flask de l'application parent qui utilise le sous-module.
-
+Par défaut le sous-module utilise le mot de passe "pass_plus" (méthode de hashage bcrypt) pour s'authentifier. Si vous souhaitez utiliser le champ "pass" (en md5), il faut passer le paramètre `PASS_METHOD = 'md5'` à la configuration Flask de l'application parent qui utilise le sous-module.
 
 ## Routes
 
-* login :
-  * parametres : login, password, id_application
-  * return : token
+- login :
+  - parametres : login, password, id_application
+  - return : token
 
 ## Fonction de décoration
 
-* check_auth
-  * parametres : level = niveau de droit
-  * utilise le token passé en cookie de la requête
+- check_auth
+  - parametres : level = niveau de droit
+  - utilise le token passé en cookie de la requête
 
 ## Exemple d'usage
 
-Pour disposer des routes de login/logout dans votre application Flask, ajoutez dans votre fichier de lancement de l'application (``server.py`` par exemple) :
+Pour disposer des routes de login/logout dans votre application Flask, ajoutez dans votre fichier de lancement de l'application (`server.py` par exemple) :
 
 ```
   from pypnusershub.routes import routes
   app.register_blueprint(routes, url_prefix='/auth')
 ```
 
-Pour protéger une route : 
+Pour protéger une route :
 
 ```
   #Import de la librairie
@@ -43,7 +42,6 @@ Pour protéger une route :
     ...
 ```
 
-
 ## Installation
 
 Cloner le repository, puis dans le dossier :
@@ -55,7 +53,6 @@ python setup.py install
 Le driver PostgreSQL Python, "psycopg2", peut avoir besoin d'être compilé. Si
 à l'installation vous obtenez un message d'erreur décrivant un fichier de
 header manquant (xxxx.h), comme par exemple :
-
 
 ```
 fatal error: Python.h: Aucun fichier ou dossier de ce type
@@ -79,7 +76,6 @@ sudo su postgres
 ```
 
 Assurez-vous d'avoir au moins créé une base de données. Par exemple sous Ubuntu :
-
 
 ```
 createdb ma_db
@@ -111,9 +107,13 @@ Par exemple :
 postgresql://parcnational:secret@127.0.0.1:5432/ma_db
 ```
 
-Il vous faudra créer un schema nommé `utilisteurs` qui contient toutes les tables nécessaires. 
+Il vous faudra créer un schema nommé `utilisteurs` qui contient toutes les tables nécessaires.
 
-**ATTENTION**, le script SQL local ci-dessous ainsi que la méthode ne sont pas à jour (https://github.com/PnX-SI/UsersHub-authentification-module/issues/2). Il faut utiliser le SQL maintenu dans le dépôt de UsersHub : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
+**ATTENTION**, le script SQL local ci-dessous ainsi que la méthode ne sont pas à jour (https://github.com/PnX-SI/UsersHub-authentification-module/issues/2). Pour installer le schéma `utilisateurs`, utilisez le SQL maintenu dans le dépôt de UsersHub : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
+
+:notes
+
+Attention, les commandes qui suivent sont obselètes:
 
 Ce module contient le SQL pour le faire dans le fichier `db/schema.sql`. Néanmoins une commande vous permet de le faire automatiquement :
 
