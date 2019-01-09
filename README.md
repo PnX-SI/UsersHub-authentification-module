@@ -113,7 +113,7 @@ Il vous faudra créer un schema nommé `utilisteurs` qui contient toutes les tab
 
 :notes
 
-Attention, les commandes qui suivent sont obselètes:
+Attention, les commandes qui suivent sont obselètes
 
 Ce module contient le SQL pour le faire dans le fichier `db/schema.sql`. Néanmoins une commande vous permet de le faire automatiquement :
 
