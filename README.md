@@ -44,7 +44,7 @@ Pour protéger une route :
 
 ## Installation
 
-Cloner le repository, puis dans le dossier :
+Cloner le repository ou télécharger une archive, puis dans le dossier :
 
 ```
 python setup.py install
@@ -67,9 +67,9 @@ Par exemple, sur Ubuntu avec Python 3.5 et PostgreSQL 9.5 :
 sudo apt install python3.5-dev build-essential postgresql-server-dev-9.5
 ```
 
-Il faut ensuite configurer la base de données en étant administrateur.
+Il faut ensuite configurer la base de données en étant super-utilisateur.
 
-La manière la plus courante pour se connecter à la base de données en ayant les droits admin est de se logger en tant qu'utilisateur 'postgres'. Par exemple sous Ubuntu :
+La manière la plus courante pour se connecter à la base de données en ayant les droits super-utilisateur est de se logger avec l'utilisateur 'postgres'. Par exemple sous Ubuntu :
 
 ```
 sudo su postgres
@@ -107,13 +107,13 @@ Par exemple :
 postgresql://parcnational:secret@127.0.0.1:5432/ma_db
 ```
 
-Il vous faudra créer un schema nommé `utilisteurs` qui contient toutes les tables nécessaires.
+Il vous faudra créer un schema nommé `utilisateurs` qui contient toutes les tables nécessaires.
 
-**ATTENTION**, le script SQL local ci-dessous ainsi que la méthode ne sont pas à jour (https://github.com/PnX-SI/UsersHub-authentification-module/issues/2). Pour installer le schéma `utilisateurs`, utilisez le SQL maintenu dans le dépôt de UsersHub : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
+Utilisez le SQL maintenu dans le dépôt de UsersHub : https://github.com/PnEcrins/UsersHub/blob/master/data/usershub.sql
 
-:notes
+Pour l'éxécuter, il faut avoir ajouter l'extension UUID à votre base de données. Pour le faire en ligne de commande en tant que super-utilisateur de PotsgreSQL : ``sudo -n -u postgres -s psql -d $db_name -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'``.
 
-Attention, les commandes qui suivent sont obselètes
+**Attention**, les commandes qui suivent sont obsolètes, car le script SQL local a été supprimé du dépôt pour utiliser celui de UsersHub.
 
 Ce module contient le SQL pour le faire dans le fichier `db/schema.sql`. Néanmoins une commande vous permet de le faire automatiquement :
 
