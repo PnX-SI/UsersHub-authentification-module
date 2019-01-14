@@ -14,7 +14,7 @@ import logging
 import datetime
 from functools import wraps
 
-from flask import Blueprint, request, Response, current_app, redirect, g, jsonify
+from flask import Blueprint, request, Response, current_app, redirect, g, jsonify, session
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
@@ -23,10 +23,10 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
-    user_from_token, user_from_token_foraction,
+    user_from_token,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
-    InsufficientRightsError
+    InsufficientRightsError,
 )
 
 
@@ -62,6 +62,7 @@ class ConfigurableBlueprint(Blueprint):
         # set cookie autorenew
         expiration = app.config.get('COOKIE_EXPIRATION', 3600)
         cookie_autorenew = app.config.get('COOKIE_AUTORENEW', True)
+        app.config['PASS_METHOD'] = app.config.get('PASS_METHOD', 'hash')
 
         if cookie_autorenew:
 
@@ -161,76 +162,6 @@ def check_auth(
     return _check_auth
 
 
-def check_auth_cruved(
-    action,
-    get_role=False,
-    id_app=None,
-    redirect_on_expiration=None,
-    redirect_on_invalid_token=None,
-):
-    def _check_auth_cruved(fn):
-        @wraps(fn)
-        def __check_auth_cruved(*args, **kwargs):
-            try:
-                # TODO: better name and configurability for the token
-
-                user = user_from_token_foraction(
-                    request.cookies['token'],
-                    action,
-                    id_app
-                )
-                if get_role:
-                    kwargs['info_role'] = user
-
-                g.user = user
-                return fn(*args, **kwargs)
-
-            except AccessRightsExpiredError:
-                if redirect_on_expiration:
-                    res = redirect(redirect_on_expiration, code=302)
-                else:
-                    res = Response('Token Expired', 403)
-                res.set_cookie('token', expires=0)
-                return res
-            except InsufficientRightsError as e:
-                log.info(e)
-                if redirect_on_expiration:
-                    res = redirect(redirect_on_expiration, code=302)
-                else:
-                    res = Response('Forbidden', 403)
-                return res
-            except KeyError as e:
-                if 'token' not in e.args:
-                    raise
-                if redirect_on_expiration:
-                    return redirect(redirect_on_expiration, code=302)
-                return Response('No token', 403)
-
-            except UnreadableAccessRightsError:
-                log.info('Invalid Token : BadSignature')
-                # invalid token,
-                if redirect_on_invalid_token:
-                    res = redirect(redirect_on_invalid_token, code=302)
-                else:
-                    res = Response('Token BadSignature', 403)
-                res.set_cookie('token',  expires=0)
-                return res
-
-            except Exception as e:
-                trap_all_exceptions = current_app.config.get(
-                    'TRAP_ALL_EXCEPTIONS',
-                    True
-                )
-                if not trap_all_exceptions:
-                    raise
-                log.critical(e)
-                msg = json.dumps({'type': 'Exception', 'msg': repr(e)})
-                return Response(msg, 403)
-
-        return __check_auth_cruved
-    return _check_auth_cruved
-
-
 
 @routes.route('/login', methods=['POST'])
 def login():
@@ -241,51 +172,22 @@ def login():
             id_app = user_data['id_application']
             login = user_data['login']
 
-            if user_data.get('with_cruved', False) is True:
-                user = (models.VUsersactionForallGnModules
-                        .query
-                        .filter(models.VUsersactionForallGnModules.identifiant == login)
-                        .filter(models.VUsersactionForallGnModules.id_application == id_app)
-                        .first())
-                assert user is not None
-                user_dict = user.as_dict()
-                cruved = (
-                    models.VUsersactionForallGnModules.query.join(
-                        models.TTags, models.TTags.id_tag == models.VUsersactionForallGnModules.id_tag_action
-                    ).filter(
-                        models.TTags.id_tag_type == 2
-                    ).filter(
-                        models.VUsersactionForallGnModules.id_role == user.id_role
-                    ).filter(
-                        models.VUsersactionForallGnModules.id_application.in_(
-                            sa.func.utilisateurs.find_all_modules_childs(id_app).select()
-                        )
-                    ).all()
-                )
-                user_dict['rights'] = {}
-                for c in cruved:
-                    if (c.id_application in user_dict['rights']):
-                        user_dict['rights'][c.id_application][c.tag_action_code] = c.tag_object_code
-                    else:
-                        user_dict['rights'][c.id_application] = {c.tag_action_code: c.tag_object_code}
-            else:
-                user = (models.AppUser
-                        .query
-                        .filter(models.AppUser.identifiant == login)
-                        .filter(models.AppUser.id_application == id_app)
-                        .one())
-                # Return child application
-                sub_app = models.AppUser.query.join(
-                    models.Application, models.Application.id_application == models.AppUser.id_application
-                ).filter(
-                    models.Application.id_parent == id_app
-                ).filter(
-                    models.AppUser.id_role == user.id_role
-                ).all()
+            user = (models.AppUser
+                    .query
+                    .filter(models.AppUser.identifiant == login)
+                    .filter(models.AppUser.id_application == id_app)
+                    .one())
+            # Return child application
+            sub_app = models.AppUser.query.join(
+                models.Application, models.Application.id_application == models.AppUser.id_application
+            ).filter(
+                models.Application.id_parent == id_app
+            ).filter(
+                models.AppUser.id_role == user.id_role
+            ).all()
 
-                user_dict = user.as_dict()
-                user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
-
+            user_dict = user.as_dict()
+            user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
             
         except KeyError as e:
             parameters = ", ".join(e.args)
@@ -310,6 +212,7 @@ def login():
             })
             log.info(msg)
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
+            log.info(msg)            
             return Response(msg, status=status_code)
 
         except Exception as e:
@@ -318,6 +221,7 @@ def login():
                 'type': 'bug',
                 'msg': 'Unkown error during login'
             })
+            log.info(msg)
             return Response(msg, status=500)
 
         if not user.check_password(user_data['password']):
@@ -325,6 +229,7 @@ def login():
                 'type': 'password',
                 'msg': 'Mot de passe invalide'
             })
+            log.info(msg)
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
             return Response(msg, status=status_code)
 
@@ -344,9 +249,13 @@ def login():
         return Response(msg, status=403)
 
 
+
 @routes.route('/logout', methods=['GET', 'POST'])
 def logout():
-    resp = redirect("", code=302)
+    params = request.args
+    if 'redirect' in params:
+        resp = redirect(params['redirect'], code=302)
+    else:
+        resp = redirect("", code=302)
     resp.delete_cookie('token')
     return resp
-

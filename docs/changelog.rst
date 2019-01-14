@@ -1,6 +1,20 @@
 CHANGELOG
 *********
 
+1.3.0 (2019-01-14)
+------------------
+
+**Nouveautés**
+
+* Compatibilité avec la version 2 UsersHub
+* Suppression des routes et objets du modèle lié au CRUVED qui a été retiré de UsersHub pour le basculer dans GeoNature
+* Optimisation des accès à la BDD en utilisant l'instance ``DB`` de l'application dans laquelle est utilisée ce sous-module
+
+**Corrections**
+
+* Précisions dans la documentation (README) sur le script SQL à utiliser depuis le dépôt de UsersHub
+* Suppression des scripts SQL locaux pour se n'utiliser que ceux à jour dans le dépôt de UsersHub
+
 1.2.1 (2018-10-08)
 ------------------
 

@@ -16,8 +16,7 @@ from flask import current_app
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import Sequence, func
-db = SQLAlchemy()
-
+db = current_app.config['DB']
 
 def fn_check_password(self, pwd):
     if (current_app.config['PASS_METHOD'] == 'md5'):
@@ -39,8 +38,7 @@ class User(db.Model):
         't_roles_id_seq',
         schema="utilisateurs",
     )
-
-    groupe = db.Column(db.Boolean)
+    groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,
         TABLE_ID,
@@ -56,8 +54,6 @@ class User(db.Model):
     _password_plus = db.Column('pass_plus', db.Unicode)
     email = db.Column(db.Unicode)
     id_organisme = db.Column(db.Integer)
-    organisme = db.Column(db.Unicode)
-    id_unite = db.Column(db.Integer)
     remarques = db.Column(db.Unicode)
     pn = db.Column(db.Boolean)
     session_appli = db.Column(db.Unicode)
@@ -104,6 +100,19 @@ class User(db.Model):
 
     def __str__(self):
         return self.identifiant or ''
+
+    def as_dict(self, recursif=False, columns=()):
+        nom_role = self.nom_role or ''
+        prenom_role = self.prenom_role or ''
+        return {
+            'id_role': self.id_role,
+            'identifiant': self.identifiant,
+            'nom_role': self.nom_role,
+            'prenom_role': self.prenom_role,
+            'id_organisme': self.id_organisme,
+            'groupe': self.groupe,
+            'nom_complet': nom_role+' '+prenom_role
+        }
 
 
 class Application(db.Model):
@@ -176,6 +185,8 @@ class AppUser(db.Model):
         primary_key=True
     )
     role = relationship("User", backref="app_users")
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
     id_application = db.Column(
         db.Integer,
         db.ForeignKey('utilisateurs.t_applications.id_application'),
@@ -208,58 +219,3 @@ class AppUser(db.Model):
         )
 
 
-# ---------- Géonature model ----------
-
-class VUsersactionForallGnModules(db.Model):
-    '''
-    Droit d'acces d'un user particulier a une application particuliere
-    '''
-    __tablename__ = 'v_usersaction_forall_gn_modules'
-    __table_args__ = {'schema': 'utilisateurs'}
-    id_role = db.Column(db.Integer, primary_key=True)
-    nom_role = db.Column(db.Unicode)
-    prenom_role = db.Column(db.Unicode)
-    id_application = db.Column(db.Integer, primary_key=True)
-    id_organisme = db.Column(db.Integer)
-    id_tag_action = db.Column(db.Integer, primary_key=True)
-    tag_action_code = db.Column(db.Unicode)
-    id_tag_object = db.Column(db.Integer, primary_key=True)
-    tag_object_code = db.Column(db.Unicode)
-    identifiant = db.Column(db.Unicode)
-    _password = db.Column('pass', db.Unicode)
-    _password_plus = db.Column('pass_plus', db.Unicode)
-
-    check_password = fn_check_password
-
-    def as_dict(self):
-        cols = (c for c in self.__table__.columns if (c.name != 'pass_plus') and (c.name != 'pass'))
-        return {c.name: getattr(self, c.name) for c in cols}
-
-    def __repr__(self):
-        return """VUsersactionForallGnModules
-            role='{}' action='{}' porté='{}' app='{}'>""".format(
-                self.id_role, self.tag_action_code,
-                self.tag_object_code, self.id_application
-            )
-
-
-class TTags(db.Model):
-    '''
-    Droit d'acces d'un user particulier a une application particuliere
-    '''
-    __tablename__ = 't_tags'
-    __table_args__ = {'schema': 'utilisateurs'}
-    id_tag = db.Column(db.Integer, primary_key=True)
-    id_tag_type = db.Column(db.Integer)
-    tag_code = db.Column(db.Unicode)
-    tag_name = db.Column(db.Unicode)
-    tag_label = db.Column(db.Unicode)
-    tag_desc = db.Column(db.Unicode)
-
-    def __repr__(self):
-        return """TTags id='{}' code='{}' name='{}'>""".format(
-                self.id_tag, self.tag_code, self.tag_name
-            )
-
-
-    
