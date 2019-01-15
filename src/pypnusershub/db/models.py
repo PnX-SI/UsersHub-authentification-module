@@ -59,6 +59,7 @@ class User(db.Model):
     session_appli = db.Column(db.Unicode)
     date_insert = db.Column(db.DateTime)
     date_update = db.Column(db.DateTime)
+    active = db.Column(db.Boolean)
 
     # applications_droits = db.relationship('AppUser', lazy='joined')
 
@@ -218,4 +219,31 @@ class AppUser(db.Model):
             self.id_role, self.id_application
         )
 
+
+class AppRole(db.Model):
+    '''
+    Relations entre applications et role
+    '''
+    __tablename__ = 'v_roleslist_forall_applications'
+    __table_args__ = {'schema': 'utilisateurs'}
+
+    id_role = db.Column(
+        db.Integer,
+        db.ForeignKey('utilisateurs.t_roles.id_role'),
+        primary_key=True
+    )
+    groupe = db.Column(db.Boolean)
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
+    id_application = db.Column(
+        db.Integer,
+        db.ForeignKey('utilisateurs.t_applications.id_application'),
+        primary_key=True
+    )
+    id_organisme = db.Column(db.Integer)
+    identifiant = db.Column(db.Unicode)
+
+    def as_dict(self):
+        cols = (c for c in self.__table__.columns)
+        return {c.name: getattr(self, c.name) for c in cols}
 
