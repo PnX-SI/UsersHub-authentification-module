@@ -112,7 +112,10 @@ def check_auth(
                 user = user_from_token(request.cookies['token'])
 
                 if user.id_droit_max < level:
-                    log.info('Privilege too low')
+                    #HACK better name for callback if right are low
+                    if redirect_on_invalid_token:
+                        log.info('Privilege too low')
+                        res = redirect(redirect_on_invalid_token, code=302)
                     return Response('Forbidden', 403)
 
                 if get_role:

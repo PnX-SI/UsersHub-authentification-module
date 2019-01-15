@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.3.1 (2019-01-15)
+------------------
+
+**Corrections**
+
+* Ajout de la classe ``AppRole`` au modèle
+* Redirection si les droits de l'utilisateur sont insuffisants
+
 1.3.0 (2019-01-14)
 ------------------
 
