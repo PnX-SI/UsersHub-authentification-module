@@ -1,7 +1,7 @@
 CHANGELOG
 *********
 
-1.3.1 (unreleased)
+1.3.2 (unreleased)
 ------------------
 
 **Nouveautés**
@@ -12,6 +12,14 @@ CHANGELOG
 
 * Correction de conflit d'authentification et de permissions entre les différentes application utilisant le sous-module sur le même domaine (vérification que le token corespond à l'application courante).
 Note pour les développeurs: ce conflit est corrigé en ajoutant le paramètre ``ID_APP`` à l'application. La vérification que le token corespond bien à l'application courante n'est pas assuré si ce paramètre n'est pas passé pour des raisons de rétro-compatibilité.
+
+1.3.1 (2019-01-15)
+------------------
+
+**Corrections**
+
+* Ajout de la classe ``AppRole`` au modèle
+* Redirection si les droits de l'utilisateur sont insuffisants
 
 1.3.0 (2019-01-14)
 ------------------
