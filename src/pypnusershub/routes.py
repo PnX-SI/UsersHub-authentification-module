@@ -103,6 +103,7 @@ def check_auth(
     get_role=False,
     redirect_on_expiration=None,
     redirect_on_invalid_token=None,
+    redirect_on_insufficient_right=None
 ):
     def _check_auth(fn):
         @wraps(fn)
@@ -113,9 +114,9 @@ def check_auth(
 
                 if user.id_droit_max < level:
                     #HACK better name for callback if right are low
-                    if redirect_on_invalid_token:
+                    if redirect_on_insufficient_right:
                         log.info('Privilege too low')
-                        res = redirect(redirect_on_invalid_token, code=302)
+                        return redirect(redirect_on_insufficient_right, code=302)
                     return Response('Forbidden', 403)
 
                 if get_role:
@@ -142,11 +143,11 @@ def check_auth(
 
             except UnreadableAccessRightsError:
                 log.info('Invalid Token : BadSignature')
-                # invalid token,
+                # invalid token
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
-                    res = Response('Token BadSignature', 403)
+                    res = Response('Token BadSignature or token not coresponding to the app', 403)
                 res.set_cookie('token', '', expires=0)
                 return res
 
