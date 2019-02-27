@@ -19,8 +19,9 @@ CHANGELOG
 
 **Corrections**
 
-* Correction de conflit d'authentification et de permissions entre les différentes application utilisant le sous-module sur le même domaine (vérification que le token corespond à l'application courante).
-Note pour les développeurs: ce conflit est corrigé en ajoutant le paramètre ``ID_APP`` à l'application. La vérification que le token corespond bien à l'application courante n'est pas assuré si ce paramètre n'est pas passé pour des raisons de rétro-compatibilité.
+* Correction de conflit d'authentification et de permissions entre les différentes application utilisant le sous-module sur le même domaine (vérification que le token correspond à l'application courante).
+
+Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre ``ID_APP`` à l'application. La vérification que le token correspond bien à l'application courante n'est pas assuré si ce paramètre n'est pas passé, pour des raisons de rétro-compatibilité.
 
 1.3.1 (2019-01-15)
 ------------------
