@@ -5,6 +5,7 @@ from __future__ import (unicode_literals, print_function,
 """
     DB tools not related to any model in particular.
 """
+import logging
 
 from flask import current_app
 
@@ -16,6 +17,8 @@ from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
 
 from pypnusershub.db import models, db
 from pypnusershub.utils import text_resource_stream
+
+log = logging.getLogger(__name__)
 
 
 class AccessRightsError(Exception):
@@ -45,17 +48,17 @@ class UnreadableAccessRightsError(AccessRightsError):
 #         engine.execute("COMMIT")
 
 
-def delete_schema(con_uri):
+# def delete_schema(con_uri):
 
-    engine = sa.create_engine(con_uri)
-    with engine.connect():
-        engine.execute("DROP SCHEMA IF EXISTS utilisateurs CASCADE")
-        engine.execute("COMMIT")
+#     engine = sa.create_engine(con_uri)
+#     with engine.connect():
+#         engine.execute("DROP SCHEMA IF EXISTS utilisateurs CASCADE")
+#         engine.execute("COMMIT")
 
 
-def reset_schema(con_uri):
-    delete_schema(con_uri)
-    init_schema(con_uri)
+# def reset_schema(con_uri):
+#     delete_schema(con_uri)
+#     init_schema(con_uri)
 
 
 def load_fixtures(con_uri):
@@ -80,6 +83,17 @@ def user_from_token(token, secret_key=None):
 
         id_role = data['id_role']
         id_app = data['id_application']
+        id_app_from_config = current_app.config.get('ID_APP', None)
+        # check that the id_app from the token well corespond to the current_app id_application
+        # for prevent conflit of token between applications on the same domain
+        # if no ID_APP is passed to the app config, we don't check the conformiity of the token
+        # for retro-compatibility reasons
+        if id_app_from_config:
+            if id_app != id_app_from_config:
+                log.info('Invalid token: the token not corespoding to the current app')
+                raise UnreadableAccessRightsError(
+                    'Token BadSignature', 403
+                )
         return (models.AppUser
                       .query
                       .filter(models.AppUser.id_role == id_role)
