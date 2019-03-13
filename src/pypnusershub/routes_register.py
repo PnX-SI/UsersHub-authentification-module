@@ -29,6 +29,9 @@ from .db.models import Application, UserApplicationRight
 
 from flask import current_app
 
+# from .utils_register import connect_usershub, req_json_or_text
+# from .routes import check_auth
+
 
 config = current_app.config
 
@@ -93,11 +96,10 @@ def connect_admin():
         def __connect_admin(*args, **kwargs):
             # connexion à usershub
 
-            id_app_usershub = DB.session.query(
-                Application.id_application
-            ).filter(Application.nom_application == 'UsersHub').first()[0]
+            id_app_usershub = DB.session.query(Application.id_application).filter(Application.nom_application == 'UsersHub').first()[0]
 
             if not id_app_usershub:
+
                 return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
 
             # test si on est déjà connecté
@@ -105,21 +107,12 @@ def connect_admin():
                 r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
                 b_connexion = (r.status_code == 200)
             except requests.ConnectionError:
-                return json.dumps({
-                    "msg": "Erreur de connexion a l'application USERSHUB (causes possbiles : url erronee, application USERSHUB ne fonctionne pas, ..;)"
-                }), 500
+                return json.dumps({"msg": "Erreur de connexion a l'application USERSHUB (causes possbiles : url erronee, application USERSHUB ne fonctionne pas, ..;)"}), 500
 
             # si on est pas connecté on se connecte
             if not b_connexion:
                 # connexion à usershub
-                r = s.post(
-                    config['URL_USERHUB'] + "/" + "pypn/auth/login", 
-                    json={
-                        'login': config['ADMIN_APPLICATION_LOGIN'], 
-                        'password': config['ADMIN_APPLICATION_PASSWORD'], 
-                        'id_application': id_app_usershub
-                    }
-                )
+                r = s.post(config['URL_USERHUB'] + "/" + "pypn/auth/login", json={'login': config['ADMIN_APPLICATION_LOGIN'], 'password': config['ADMIN_APPLICATION_PASSWORD'], 'id_application': id_app_usershub})
 
             # si echec de connexion
             if r.status_code != 200:

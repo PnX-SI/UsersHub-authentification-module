@@ -175,18 +175,12 @@ def login():
             id_app = user_data['id_application']
             login = user_data['login']
 
-            print(user_data)
-            user = (models.AppUser
-                    .query
-                    .filter(models.AppUser.identifiant == "admin@pnc.fr")
-                    .one())
             user = (models.AppUser
                     .query
                     .filter(models.AppUser.identifiant == login)
                     .filter(models.AppUser.id_application == id_app)
                     .one())
             
-            print('login')
             # Return child application
             sub_app = models.AppUser.query.join(
                 models.Application, models.Application.id_application == models.AppUser.id_application
