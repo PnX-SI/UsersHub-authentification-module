@@ -95,12 +95,15 @@ def connect_admin():
         @wraps(f)
         def __connect_admin(*args, **kwargs):
             # connexion à usershub
-
-            id_app_usershub = DB.session.query(Application.id_application).filter(Application.nom_application == 'UsersHub').first()[0]
+            id_app_usershub = DB.session.query(
+                Application.id_application
+            ).filter(Application.code_application == 'UH').first()
+            
 
             if not id_app_usershub:
-
                 return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
+            
+            id_app_usershub = id_app_usershub[0]
 
             # test si on est déjà connecté
             try:
@@ -147,7 +150,6 @@ def post_usershub(type_action):
         route generique pour appeler les route userhub en tant qu'administrateur de l'appli en cours
         ex : post/usershub/test_connexion appelle la route URL_USERHUB/api_register/test_connexion
     '''
-
     # attribution des droits pour les actions
     dict_type_action_droit = {
         'test_connexion': 0,
@@ -178,10 +180,9 @@ def post_usershub(type_action):
         return json.dumps({"msg": "Droits insuffisant pour la requête usershub : " + type_action}), 403
 
     # les test de paramètres seront faits ds usershub
+
     data = request.get_json()
-
     url = config['URL_USERHUB'] + "/" + "api_register/" + type_action
-
     r_usershub = s.post(url, json=data)
 
     # after request definir route dans app

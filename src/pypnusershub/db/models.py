@@ -123,6 +123,7 @@ class Application(db.Model):
     __tablename__ = 't_applications'
     __table_args__ = {'schema': 'utilisateurs'}
     id_application = db.Column(db.Integer, primary_key=True)
+    code_application = db.Column(db.Unicode)
     nom_application = db.Column(db.Unicode)
     desc_application = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer)
