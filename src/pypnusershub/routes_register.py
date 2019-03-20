@@ -115,7 +115,14 @@ def connect_admin():
             # si on est pas connecté on se connecte
             if not b_connexion:
                 # connexion à usershub
-                r = s.post(config['URL_USERHUB'] + "/" + "pypn/auth/login", json={'login': config['ADMIN_APPLICATION_LOGIN'], 'password': config['ADMIN_APPLICATION_PASSWORD'], 'id_application': id_app_usershub})
+                r = s.post(
+                    config['URL_USERHUB'] + "/" + "pypn/auth/login", 
+                    json={
+                        'login': config['ADMIN_APPLICATION_LOGIN'], 
+                        'password': config['ADMIN_APPLICATION_PASSWORD'], 
+                        'id_application': id_app_usershub
+                    }
+                )
 
             # si echec de connexion
             if r.status_code != 200:
@@ -147,7 +154,7 @@ def test():
 @connect_admin()
 def post_usershub(type_action):
     '''
-        route generique pour appeler les route userhub en tant qu'administrateur de l'appli en cours
+        route generique pour appeler les routes usershub en tant qu'administrateur de l'appli en cours
         ex : post/usershub/test_connexion appelle la route URL_USERHUB/api_register/test_connexion
     '''
     # attribution des droits pour les actions
