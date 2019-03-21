@@ -1,8 +1,5 @@
 from flask import current_app
 
-from app.utils.utilssqlalchemy import (
-    serializable
-)
 
 from .models import User
 
@@ -27,7 +24,6 @@ def decrypt_str(s, secret_key):
     return s
 
 
-@serializable
 class TempUser(DB.Model):
     __tablename__ = 'temp_users'
     __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
@@ -43,7 +39,6 @@ class TempUser(DB.Model):
     remarques = DB.Column(DB.String(250))
     groupe = DB.Column(DB.Boolean)
     pn = DB.Column(DB.Boolean)
-    id_unite = DB.Column(DB.Integer)
     id_organisme = DB.Column(DB.Integer)
     organisme = DB.Column(DB.String(250))
     email = DB.Column(DB.Unicode)
@@ -91,8 +86,23 @@ class TempUser(DB.Model):
 
         return (is_valid, msg)
 
+    def as_dict(self, recursif=False, columns=()):
+        return {
+            'id_temp_user': self.id_temp_user,
+            'token_role': self.token_role,
+            'identifiant': self.identifiant,
+            'nom_role': self.nom_role,
+            'prenom_role': self.prenom_role,
+            'desc_role': self.prenom_role,
+            'remarques': self.prenom_role,
+            'id_organisme': str(self.id_organisme),
+            'organisme': self.organisme,
+            'email': self.email,
+            'groupe': self.groupe,
+            'password': self.password,
+            'password_confirmation': self.password_confirmation
+        }
 
-@serializable
 class CorRoleToken(DB.Model):
 
     __tablename__ = 'cor_role_token'
@@ -100,3 +110,9 @@ class CorRoleToken(DB.Model):
 
     id_role = DB.Column(DB.Integer, primary_key=True)
     token = DB.Column(DB.Unicode)
+
+    def as_dict(self, recursif=False, columns=()):
+        return {
+            'id_role': self.id_role,
+            'token': self.token
+        }

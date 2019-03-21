@@ -15,7 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import current_app
 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Sequence, func
+from sqlalchemy import Sequence, func, ForeignKey
 db = current_app.config['DB']
 
 def fn_check_password(self, pwd):
@@ -111,10 +111,23 @@ class User(db.Model):
             'nom_role': self.nom_role,
             'prenom_role': self.prenom_role,
             'id_organisme': self.id_organisme,
+            'email': self.email,
             'groupe': self.groupe,
+            'remarques': self.remarques,
             'nom_complet': nom_role+' '+prenom_role
         }
 
+class Profils(db.Model):
+    """
+    Model de la classe t_profils
+    """
+
+    __tablename__ = 't_profils'
+    __table_args__ = {'schema':'utilisateurs', 'extend_existing': True}
+    id_profil = db.Column(db.Integer,primary_key = True)
+    code_profil = db.Column(db.Unicode)
+    nom_profil = db.Column(db.Unicode)
+    desc_profil = db.Column(db.Unicode)
 
 class Application(db.Model):
     '''
@@ -162,15 +175,17 @@ class UserApplicationRight(db.Model):
     '''
     Droit d'acces d'un user particulier a une application particuliere
     '''
-    __tablename__ = 'cor_role_droit_application'
-    __table_args__ = {'schema': 'utilisateurs'}
+    __tablename__ = 'cor_role_app_profil'
+    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
     id_role = db.Column(db.Integer, primary_key=True)
-    id_droit = db.Column(db.Integer, primary_key=True)
+    id_profil = db.Column(db.Integer, ForeignKey('utilisateurs.t_profils.id_profil'), primary_key = True)
     id_application = db.Column(db.Integer, primary_key=True)
 
+    profil = relationship("Profils")
+
     def __repr__(self):
-        return "<UserApplicationRight role='{}' droit='{}' app='{}'>".format(
-            self.id_role, self.id_droit, self.id_application
+        return "<UserApplicationRight role='{}' profil='{}' app='{}'>".format(
+            self.id_role, self.id_profil, self.id_application
         )
 
 
