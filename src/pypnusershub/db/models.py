@@ -129,6 +129,23 @@ class Profils(db.Model):
     nom_profil = db.Column(db.Unicode)
     desc_profil = db.Column(db.Unicode)
 
+class ProfilsForApp(db.Model):
+    """
+    Model de la classe t_profils
+    """
+
+    __tablename__ = 'cor_profil_for_app'
+    __table_args__ = {'schema':'utilisateurs', 'extend_existing': True}
+    id_profil = db.Column(
+        db.Integer,
+        ForeignKey('utilisateurs.t_profils.id_profil'),
+        primary_key = True
+    )
+    id_application = db.Column(db.Integer,primary_key = True)
+
+    profil = relationship("Profils")
+
+
 class Application(db.Model):
     '''
     Représente une application ou un module
