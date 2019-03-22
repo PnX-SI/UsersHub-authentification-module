@@ -181,7 +181,6 @@ def post_usershub(type_action):
             .filter(AppUser.id_role == id_role)
             .filter(AppUser.id_application == config['ID_APP']))
         id_droit = q.one()[0]
-        print(id_droit)
 
     # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible
     if id_droit < dict_type_action_droit.get(type_action, 7):
