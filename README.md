@@ -41,6 +41,77 @@ Pour protéger une route :
   def insertUpdate_bibtaxons(id_taxon=None):
     ...
 ```
+## Utilisation de l'API
+
+### Routes définies dans UsersHub
+
+* create_tmp_user : 
+  * in : {données sur l'utilisateur}
+  * return : {token}
+  * Création d'un utilisateur temporaire en base
+* valid_temp_user :
+  * in : {token, application_id}
+  * return : {role}
+  * Création utilisateur en base dans la table t_role et ajout d'un profil avec code 1 pour une l’application donnée
+* create_cor_role_token:
+  * in : {email}
+  * return : {role}
+  * Génère un token pour utilisateur ayant l’email indiqué et stoque le token dans cor_role_token
+* change_password
+  * in: {token, password, password_confirmation}
+  * return : {role}
+  * Mise à jour du mot de passe de l’utilisateur et suppression du token en base
+* change_application_right
+  * in : {id_application, id_profil, id_role}
+  * return : {id_role, id_profil, id_application, role}
+  * Modifie le profil de l’utilisateur pour l’application 
+* update_user
+  * in : {id_role, données utilisateur}
+  * return : {role}
+  * Mise à jour d'un rôle
+
+### Méthodes définies dans le module
+ * connect_admin : décorateur pour la connexion d’un utilisateur type admin a une appli ici usershub. Paramètres à renseigner dans config.py
+ * post_usershub :
+  * route générique pour appeler les route usershub en tant qu'administrateur de l'appli en cours
+  * lance l’action spécifié
+  * si une post request est définie pour l’action exécute la fonction
+
+
+### Configuration
+Paramètres à rajouter dans le fichier de configuration (`config.py`)
+
+```
+URL_USERHUB="http://usershub-url.ext"
+
+# Administrateur de mon application
+ADMIN_APPLICATION_LOGIN="admin-monapplication"
+ADMIN_APPLICATION_PASSWORD="monpassword"
+ADMIN_APPLICATION_MAIL="admin-monapplication@mail.ext"
+```
+
+### Appel des routes
+Pour disposer des routes dans votre application Flask, ajoutez dans votre fichier de lancement de l'application (`server.py` par exemple) :
+
+```
+from pypnusershub import routes_register
+app.register_blueprint(routes_register.bp, url_prefix='/pypn/register')
+```
+
+### Configuration des actions post request
+
+Rajouter le paramètre `after_USERSHUB_request` à la configuration. Ce paramètre est un tableau qui défini pour chaque action un ensemble d'opération à réaliser ensuite. Comme par exemple envoyer un mail.
+
+```
+function_dict = {
+    'create_cor_role_token': create_cor_role_token,
+    'create_temp_user': create_temp_user,
+    'valid_temp_user': valid_temp_user,
+    'change_application_right': change_application_right
+}
+```
+
+Chaque fonction prend un paramètre en argument qui correspond aux données retournée par la route de UsersHub
 
 ## Installation
 

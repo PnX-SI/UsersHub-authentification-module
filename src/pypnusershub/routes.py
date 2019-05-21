@@ -169,7 +169,6 @@ def check_auth(
 
 @routes.route('/login', methods=['POST'])
 def login():
-
     try:
         user_data = request.json
         try:
@@ -181,6 +180,7 @@ def login():
                     .filter(models.AppUser.identifiant == login)
                     .filter(models.AppUser.id_application == id_app)
                     .one())
+            
             # Return child application
             sub_app = models.AppUser.query.join(
                 models.Application, models.Application.id_application == models.AppUser.id_application

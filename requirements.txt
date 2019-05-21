@@ -3,3 +3,6 @@ sqlalchemy==1.3.3
 flask-sqlalchemy==2.3.2
 psycopg2==2.7.5
 bcrypt
+requests==2.20.1
+pycrypto==2.6.1
+

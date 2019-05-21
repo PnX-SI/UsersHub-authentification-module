@@ -24,3 +24,4 @@ SRCDIR = os.path.join(CURDIR, 'src')
 sys.path.append(SRCDIR)
 
 from pypnusershub.routes import *  # noqa
+from pypnusershub.routes_register import *  # noqa
