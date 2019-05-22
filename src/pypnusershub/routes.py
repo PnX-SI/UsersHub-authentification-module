@@ -171,13 +171,11 @@ def check_login_exist():
     try:
         user_data = request.json
         try:
-            id_app = user_data['id_application']
             login = user_data['identifiant']
 
             user = (models.AppUser
                     .query
                     .filter(models.AppUser.identifiant == login)
-                    .filter(models.AppUser.id_application == id_app)
                     .count())
             
         except Exception as e:
