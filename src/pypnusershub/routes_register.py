@@ -165,6 +165,8 @@ def post_usershub(type_action):
         'change_password': 0,
         'create_cor_role_token': 0,
         'add_application_right_to_role': 0,
+        'login_recovery': 0,
+        'password_recovery': 0,
 
         'update_user': 1,
 
