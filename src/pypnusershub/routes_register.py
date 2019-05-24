@@ -89,7 +89,7 @@ def req_json_or_text(r, msg_pypn=""):
 def connect_admin():
     '''
         decorateur pour la connexion de l'admin a une appli
-        ici url config['URL_USERHUB'] sans / à la fin
+        ici url config['URL_USERSHUB'] sans / à la fin
     '''
     def _connect_admin(f):
         @wraps(f)
@@ -107,7 +107,7 @@ def connect_admin():
 
             # test si on est déjà connecté
             try:
-                r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
+                r = s.post(config['URL_USERSHUB'] + "/api_register/test_connexion")
                 b_connexion = (r.status_code == 200)
             except requests.ConnectionError:
                 return json.dumps({"msg": "Erreur de connexion a l'application USERSHUB (causes possbiles : url erronee, application USERSHUB ne fonctionne pas, ..;)"}), 500
@@ -116,7 +116,7 @@ def connect_admin():
             if not b_connexion:
                 # connexion à usershub
                 r = s.post(
-                    config['URL_USERHUB'] + "/" + "pypn/auth/login", 
+                    config['URL_USERSHUB'] + "/" + "pypn/auth/login", 
                     json={
                         'login': config['ADMIN_APPLICATION_LOGIN'], 
                         'password': config['ADMIN_APPLICATION_PASSWORD'], 
@@ -145,7 +145,7 @@ def test():
             - config['ADMIN_APPLICATION_PASSWORD']
     '''
 
-    r = s.post(config['URL_USERHUB'] + "/api_register/test_connexion")
+    r = s.post(config['URL_USERSHUB'] + "/api_register/test_connexion")
 
     return req_json_or_text(r, "Test pypn")
 
@@ -155,7 +155,7 @@ def test():
 def post_usershub(type_action):
     '''
         route generique pour appeler les routes usershub en tant qu'administrateur de l'appli en cours
-        ex : post/usershub/test_connexion appelle la route URL_USERHUB/api_register/test_connexion
+        ex : post/usershub/test_connexion appelle la route URL_USERSHUB/api_register/test_connexion
     '''
     # attribution des droits pour les actions
     dict_type_action_droit = {
@@ -192,7 +192,7 @@ def post_usershub(type_action):
     # les test de paramètres seront faits ds usershub
 
     data = request.get_json()
-    url = config['URL_USERHUB'] + "/" + "api_register/" + type_action
+    url = config['URL_USERSHUB'] + "/" + "api_register/" + type_action
     r_usershub = s.post(url, json=data)
 
     # after request definir route dans app

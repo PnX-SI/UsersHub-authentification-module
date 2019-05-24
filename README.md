@@ -82,7 +82,7 @@ Pour protéger une route :
 Paramètres à rajouter dans le fichier de configuration (`config.py`)
 
 ```
-URL_USERHUB="http://usershub-url.ext"
+URL_USERSHUB="http://usershub-url.ext"
 
 # Administrateur de mon application
 ADMIN_APPLICATION_LOGIN="admin-monapplication"
