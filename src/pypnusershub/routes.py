@@ -248,7 +248,7 @@ def login():
         
         #Jwt.
         x = jwt.encode({'user': user_dict, 'exp':cookie_exp},current_app.config['SECRET_KEY'],algorithm='HS256')
-        resp = Response(json.dumps({"access_token":x.decode('utf-8')}))
+        resp = Response(json.dumps({"access_token":x.decode('utf-8'),'user': user_dict,'expires': str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
 
         return resp
