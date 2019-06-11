@@ -8,6 +8,8 @@ from __future__ import (unicode_literals, print_function,
 routes relatives aux application, utilisateurs et à l'authentification
 '''
 
+
+
 import json
 import logging
 
@@ -28,6 +30,7 @@ from pypnusershub.db.tools import (
     AccessRightsExpiredError,
     InsufficientRightsError,
 )
+import jwt
 
 
 log = logging.getLogger(__name__)
@@ -103,7 +106,6 @@ def check_auth(
     get_role=False,
     redirect_on_expiration=None,
     redirect_on_invalid_token=None,
-    redirect_on_insufficient_right=None
 ):
     def _check_auth(fn):
         @wraps(fn)
@@ -114,9 +116,9 @@ def check_auth(
 
                 if user.id_droit_max < level:
                     #HACK better name for callback if right are low
-                    if redirect_on_insufficient_right:
+                    if redirect_on_invalid_token:
                         log.info('Privilege too low')
-                        return redirect(redirect_on_insufficient_right, code=302)
+                        res = redirect(redirect_on_invalid_token, code=302)
                     return Response('Forbidden', 403)
 
                 if get_role:
@@ -143,11 +145,11 @@ def check_auth(
 
             except UnreadableAccessRightsError:
                 log.info('Invalid Token : BadSignature')
-                # invalid token
+                # invalid token,
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
-                    res = Response('Token BadSignature or token not coresponding to the app', 403)
+                    res = Response('Token BadSignature', 403)
                 res.set_cookie('token', '', expires=0)
                 return res
 
@@ -243,8 +245,13 @@ def login():
         token = s.dumps(user.as_dict())
         cookie_exp = datetime.datetime.utcnow()
         cookie_exp += datetime.timedelta(seconds=expiration)
-        resp = Response(json.dumps({'user': user_dict,
-                                    'expires': str(cookie_exp)}))
+        #resp = Response(json.dumps({'user': user_dict,
+        #                            'expires': str(cookie_exp)}))
+        #resp.set_cookie('token', token, expires=cookie_exp)
+        
+        #test pour viabiliser jwt. Pour l'instant, il part sur Exception as e: "TypeError("Object of type 'bytes' is not JSON serializable",)"
+        x = jwt.encode({'user': user_dict, 'exp':cookie_exp},current_app.config['SECRET_KEY'],algorithm='HS256')
+        resp = Response(json.dumps({"access_token":x.decode('utf-8')}))
         resp.set_cookie('token', token, expires=cookie_exp)
 
         return resp
