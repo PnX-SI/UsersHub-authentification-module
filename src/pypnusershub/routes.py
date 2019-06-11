@@ -245,11 +245,8 @@ def login():
         token = s.dumps(user.as_dict())
         cookie_exp = datetime.datetime.utcnow()
         cookie_exp += datetime.timedelta(seconds=expiration)
-        #resp = Response(json.dumps({'user': user_dict,
-        #                            'expires': str(cookie_exp)}))
-        #resp.set_cookie('token', token, expires=cookie_exp)
         
-        #test pour viabiliser jwt. Pour l'instant, il part sur Exception as e: "TypeError("Object of type 'bytes' is not JSON serializable",)"
+        #Jwt.
         x = jwt.encode({'user': user_dict, 'exp':cookie_exp},current_app.config['SECRET_KEY'],algorithm='HS256')
         resp = Response(json.dumps({"access_token":x.decode('utf-8')}))
         resp.set_cookie('token', token, expires=cookie_exp)
