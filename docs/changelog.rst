@@ -1,14 +1,19 @@
 CHANGELOG
 *********
 
-
-1.3.3 (unreleased)
+1.3.4 (unreleased)
 ------------------
 
 **Corrections**
 
-*
+* 
 
+1.3.3 (2019-05-29)
+------------------
+
+**Nouveautés**
+
+* Mise à jour de SQLAlchemy 1.1.13 vers 1.3.3
 
 1.3.2 (2019-02-27)
 ------------------
