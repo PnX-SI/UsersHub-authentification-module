@@ -48,7 +48,7 @@ def get_json_request(r):
     '''
         r : retour de la requete requests
 
-        fonction pour recuperer la reponse json sans leveer d'erreur
+        fonction pour recuperer la reponse json sans lever d'erreur
     '''
     try:
         r_json = r.json()
@@ -98,16 +98,16 @@ def connect_admin():
             id_app_usershub = DB.session.query(
                 Application.id_application
             ).filter(Application.code_application == 'UH').first()
-            
 
             if not id_app_usershub:
                 return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
-            
+
             id_app_usershub = id_app_usershub[0]
 
             # test si on est déjà connecté
             try:
-                r = s.post(config['URL_USERSHUB'] + "/api_register/test_connexion")
+                r = s.post(config['URL_USERSHUB'] +
+                           "/api_register/test_connexion")
                 b_connexion = (r.status_code == 200)
             except requests.ConnectionError:
                 return json.dumps({"msg": "Erreur de connexion a l'application USERSHUB (causes possbiles : url erronee, application USERSHUB ne fonctionne pas, ..;)"}), 500
@@ -116,10 +116,10 @@ def connect_admin():
             if not b_connexion:
                 # connexion à usershub
                 r = s.post(
-                    config['URL_USERSHUB'] + "/" + "pypn/auth/login", 
+                    config['URL_USERSHUB'] + "/" + "pypn/auth/login",
                     json={
-                        'login': config['ADMIN_APPLICATION_LOGIN'], 
-                        'password': config['ADMIN_APPLICATION_PASSWORD'], 
+                        'login': config['ADMIN_APPLICATION_LOGIN'],
+                        'password': config['ADMIN_APPLICATION_PASSWORD'],
                         'id_application': id_app_usershub
                     }
                 )
@@ -155,7 +155,7 @@ def test():
 def post_usershub(type_action):
     '''
         route generique pour appeler les routes usershub en tant qu'administrateur de l'appli en cours
-        ex : post/usershub/test_connexion appelle la route URL_USERSHUB/api_register/test_connexion
+        ex : post_usershub/test_connexion appelle la route URL_USERSHUB/api_register/test_connexion
     '''
     # attribution des droits pour les actions
     dict_type_action_droit = {
@@ -167,12 +167,10 @@ def post_usershub(type_action):
         'add_application_right_to_role': 0,
         'login_recovery': 0,
         'password_recovery': 0,
-
         'update_user': 1,
-
         'change_application_right': 4,
     }
-
+    params = request.args
     id_droit = 0
 
     if session.get('current_user', None):
@@ -180,8 +178,8 @@ def post_usershub(type_action):
         id_role = session['current_user']['id_role']
 
         q = (DB.session.query(AppUser.id_droit_max)
-            .filter(AppUser.id_role == id_role)
-            .filter(AppUser.id_application == config['ID_APP']))
+             .filter(AppUser.id_role == id_role)
+             .filter(AppUser.id_application == config['ID_APP']))
         id_droit = q.one()[0]
 
     # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible
@@ -190,15 +188,14 @@ def post_usershub(type_action):
         return json.dumps({"msg": "Droits insuffisant pour la requête usershub : " + type_action}), 403
 
     # les test de paramètres seront faits ds usershub
-
     data = request.get_json()
     url = config['URL_USERSHUB'] + "/" + "api_register/" + type_action
     r_usershub = s.post(url, json=data)
 
     # after request definir route dans app
     # par ex. pour l'envoi de mails
-    if r_usershub.status_code == 200:
-
+    # lancer uniquement si enable_post_action n'est pas = False dans le body de la requête
+    if r_usershub.status_code == 200 and data.get('enable_post_action', True):
         out_after = after_request(type_action, get_json_request(r_usershub))
 
         # 0 = pas d'action definis dans config['after_USERSHUB_request'][type_action]
@@ -211,7 +208,7 @@ def post_usershub(type_action):
     return req_json_or_text(r_usershub)
 
 
-def after_request(type_action, data):
+def after_request(type_action, data, *args, **kwargs):
     '''
         lorsqu'une fonction est definie dans config['after_USERSHUB_request'][type_action]
         elle est executée avec les données fournies en retour de la requete USERSHUB
@@ -220,13 +217,9 @@ def after_request(type_action, data):
     after_request_dict = config.get('after_USERSHUB_request', None)
 
     if not after_request_dict:
-
         return 0
-
     f = after_request_dict.get(type_action, None)
 
     if not f:
-
         return 0
-
     return f(data)

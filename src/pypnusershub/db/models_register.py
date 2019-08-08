@@ -48,12 +48,14 @@ class TempUser(DB.Model):
     def encrypt_password(self, secret_key):
 
         self.password = encrypt_str(self.password, secret_key)
-        self.password_confirmation = encrypt_str(self.password_confirmation, secret_key)
+        self.password_confirmation = encrypt_str(
+            self.password_confirmation, secret_key)
 
     def decrypt_password(self, secret_key):
 
         self.password = decrypt_str(self.password, secret_key)
-        self.password_confirmation = decrypt_str(self.password_confirmation, secret_key)
+        self.password_confirmation = decrypt_str(
+            self.password_confirmation, secret_key)
 
     def is_valid(self):
 
@@ -102,6 +104,7 @@ class TempUser(DB.Model):
             'password': self.password,
             'password_confirmation': self.password_confirmation
         }
+
 
 class CorRoleToken(DB.Model):
 
