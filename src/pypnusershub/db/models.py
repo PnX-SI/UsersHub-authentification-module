@@ -8,6 +8,7 @@ mappings applications et utilisateurs
 '''
 
 import hashlib
+import bcrypt
 from bcrypt import checkpw
 
 from flask_sqlalchemy import SQLAlchemy
@@ -17,6 +18,21 @@ from flask import current_app
 from sqlalchemy.orm import relationship
 from sqlalchemy import Sequence, func, ForeignKey
 db = current_app.config['DB']
+
+
+def encrypt_password(password, password_confirmation, md5=False):
+    if not password:
+        raise ValueError("Password is null")
+    try:
+        pass_plus = bcrypt.hashpw(password.encode(
+            'utf-8'), bcrypt.gensalt())
+        pass_md5 = None
+        if md5:
+            pass_md5 = hashlib.md5(password.encode("utf-8")).hexdigest()
+    except Exception as e:
+        raise e
+    return pass_plus.decode('utf-8'), pass_md5
+
 
 def fn_check_password(self, pwd):
     if (current_app.config['PASS_METHOD'] == 'md5'):
@@ -29,6 +45,7 @@ def fn_check_password(self, pwd):
         return checkpw(pwd.encode('utf8'), self._password_plus.encode('utf8'))
     else:
         raise ValueError('Undefine crypt method (PASS_METHOD)')
+
 
 class User(db.Model):
     __tablename__ = 't_roles'
@@ -77,7 +94,7 @@ class User(db.Model):
     @password.setter
     def password(self, pwd):
         self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
-    
+
     check_password = fn_check_password
 
     def to_json(self):
@@ -117,17 +134,19 @@ class User(db.Model):
             'nom_complet': nom_role+' '+prenom_role
         }
 
+
 class Profils(db.Model):
     """
     Model de la classe t_profils
     """
 
     __tablename__ = 't_profils'
-    __table_args__ = {'schema':'utilisateurs', 'extend_existing': True}
-    id_profil = db.Column(db.Integer,primary_key = True)
+    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
+    id_profil = db.Column(db.Integer, primary_key=True)
     code_profil = db.Column(db.Unicode)
     nom_profil = db.Column(db.Unicode)
     desc_profil = db.Column(db.Unicode)
+
 
 class ProfilsForApp(db.Model):
     """
@@ -135,13 +154,13 @@ class ProfilsForApp(db.Model):
     """
 
     __tablename__ = 'cor_profil_for_app'
-    __table_args__ = {'schema':'utilisateurs', 'extend_existing': True}
+    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
     id_profil = db.Column(
         db.Integer,
         ForeignKey('utilisateurs.t_profils.id_profil'),
-        primary_key = True
+        primary_key=True
     )
-    id_application = db.Column(db.Integer,primary_key = True)
+    id_application = db.Column(db.Integer, primary_key=True)
 
     profil = relationship("Profils")
 
@@ -157,7 +176,7 @@ class Application(db.Model):
     nom_application = db.Column(db.Unicode)
     desc_application = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer)
-    
+
     def __repr__(self):
         return "<Application {!r}>".format(self.nom_application)
 
@@ -167,8 +186,8 @@ class Application(db.Model):
     @staticmethod
     def get_application(nom_application):
         return (Application.query
-        .filter(Application.nom_application == nom_application)
-        .one())
+                .filter(Application.nom_application == nom_application)
+                .one())
 
 
 class ApplicationRight(db.Model):
@@ -195,7 +214,8 @@ class UserApplicationRight(db.Model):
     __tablename__ = 'cor_role_app_profil'
     __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
     id_role = db.Column(db.Integer, primary_key=True)
-    id_profil = db.Column(db.Integer, ForeignKey('utilisateurs.t_profils.id_profil'), primary_key = True)
+    id_profil = db.Column(db.Integer, ForeignKey(
+        'utilisateurs.t_profils.id_profil'), primary_key=True)
     id_application = db.Column(db.Integer, primary_key=True)
 
     profil = relationship("Profils")
@@ -242,9 +262,9 @@ class AppUser(db.Model):
 
     check_password = fn_check_password
 
-
     def as_dict(self):
-        cols = (c for c in self.__table__.columns if (c.name != 'pass_plus') and (c.name != 'pass'))
+        cols = (c for c in self.__table__.columns if (
+            c.name != 'pass_plus') and (c.name != 'pass'))
         return {c.name: getattr(self, c.name) for c in cols}
 
     def __repr__(self):
@@ -279,4 +299,3 @@ class AppRole(db.Model):
     def as_dict(self):
         cols = (c for c in self.__table__.columns)
         return {c.name: getattr(self, c.name) for c in cols}
-

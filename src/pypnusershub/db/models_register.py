@@ -2,8 +2,7 @@ from flask import current_app
 
 
 from .models import User
-
-from Crypto.Cipher import XOR
+from pypnusershub.utils import encrypt_password
 
 import base64
 
@@ -31,7 +30,7 @@ class TempUser(DB.Model):
     id_temp_user = DB.Column(DB.Integer, primary_key=True)
     token_role = DB.Column(DB.Unicode)
     password = DB.Column(DB.Unicode)
-    password_confirmation = DB.Column(DB.Unicode)
+    pass_md5 = DB.Column(DB.Unicode)
     identifiant = DB.Column(DB.String(250))
     nom_role = DB.Column(DB.String(250))
     prenom_role = DB.Column(DB.String(250))
@@ -45,44 +44,27 @@ class TempUser(DB.Model):
     date_insert = DB.Column(DB.DateTime)
     date_update = DB.Column(DB.DateTime)
 
-    def encrypt_password(self, secret_key):
-
-        self.password = encrypt_str(self.password, secret_key)
-        self.password_confirmation = encrypt_str(
-            self.password_confirmation, secret_key)
-
-    def decrypt_password(self, secret_key):
-
-        self.password = decrypt_str(self.password, secret_key)
-        self.password_confirmation = decrypt_str(
-            self.password_confirmation, secret_key)
+    def encrypt_password(self, password, password_confirmation, md5):
+        self.password, self.pass_md5 = encrypt_password(
+            password, password_confirmation, md5)
 
     def is_valid(self):
-
         is_valid = True
         msg = ""
 
         if not self.password:
-
             is_valid = False
             msg += "Password is required. "
-
-        if self.password != self.password_confirmation:
-
-            is_valid = False
-            msg += "Password and password_confirmation are differents. "
 
         re.compile(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
 
         if not re.match(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$", self.email):
-
             is_valid = False
             msg += "E-mail is not valid. "
 
         role = DB.session.query(User).filter(User.email == self.email).first()
 
         if role:
-
             is_valid = False
             msg += "User with mail " + self.email + " exists. "
 
@@ -102,7 +84,7 @@ class TempUser(DB.Model):
             'email': self.email,
             'groupe': self.groupe,
             'password': self.password,
-            'password_confirmation': self.password_confirmation
+            'pass_md5': self.pass_md5
         }
 
 

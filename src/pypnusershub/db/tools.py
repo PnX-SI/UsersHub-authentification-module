@@ -90,7 +90,8 @@ def user_from_token(token, secret_key=None):
         # for retro-compatibility reasons
         if id_app_from_config:
             if id_app != id_app_from_config:
-                log.info('Invalid token: the token not corespoding to the current app')
+                log.info(
+                    'Invalid token: the token not corespoding to the current app')
                 raise UnreadableAccessRightsError(
                     'Token BadSignature', 403
                 )

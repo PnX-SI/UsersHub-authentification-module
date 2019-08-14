@@ -213,7 +213,6 @@ def after_request(type_action, data, *args, **kwargs):
         lorsqu'une fonction est definie dans config['after_USERSHUB_request'][type_action]
         elle est executée avec les données fournies en retour de la requete USERSHUB
     '''
-
     after_request_dict = config.get('after_USERSHUB_request', None)
 
     if not after_request_dict:

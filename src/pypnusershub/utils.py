@@ -20,7 +20,6 @@ class RessourceError(EnvironmentError):
         self.errors = errors
 
 
-
 def binary_resource_stream(resource, locations):
     """ Return a resource from this path or package """
 
@@ -63,8 +62,7 @@ def binary_resource_stream(resource, locations):
 
 
 def text_resource_stream(path, locations, encoding="utf8", errors=None,
-                    newline=None, line_buffering=False):
+                         newline=None, line_buffering=False):
     """ Return a resource from this path or package. Transparently decode the stream. """
     stream = binary_resource_stream(path, locations)
     return io.TextIOWrapper(stream, encoding, errors, newline, line_buffering)
-
