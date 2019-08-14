@@ -2,7 +2,7 @@ from flask import current_app
 
 
 from .models import User
-from pypnusershub.utils import encrypt_password
+from pypnusershub.db.models import encrypt_password
 
 import base64
 
@@ -10,22 +10,12 @@ import re
 
 config = current_app.config
 
-DB = current_app.config['DB']
-
-
-def encrypt_str(s, secret_key):
-
-    return s
-
-
-def decrypt_str(s, secret_key):
-
-    return s
+DB = current_app.config["DB"]
 
 
 class TempUser(DB.Model):
-    __tablename__ = 'temp_users'
-    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
+    __tablename__ = "temp_users"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
 
     id_temp_user = DB.Column(DB.Integer, primary_key=True)
     token_role = DB.Column(DB.Unicode)
@@ -46,7 +36,8 @@ class TempUser(DB.Model):
 
     def encrypt_password(self, password, password_confirmation, md5):
         self.password, self.pass_md5 = encrypt_password(
-            password, password_confirmation, md5)
+            password, password_confirmation, md5
+        )
 
     def is_valid(self):
         is_valid = True
@@ -72,32 +63,29 @@ class TempUser(DB.Model):
 
     def as_dict(self, recursif=False, columns=()):
         return {
-            'id_temp_user': self.id_temp_user,
-            'token_role': self.token_role,
-            'identifiant': self.identifiant,
-            'nom_role': self.nom_role,
-            'prenom_role': self.prenom_role,
-            'desc_role': self.prenom_role,
-            'remarques': self.prenom_role,
-            'id_organisme': str(self.id_organisme),
-            'organisme': self.organisme,
-            'email': self.email,
-            'groupe': self.groupe,
-            'password': self.password,
-            'pass_md5': self.pass_md5
+            "id_temp_user": self.id_temp_user,
+            "token_role": self.token_role,
+            "identifiant": self.identifiant,
+            "nom_role": self.nom_role,
+            "prenom_role": self.prenom_role,
+            "desc_role": self.prenom_role,
+            "remarques": self.prenom_role,
+            "id_organisme": str(self.id_organisme),
+            "organisme": self.organisme,
+            "email": self.email,
+            "groupe": self.groupe,
+            "password": self.password,
+            "pass_md5": self.pass_md5,
         }
 
 
 class CorRoleToken(DB.Model):
 
-    __tablename__ = 'cor_role_token'
-    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
+    __tablename__ = "cor_role_token"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
 
     id_role = DB.Column(DB.Integer, primary_key=True)
     token = DB.Column(DB.Unicode)
 
     def as_dict(self, recursif=False, columns=()):
-        return {
-            'id_role': self.id_role,
-            'token': self.token
-        }
+        return {"id_role": self.id_role, "token": self.token}
