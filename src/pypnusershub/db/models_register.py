@@ -1,12 +1,13 @@
-from flask import current_app
-
-
-from .models import User
-from pypnusershub.db.models import encrypt_password
-
+import re
 import base64
 
-import re
+from flask import current_app
+from pypnusershub.db.models import check_and_encrypt_password
+from sqlalchemy import or_
+from sqlalchemy.dialects.postgresql import JSONB
+
+from .models import User
+
 
 config = current_app.config
 
@@ -27,15 +28,15 @@ class TempUser(DB.Model):
     desc_role = DB.Column(DB.String(250))
     remarques = DB.Column(DB.String(250))
     groupe = DB.Column(DB.Boolean)
-    pn = DB.Column(DB.Boolean)
-    id_organisme = DB.Column(DB.Integer)
     organisme = DB.Column(DB.String(250))
+    id_organisme = DB.Column(DB.Integer)
     email = DB.Column(DB.Unicode)
+    champs_addi = DB.Column(JSONB)
     date_insert = DB.Column(DB.DateTime)
     date_update = DB.Column(DB.DateTime)
 
-    def encrypt_password(self, password, password_confirmation, md5):
-        self.password, self.pass_md5 = encrypt_password(
+    def set_password(self, password, password_confirmation, md5):
+        self.password, self.pass_md5 = check_and_encrypt_password(
             password, password_confirmation, md5
         )
 
@@ -53,11 +54,29 @@ class TempUser(DB.Model):
             is_valid = False
             msg += "E-mail is not valid. "
 
-        role = DB.session.query(User).filter(User.email == self.email).first()
+        # check if user or temp user exist with an email or id given
+        role = (
+            DB.session.query(User)
+            .filter(or_(User.email == self.email, User.identifiant == self.identifiant))
+            .first()
+        )
 
-        if role:
+        temp_role = (
+            DB.session.query(TempUser)
+            .filter(or_(TempUser.email == self.email, TempUser.identifiant == self.identifiant))
+            .first()
+        )
+
+        if role or temp_role:
             is_valid = False
-            msg += "User with mail " + self.email + " exists. "
+            if role.email == self.email or temp_role.email == self.email:
+                msg += "Un compte avec l'email " + self.email + " existe déjà. "
+            else:
+                msg += (
+                    "Un compte avec l'identifiant "
+                    + self.identifiant
+                    + " existe déjà. "
+                )
 
         return (is_valid, msg)
 
@@ -70,12 +89,14 @@ class TempUser(DB.Model):
             "prenom_role": self.prenom_role,
             "desc_role": self.prenom_role,
             "remarques": self.prenom_role,
-            "id_organisme": str(self.id_organisme),
+            "id_organisme": self.id_organisme,
             "organisme": self.organisme,
             "email": self.email,
             "groupe": self.groupe,
             "password": self.password,
             "pass_md5": self.pass_md5,
+            "champs_addi": self.champs_addi
+
         }
 
 

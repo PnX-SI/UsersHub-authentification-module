@@ -17,12 +17,16 @@ from flask import current_app
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import Sequence, func, ForeignKey
+
+from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 db = current_app.config['DB']
 
 
-def encrypt_password(password, password_confirmation, md5=False):
+def check_and_encrypt_password(password, password_confirmation, md5=False):
     if not password:
-        raise ValueError("Password is null")
+        raise NoPasswordError
+    if password != password_confirmation:
+        raise DifferentPasswordError
     try:
         pass_plus = bcrypt.hashpw(password.encode(
             'utf-8'), bcrypt.gensalt())
