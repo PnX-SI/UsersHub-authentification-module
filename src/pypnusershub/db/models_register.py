@@ -30,6 +30,7 @@ class TempUser(DB.Model):
     groupe = DB.Column(DB.Boolean)
     organisme = DB.Column(DB.String(250))
     id_organisme = DB.Column(DB.Integer)
+    id_application = DB.Column(DB.Integer)
     email = DB.Column(DB.Unicode)
     champs_addi = DB.Column(JSONB)
     date_insert = DB.Column(DB.DateTime)
@@ -90,6 +91,7 @@ class TempUser(DB.Model):
             "desc_role": self.prenom_role,
             "remarques": self.prenom_role,
             "id_organisme": self.id_organisme,
+            "id_application": self.id_application,
             "organisme": self.organisme,
             "email": self.email,
             "groupe": self.groupe,
