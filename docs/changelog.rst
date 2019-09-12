@@ -1,8 +1,13 @@
 CHANGELOG
 *********
 
-1.3.4 (unreleased)
+1.4.0 (unreleased)
 ------------------
+
+**Nouveautés**
+
+- Ajout d'une route générique permettant d'interoger les actions de management de compte de l'API UsersHub
+- Ajout d'un mécanisme de proxy permettant d'effectuer des "post_actions" sur chacunes des routes de la gestion de compte (envoi de mail, gestion applicative)
 
 **Corrections**
 
