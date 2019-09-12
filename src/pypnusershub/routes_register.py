@@ -1,7 +1,7 @@
-# fichier contenant les route pour faire des appels à UsersHub
+# Fichier contenant les route pour faire des appels à UsersHub
 #
-# - en se connectant en tant que qu'adminisatrateur de l'application courrante
-# --  qui est utilisateur de USERHUB avec des droits suffisants pour creer des utilisateur
+# - en se connectant en tant que qu'adminisatrateur de l'application courante
+# --  qui est utilisateur de USERSHUB avec des droits suffisants pour creer des utilisateurs
 # --  pour cela il faut renseigner dans la configuration
 # --
 #
@@ -110,7 +110,7 @@ def connect_admin():
                            "/api_register/test_connexion")
                 b_connexion = (r.status_code == 200)
             except requests.ConnectionError:
-                return json.dumps({"msg": "Erreur de connexion a l'application USERSHUB (causes possbiles : url erronee, application USERSHUB ne fonctionne pas, ..;)"}), 500
+                return json.dumps({"msg": "Erreur de connexion a l'application USERSHUB (causes possibles : url erronee, application USERSHUB ne fonctionne pas, ..;)"}), 500
 
             # si on est pas connecté on se connecte
             if not b_connexion:
@@ -126,7 +126,7 @@ def connect_admin():
 
             # si echec de connexion
             if r.status_code != 200:
-                return req_json_or_text(r, "Problème de connexion à usershub")
+                return req_json_or_text(r, "Problème de connexion à UsersHub")
 
             return f(*args, **kwargs)
 
@@ -154,7 +154,7 @@ def test():
 @connect_admin()
 def post_usershub(type_action):
     '''
-        route generique pour appeler les routes usershub en tant qu'administrateur de l'appli en cours
+        route generique pour appeler les routes UsersHub en tant qu'administrateur de l'appli en cours
         ex : post_usershub/test_connexion appelle la route URL_USERSHUB/api_register/test_connexion
     '''
     # attribution des droits pour les actions
@@ -185,9 +185,9 @@ def post_usershub(type_action):
     # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible
     if id_droit < dict_type_action_droit.get(type_action, 7):
 
-        return json.dumps({"msg": "Droits insuffisant pour la requête usershub : " + type_action}), 403
+        return json.dumps({"msg": "Droits insuffisant pour la requête UsersHub : " + type_action}), 403
 
-    # les test de paramètres seront faits ds usershub
+    # les test de paramètres seront faits dans UsersHub
     data = request.get_json()
     url = config['URL_USERSHUB'] + "/" + "api_register/" + type_action
     r_usershub = s.post(url, json=data)
@@ -198,7 +198,7 @@ def post_usershub(type_action):
     if r_usershub.status_code == 200 and data.get('enable_post_action', True):
         out_after = after_request(type_action, get_json_request(r_usershub))
 
-        # 0 = pas d'action definis dans config['after_USERSHUB_request'][type_action]
+        # 0 = pas d'action definie dans config['after_USERSHUB_request'][type_action]
         if out_after != 0:
 
             if out_after['msg'] != "ok":
