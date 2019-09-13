@@ -4,12 +4,9 @@ CHANGELOG
 1.4.0 (unreleased)
 ------------------
 
-Voir https://github.com/PnX-SI/UsersHub-authentification-module/compare/1.3.3...develop
-
 **Nouveautés**
 
 * Ajout de routes permettant d'utiliser les actions de gestion de compte de l'API de UsersHub (création d'utilisateurs temporaires, ajout de droits à un utilisateur, récupération des droits d'un utilisateur...) #23
-* Ajout d'une route générique permettant d'interroger les actions de gestion de compte de l'API de UsersHub
 * Ajout d'un mécanisme de proxy permettant d'effectuer des "post_actions" sur chacune des routes de gestion de compte (envoi d'email, gestion applicative)
 * Documentation de l'API (https://github.com/PnX-SI/UsersHub-authentification-module/blob/master/README.md#utilisation-de-lapi)
 * Mise à jour de Flask (1.0.2 vers 1.1.1)
@@ -17,11 +14,6 @@ Voir https://github.com/PnX-SI/UsersHub-authentification-module/compare/1.3.3...
 **Corrections**
 
 * Corrections, optimisations, nettoyage et refactorisations diverses
-
-**TODO**
-
-* MAJ requirements ?
-* Voir https://github.com/PnX-SI/UsersHub-authentification-module/pull/24
 
 1.3.3 (2019-05-29)
 ------------------
