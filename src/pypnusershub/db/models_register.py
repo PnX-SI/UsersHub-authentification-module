@@ -50,27 +50,34 @@ class TempUser(DB.Model):
             msg += "Password is required. "
 
         re.compile(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
-
         if not re.match(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$", self.email):
             is_valid = False
             msg += "E-mail is not valid. "
-
-        # check if user or temp user exist with an email or id given
+        # check if user or temp user exist with an email or login given
         role = (
             DB.session.query(User)
             .filter(or_(User.email == self.email, User.identifiant == self.identifiant))
             .first()
         )
+        if role:
+            is_valid = False
+            if role.email == self.email:
+                msg += "Un compte avec l'email " + self.email + " existe déjà. "
+            else:
+                msg += (
+                    "Un compte avec l'identifiant "
+                    + self.identifiant
+                    + " existe déjà. "
+                )
 
         temp_role = (
             DB.session.query(TempUser)
             .filter(or_(TempUser.email == self.email, TempUser.identifiant == self.identifiant))
             .first()
         )
-
-        if role or temp_role:
+        if temp_role:
             is_valid = False
-            if role.email == self.email or temp_role.email == self.email:
+            if temp_role.email == self.email:
                 msg += "Un compte avec l'email " + self.email + " existe déjà. "
             else:
                 msg += (
