@@ -76,8 +76,6 @@ class User(db.Model):
     email = db.Column(db.Unicode)
     id_organisme = db.Column(db.Integer)
     remarques = db.Column(db.Unicode)
-    pn = db.Column(db.Boolean)
-    session_appli = db.Column(db.Unicode)
     date_insert = db.Column(db.DateTime)
     date_update = db.Column(db.DateTime)
     active = db.Column(db.Boolean)
