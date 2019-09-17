@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+
+1.4.1 (2019-09-17)
+------------------
+
+**Corrections**
+
+* Correction de la serialisation du modèle TempUser
+
 1.4.0 (2019-09-16)
 ------------------
 
