@@ -14,7 +14,7 @@ import logging
 import datetime
 from functools import wraps
 
-from flask import Blueprint, request, Response, current_app, redirect, g, jsonify, session
+from flask import Blueprint, escape, request, Response, current_app, redirect, g, jsonify, session
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
@@ -55,6 +55,8 @@ log = logging.getLogger(__name__)
 #    but the param is called 'INIT_APP_WITH_DB' and default to True.
 #  - the 'login' url must be configuratble. We provide this with the
 #    'LOGIN_ROUTE' param, but we still default to '/login' and POST.
+
+
 class ConfigurableBlueprint(Blueprint):
 
     def register(self, app, options, first_registration=False):
@@ -113,7 +115,7 @@ def check_auth(
                 user = user_from_token(request.cookies['token'])
 
                 if user.id_droit_max < level:
-                    #HACK better name for callback if right are low
+                    # HACK better name for callback if right are low
                     if redirect_on_insufficient_right:
                         log.info('Privilege too low')
                         return redirect(redirect_on_insufficient_right, code=302)
@@ -147,7 +149,8 @@ def check_auth(
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
-                    res = Response('Token BadSignature or token not coresponding to the app', 403)
+                    res = Response(
+                        'Token BadSignature or token not coresponding to the app', 403)
                 res.set_cookie('token', '', expires=0)
                 return res
 
@@ -166,7 +169,6 @@ def check_auth(
     return _check_auth
 
 
-
 @routes.route('/login', methods=['POST'])
 def login():
     try:
@@ -180,7 +182,7 @@ def login():
                     .filter(models.AppUser.identifiant == login)
                     .filter(models.AppUser.id_application == id_app)
                     .one())
-            
+
             # Return child application
             sub_app = models.AppUser.query.join(
                 models.Application, models.Application.id_application == models.AppUser.id_application
@@ -191,8 +193,9 @@ def login():
             ).all()
 
             user_dict = user.as_dict()
-            user_dict['apps'] = {s.id_application: s.id_droit_max for s in sub_app}
-            
+            user_dict['apps'] = {
+                s.id_application: s.id_droit_max for s in sub_app}
+
         except KeyError as e:
             parameters = ", ".join(e.args)
             msg = json.dumps({
@@ -207,16 +210,16 @@ def login():
             return Response(msg, status=status_code)
 
         except (exc.NoResultFound, AssertionError) as e:
+
             msg = json.dumps({
                 'type': 'login',
                 'msg': (
                     'No user found with the username "{login}" for '
                     'the application with id "{id_app}"'
-                ).format(login=login, id_app=id_app)
+                ).format(login=escape(login), id_app=id_app)
             })
             log.info(msg)
             status_code = current_app.config.get('BAD_LOGIN_STATUS_CODE', 490)
-            log.info(msg)            
             return Response(msg, status=status_code)
 
         except Exception as e:
@@ -251,7 +254,6 @@ def login():
     except Exception as e:
         msg = json.dumps({'login': False, 'msg': repr(e)})
         return Response(msg, status=403)
-
 
 
 @routes.route('/logout', methods=['GET', 'POST'])
