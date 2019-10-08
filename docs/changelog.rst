@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.4.2 (2019-10-08)
+------------------
+
+**Corrections**
+
+* Echappement des balises HTML sur le retour de la route "/login" pour corrigé une faille XSS (fausse faille car inexploitable)
+
 
 1.4.1 (2019-09-17)
 ------------------
