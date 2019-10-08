@@ -6,7 +6,7 @@ CHANGELOG
 
 **Corrections**
 
-* Echappement des balises HTML sur le retour de la route "/login" pour corrigé une faille XSS (fausse faille car inexploitable)
+* Echappement des balises HTML sur le retour de la route "/login" pour corriger une faille XSS (fausse faille car inexploitable)
 
 
 1.4.1 (2019-09-17)
