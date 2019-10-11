@@ -121,7 +121,7 @@ class User(db.Model):
     def __str__(self):
         return self.identifiant or ''
 
-    def as_dict(self, recursif=False, columns=()):
+    def as_dict(self, recursif=False, columns=(), relationships=()):
         nom_role = self.nom_role or ''
         prenom_role = self.prenom_role or ''
         return {
