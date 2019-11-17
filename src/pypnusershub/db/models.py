@@ -84,7 +84,7 @@ class User(db.Model):
     @hybrid_property
     def nom_complet(self):
         return '{0} {1}'.format(self.nom_role, self.prenom_role)
-    
+
     @nom_complet.expression
     def nom_complet(cls):
         return db.func.concat(cls.nom_role, ' ', cls.prenom_role)
