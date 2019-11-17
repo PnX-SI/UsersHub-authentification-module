@@ -15,6 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from flask import current_app
 
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy import Sequence, func, ForeignKey
 
@@ -80,6 +81,14 @@ class User(db.Model):
     date_update = db.Column(db.DateTime)
     active = db.Column(db.Boolean)
 
+    @hybrid_property
+    def nom_complet(self):
+        return '{0} {1}'.format(self.nom_role, self.prenom_role)
+    
+    @nom_complet.expression
+    def nom_complet(cls):
+        return db.func.concat(cls.nom_role, ' ', cls.prenom_role)
+
     # applications_droits = db.relationship('AppUser', lazy='joined')
 
     @property
@@ -133,7 +142,7 @@ class User(db.Model):
             'email': self.email,
             'groupe': self.groupe,
             'remarques': self.remarques,
-            'nom_complet': nom_role+' '+prenom_role
+            'nom_complet': self.nom_complet
         }
 
 
