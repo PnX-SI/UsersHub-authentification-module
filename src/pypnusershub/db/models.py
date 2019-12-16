@@ -130,7 +130,10 @@ class User(db.Model):
     def __str__(self):
         return self.identifiant or ''
 
-    def as_dict(self, recursif=False, columns=(), relationships=()):
+    def as_dict(self, recursif=False, columns=(), relationships=(), depth=None):
+        '''
+            The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        '''
         nom_role = self.nom_role or ''
         prenom_role = self.prenom_role or ''
         return {
