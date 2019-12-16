@@ -88,7 +88,10 @@ class TempUser(DB.Model):
 
         return (is_valid, msg)
 
-    def as_dict(self, recursif=False, columns=()):
+    def as_dict(self, recursif=False, columns=(), depth=None):
+        '''
+            The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        '''
         return {
             "id_temp_user": self.id_temp_user,
             "token_role": self.token_role,
@@ -117,5 +120,8 @@ class CorRoleToken(DB.Model):
     id_role = DB.Column(DB.Integer, primary_key=True)
     token = DB.Column(DB.Unicode)
 
-    def as_dict(self, recursif=False, columns=()):
+    def as_dict(self, recursif=False, columns=(), depth=None):
+        '''
+            The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        '''
         return {"id_role": self.id_role, "token": self.token}
