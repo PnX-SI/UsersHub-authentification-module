@@ -1,6 +1,15 @@
 CHANGELOG
 *********
 
+
+1.4.3 (2019-12-18)
+------------------
+
+**Corrections**
+
+* Adaptation des méthodes ``as_dict()`` pour compatibilité avec la lib utils-flask-sqla (paramètres ``relationships`` et ``depth``)
+
+
 1.4.2 (2019-10-08)
 ------------------
 
