@@ -121,7 +121,7 @@ class User(db.Model):
     def __str__(self):
         return self.identifiant or ''
 
-    def as_dict(self, recursif=False, columns=(), relationships=(), depth=None):
+    def as_dict(self, recursif=False, columns=(), relationships=(), depth=None, exclude=()):
         '''
             The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
         '''
