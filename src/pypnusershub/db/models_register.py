@@ -20,23 +20,23 @@ class TempUser(DB.Model):
 
     id_temp_user = DB.Column(DB.Integer, primary_key=True)
     token_role = DB.Column(DB.Unicode)
-    organisme = DB.Column(DB.String(250))
+    organisme = DB.Column(DB.Unicode)
     id_application = DB.Column(DB.Integer)
-    confirmation_url = DB.Column(DB.String(250))
+    confirmation_url = DB.Column(DB.Unicode)
     groupe = DB.Column(DB.Boolean)
-    identifiant = DB.Column(DB.String(250))
-    nom_role = DB.Column(DB.String(250))
-    prenom_role = DB.Column(DB.String(250))
-    desc_role = DB.Column(DB.String(250))
+    identifiant = DB.Column(DB.Unicode)
+    nom_role = DB.Column(DB.Unicode)
+    prenom_role = DB.Column(DB.Unicode)
+    desc_role = DB.Column(DB.Unicode)
     password = DB.Column(DB.Unicode)
     pass_md5 = DB.Column(DB.Unicode)
     email = DB.Column(DB.Unicode)    
     id_organisme = DB.Column(DB.Integer)
-    remarques = DB.Column(DB.String(250))
+    remarques = DB.Column(DB.Unicode)
     champs_addi = DB.Column(JSONB)
     date_insert = DB.Column(DB.DateTime)
     date_update = DB.Column(DB.DateTime)
-
+    
     def set_password(self, password, password_confirmation, md5):
         self.password, self.pass_md5 = check_and_encrypt_password(
             password, password_confirmation, md5
