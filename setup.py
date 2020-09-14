@@ -12,7 +12,7 @@ from codecs import open
 
 def get_version(path="VERSION"):
     """ Return the version of by with regex intead of importing it"""
-    return open(path, "rt").read()
+    return open(path, "rt").read().strip()
 
 
 

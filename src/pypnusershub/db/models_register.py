@@ -20,18 +20,19 @@ class TempUser(DB.Model):
 
     id_temp_user = DB.Column(DB.Integer, primary_key=True)
     token_role = DB.Column(DB.Unicode)
-    password = DB.Column(DB.Unicode)
-    pass_md5 = DB.Column(DB.Unicode)
+    organisme = DB.Column(DB.String(250))
+    id_application = DB.Column(DB.Integer)
+    confirmation_url = DB.Column(DB.String(250))
+    groupe = DB.Column(DB.Boolean)
     identifiant = DB.Column(DB.String(250))
     nom_role = DB.Column(DB.String(250))
     prenom_role = DB.Column(DB.String(250))
     desc_role = DB.Column(DB.String(250))
-    remarques = DB.Column(DB.String(250))
-    groupe = DB.Column(DB.Boolean)
-    organisme = DB.Column(DB.String(250))
+    password = DB.Column(DB.Unicode)
+    pass_md5 = DB.Column(DB.Unicode)
+    email = DB.Column(DB.Unicode)    
     id_organisme = DB.Column(DB.Integer)
-    id_application = DB.Column(DB.Integer)
-    email = DB.Column(DB.Unicode)
+    remarques = DB.Column(DB.String(250))
     champs_addi = DB.Column(JSONB)
     date_insert = DB.Column(DB.DateTime)
     date_update = DB.Column(DB.DateTime)
@@ -62,12 +63,10 @@ class TempUser(DB.Model):
         if role:
             is_valid = False
             if role.email == self.email:
-                msg += "Un compte avec l'email " + self.email + " existe déjà. "
+                msg += f"Un compte avec l'email {self.email} existe déjà. "
             else:
                 msg += (
-                    "Un compte avec l'identifiant "
-                    + self.identifiant
-                    + " existe déjà. "
+                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. "
                 )
 
         temp_role = (
@@ -78,35 +77,35 @@ class TempUser(DB.Model):
         if temp_role:
             is_valid = False
             if temp_role.email == self.email:
-                msg += "Un compte avec l'email " + self.email + " existe déjà. "
+                msg += f"Un compte avec l'email {self.email} existe déjà. "
             else:
                 msg += (
-                    "Un compte avec l'identifiant "
-                    + self.identifiant
-                    + " existe déjà. "
+                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. "
                 )
 
         return (is_valid, msg)
 
     def as_dict(self, recursif=False, columns=(), depth=None):
-        '''
-            The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
-        '''
+        """
+            The signature of the function must be the as same the as_dict func 
+            from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        """
         return {
             "id_temp_user": self.id_temp_user,
             "token_role": self.token_role,
+            "organisme": self.organisme,
+            "id_application": self.id_application,
+            "confirmation_url": self.confirmation_url,
+            "groupe": self.groupe,
             "identifiant": self.identifiant,
             "nom_role": self.nom_role,
             "prenom_role": self.prenom_role,
             "desc_role": self.desc_role,
-            "remarques": self.remarques,
-            "id_organisme": self.id_organisme,
-            "id_application": self.id_application,
-            "organisme": self.organisme,
-            "email": self.email,
-            "groupe": self.groupe,
             "password": self.password,
             "pass_md5": self.pass_md5,
+            "email": self.email,
+            "id_organisme": self.id_organisme,
+            "remarques": self.remarques,
             "champs_addi": self.champs_addi
 
         }
@@ -121,7 +120,8 @@ class CorRoleToken(DB.Model):
     token = DB.Column(DB.Unicode)
 
     def as_dict(self, recursif=False, columns=(), depth=None):
-        '''
-            The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
-        '''
+        """
+            The signature of the function must be the as same the as_dict func 
+            from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        """
         return {"id_role": self.id_role, "token": self.token}
