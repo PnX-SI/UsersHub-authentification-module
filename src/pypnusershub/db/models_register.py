@@ -36,7 +36,7 @@ class TempUser(DB.Model):
     champs_addi = DB.Column(JSONB)
     date_insert = DB.Column(DB.DateTime)
     date_update = DB.Column(DB.DateTime)
-
+    
     def set_password(self, password, password_confirmation, md5):
         self.password, self.pass_md5 = check_and_encrypt_password(
             password, password_confirmation, md5
