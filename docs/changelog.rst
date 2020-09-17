@@ -2,6 +2,16 @@ CHANGELOG
 *********
 
 
+1.4.4 (2020-10-17)
+------------------
+
+**Nouveautés**
+
+* Ajout du nom complet dans le modèle `User` en tant que propriété hybride
+* Mise à jour des dépendances (psycopg2 et SQLAlchemy)
+* Ajout de l'url de confirmation dans le modèle `TempUser`
+
+
 1.4.3 (2019-12-18)
 ------------------
 
