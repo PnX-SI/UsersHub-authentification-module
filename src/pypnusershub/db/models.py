@@ -56,14 +56,9 @@ class User(db.Model):
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
 
-    TABLE_ID = Sequence(
-        't_roles_id_seq',
-        schema="utilisateurs",
-    )
     groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,
-        TABLE_ID,
         primary_key=True,
     )
 
