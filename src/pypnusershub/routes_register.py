@@ -1,3 +1,4 @@
+# coding: utf8
 # Fichier contenant les route pour faire des appels à UsersHub
 #
 # - en se connectant en tant que qu'adminisatrateur de l'application courante
