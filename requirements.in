@@ -1,0 +1,6 @@
+bcrypt
+flask-sqlalchemy
+flask
+psycopg2
+requests
+sqlalchemy
