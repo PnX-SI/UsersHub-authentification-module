@@ -88,11 +88,6 @@ class ConfigurableBlueprint(Blueprint):
                 except Exception:
                     return response
 
-        # register db
-        init_app_with_db = app.config.get('INIT_APP_WITH_DB', False)
-        if init_app_with_db:
-            models.db.init_app(app)
-
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, options, first_registration)
 

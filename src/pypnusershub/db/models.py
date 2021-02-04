@@ -10,6 +10,8 @@ mappings applications et utilisateurs
 import hashlib
 import bcrypt
 from bcrypt import checkpw
+from os import environ
+from importlib import import_module
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -20,7 +22,15 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Sequence, func, ForeignKey
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
-db = current_app.config['DB']
+
+
+db_path = environ.get('FLASK_SQLALCHEMY_DB')
+if db_path:
+    db_module_name, db_object_name = db_path.rsplit('.', 1)
+    db_module = import_module(db_module_name)
+    db = getattr(db_module, db_object_name)
+else:
+    db = SQLAlchemy()
 
 
 def check_and_encrypt_password(password, password_confirmation, md5=False):
