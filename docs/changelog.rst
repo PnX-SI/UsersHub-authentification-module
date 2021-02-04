@@ -1,6 +1,16 @@
 CHANGELOG
 *********
 
+1.4.5 (2020-02-24)
+------------------
+
+**🚀 Nouveautés**
+
+* Passage de l'instance de SQLAlchemy du module parent via une variable d'environnement
+
+**🐛 Corrections**
+
+* Les dépendances du fichier ``requirements.txt`` ne sont plus fixées à une version
 
 1.4.4 (2020-10-17)
 ------------------
