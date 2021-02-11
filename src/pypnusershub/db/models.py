@@ -18,8 +18,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import current_app
 
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Sequence, func, ForeignKey
+from sqlalchemy.sql import select, func
+from sqlalchemy.dialects.postgresql import UUID
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 
@@ -62,6 +64,35 @@ def fn_check_password(self, pwd):
         raise ValueError('Undefine crypt method (PASS_METHOD)')
 
 
+cor_roles = db.Table('cor_roles',
+    db.Column('id_role_utilisateur', db.Integer, db.ForeignKey('utilisateurs.t_roles.id_role'), primary_key=True),
+    db.Column('id_role_groupe', db.Integer, db.ForeignKey('utilisateurs.t_roles.id_role'), primary_key=True),
+    schema='utilisateurs',
+    extend_existing=True,
+)
+
+
+class Organisme(db.Model):
+    __tablename__ = "bib_organismes"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+
+    id_organisme = db.Column(db.Integer, primary_key=True)
+    uuid_organisme = db.Column(
+        UUID(as_uuid=True), default=select([func.uuid_generate_v4()])
+    )
+    nom_organisme = db.Column(db.Unicode)
+    adresse_organisme = db.Column(db.Unicode)
+    cp_organisme = db.Column(db.Unicode)
+    ville_organisme = db.Column(db.Unicode)
+    tel_organisme = db.Column(db.Unicode)
+    fax_organisme = db.Column(db.Unicode)
+    email_organisme = db.Column(db.Unicode)
+    url_organisme = db.Column(db.Unicode)
+    url_logo = db.Column(db.Unicode)
+    id_parent = db.Column(db.Integer)
+    members = db.relationship("User", back_populates="organisme")
+
+
 class User(db.Model):
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
@@ -85,11 +116,20 @@ class User(db.Model):
     _password = db.Column('pass', db.Unicode)
     _password_plus = db.Column('pass_plus', db.Unicode)
     email = db.Column(db.Unicode)
-    id_organisme = db.Column(db.Integer)
+    id_organisme = db.Column(db.Integer, ForeignKey("utilisateurs.bib_organismes.id_organisme"))
     remarques = db.Column(db.Unicode)
     date_insert = db.Column(db.DateTime)
     date_update = db.Column(db.DateTime)
     active = db.Column(db.Boolean)
+    groups = db.relationship('User', lazy="joined",
+                             secondary=cor_roles,
+                             primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
+                             secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
+                             backref=backref('members'))
+    organisme = db.relationship("Organisme",
+                                primaryjoin="User.id_organisme == utilisateurs.bib_organismes.c.id_organisme",
+                                foreign_keys=[id_organisme],
+                                back_populates="members")
 
     @hybrid_property
     def nom_complet(self):
