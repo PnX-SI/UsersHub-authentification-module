@@ -40,14 +40,11 @@ def check_and_encrypt_password(password, password_confirmation, md5=False):
         raise NoPasswordError
     if password != password_confirmation:
         raise DifferentPasswordError
-    try:
-        pass_plus = bcrypt.hashpw(password.encode(
-            'utf-8'), bcrypt.gensalt())
-        pass_md5 = None
-        if md5:
-            pass_md5 = hashlib.md5(password.encode("utf-8")).hexdigest()
-    except Exception as e:
-        raise e
+    pass_plus = bcrypt.hashpw(password.encode(
+        'utf-8'), bcrypt.gensalt())
+    pass_md5 = None
+    if md5:
+        pass_md5 = hashlib.md5(password.encode("utf-8")).hexdigest()
     return pass_plus.decode('utf-8'), pass_md5
 
 
@@ -74,7 +71,7 @@ cor_roles = db.Table('cor_roles',
 
 class Organisme(db.Model):
     __tablename__ = "bib_organismes"
-    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+    __table_args__ = {"schema": "utilisateurs"}
 
     id_organisme = db.Column(db.Integer, primary_key=True)
     uuid_organisme = db.Column(
