@@ -154,7 +154,13 @@ class User(db.Model):
     # as bcrypt. This need to be done at usershub level first.
     @password.setter
     def password(self, pwd):
-        self._password = hashlib.md5(pwd.encode('utf8')).hexdigest()
+        pwd = pwd.encode('utf-8')
+        if current_app.config['PASS_METHOD'] == 'md5':
+            self._password = hashlib.md5(pwd).hexdigest()
+        elif current_app.config['PASS_METHOD'] == 'hash':
+            self._password_plus = bcrypt.hashpw(pwd, bcrypt.gensalt()).decode('utf-8')
+        else:
+            raise Exception('Unknown pass method')
 
     check_password = fn_check_password
 
