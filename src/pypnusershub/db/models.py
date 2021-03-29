@@ -24,6 +24,7 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.dialects.postgresql import UUID
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
+from utils_flask_sqla.serializers import serializable
 
 
 db_path = environ.get('FLASK_SQLALCHEMY_DB')
@@ -67,27 +68,6 @@ cor_roles = db.Table('cor_roles',
     schema='utilisateurs',
     extend_existing=True,
 )
-
-
-class Organisme(db.Model):
-    __tablename__ = "bib_organismes"
-    __table_args__ = {"schema": "utilisateurs"}
-
-    id_organisme = db.Column(db.Integer, primary_key=True)
-    uuid_organisme = db.Column(
-        UUID(as_uuid=True), default=select([func.uuid_generate_v4()])
-    )
-    nom_organisme = db.Column(db.Unicode)
-    adresse_organisme = db.Column(db.Unicode)
-    cp_organisme = db.Column(db.Unicode)
-    ville_organisme = db.Column(db.Unicode)
-    tel_organisme = db.Column(db.Unicode)
-    fax_organisme = db.Column(db.Unicode)
-    email_organisme = db.Column(db.Unicode)
-    url_organisme = db.Column(db.Unicode)
-    url_logo = db.Column(db.Unicode)
-    id_parent = db.Column(db.Integer, db.ForeignKey('utilisateurs.bib_organismes.id_organisme'))
-    members = db.relationship("User", back_populates="organisme")
 
 
 class User(db.Model):
@@ -197,6 +177,28 @@ class User(db.Model):
             'remarques': self.remarques,
             'nom_complet': self.nom_complet
         }
+
+
+@serializable
+class Organisme(db.Model):
+    __tablename__ = "bib_organismes"
+    __table_args__ = {"schema": "utilisateurs"}
+
+    id_organisme = db.Column(db.Integer, primary_key=True)
+    uuid_organisme = db.Column(
+        UUID(as_uuid=True), default=select([func.uuid_generate_v4()])
+    )
+    nom_organisme = db.Column(db.Unicode)
+    adresse_organisme = db.Column(db.Unicode)
+    cp_organisme = db.Column(db.Unicode)
+    ville_organisme = db.Column(db.Unicode)
+    tel_organisme = db.Column(db.Unicode)
+    fax_organisme = db.Column(db.Unicode)
+    email_organisme = db.Column(db.Unicode)
+    url_organisme = db.Column(db.Unicode)
+    url_logo = db.Column(db.Unicode)
+    id_parent = db.Column(db.Integer, db.ForeignKey('utilisateurs.bib_organismes.id_organisme'))
+    members = db.relationship("User", back_populates="organisme")
 
 
 class Profils(db.Model):
