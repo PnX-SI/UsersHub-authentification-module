@@ -26,7 +26,7 @@ from flask import (
 
 from functools import wraps
 
-from .db.models import Application, UserApplicationRight, AppUser
+from .db.models import Application, UserApplicationRight, AppUser, db
 
 from flask import current_app
 
@@ -35,10 +35,6 @@ from flask import current_app
 
 
 config = current_app.config
-
-DB = config.get('DB', None)
-
-MAIL = config.get('MAIL', None)
 
 s = requests.Session()
 
@@ -96,7 +92,7 @@ def connect_admin():
         @wraps(f)
         def __connect_admin(*args, **kwargs):
             # connexion à usershub
-            id_app_usershub = DB.session.query(
+            id_app_usershub = db.session.query(
                 Application.id_application
             ).filter(Application.code_application == 'UH').first()
 
@@ -178,7 +174,7 @@ def post_usershub(type_action):
 
         id_role = session['current_user']['id_role']
 
-        q = (DB.session.query(AppUser.id_droit_max)
+        q = (db.session.query(AppUser.id_droit_max)
              .filter(AppUser.id_role == id_role)
              .filter(AppUser.id_application == config['ID_APP']))
         id_droit = q.one()[0]

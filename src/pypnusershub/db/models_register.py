@@ -6,12 +6,10 @@ from pypnusershub.db.models import check_and_encrypt_password
 from sqlalchemy import or_
 from sqlalchemy.dialects.postgresql import JSONB
 
-from .models import User
+from .models import User, db as DB
 
 
 config = current_app.config
-
-DB = current_app.config["DB"]
 
 
 class TempUser(DB.Model):
