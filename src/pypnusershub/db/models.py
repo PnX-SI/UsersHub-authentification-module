@@ -69,7 +69,7 @@ cor_roles = db.Table('cor_roles',
     extend_existing=True,
 )
 
-@serializable
+@serializable(exclude=["_password", "_password_plus"])
 class User(db.Model):
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
@@ -218,7 +218,7 @@ class ProfilsForApp(db.Model):
 
     profil = relationship("Profils")
 
-
+@serializable
 class Application(db.Model):
     '''
     Représente une application ou un module
@@ -279,7 +279,7 @@ class UserApplicationRight(db.Model):
             self.id_role, self.id_profil, self.id_application
         )
 
-
+@serializable(exclude=["password", "_password_plus"])
 class AppUser(db.Model):
     '''
     Relations entre applications et utilisateurs
@@ -315,11 +315,6 @@ class AppUser(db.Model):
         return self._password
 
     check_password = fn_check_password
-
-    def as_dict(self):
-        cols = (c for c in self.__table__.columns if (
-            c.name != 'pass_plus') and (c.name != 'pass'))
-        return {c.name: getattr(self, c.name) for c in cols}
 
     def __repr__(self):
         return "<AppUser role='{}' app='{}'>".format(
