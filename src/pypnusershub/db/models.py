@@ -69,7 +69,7 @@ cor_roles = db.Table('cor_roles',
     extend_existing=True,
 )
 
-
+@serializable
 class User(db.Model):
     __tablename__ = 't_roles'
     __table_args__ = {'schema': 'utilisateurs'}
@@ -160,23 +160,11 @@ class User(db.Model):
     def __str__(self):
         return self.identifiant or ''
 
-    def as_dict(self, recursif=False, columns=(), relationships=(), depth=None):
-        '''
-            The signature of the function must be the as same the as_dict func from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
-        '''
-        nom_role = self.nom_role or ''
-        prenom_role = self.prenom_role or ''
-        return {
-            'id_role': self.id_role,
-            'identifiant': self.identifiant,
-            'nom_role': self.nom_role,
-            'prenom_role': self.prenom_role,
-            'id_organisme': self.id_organisme,
-            'email': self.email,
-            'groupe': self.groupe,
-            'remarques': self.remarques,
-            'nom_complet': self.nom_complet
-        }
+    def as_dict(self, data):
+        data["nom_role"] = data["nom_role"] or ""
+        data["prenom_role"] = data["prenom_role"] or ""
+        return data
+
 
 
 @serializable
