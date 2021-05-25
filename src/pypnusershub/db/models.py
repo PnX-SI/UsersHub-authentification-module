@@ -24,16 +24,10 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.dialects.postgresql import UUID
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
+from pypnusershub.env import db
 from utils_flask_sqla.serializers import serializable
 
 
-db_path = environ.get('FLASK_SQLALCHEMY_DB')
-if db_path:
-    db_module_name, db_object_name = db_path.rsplit('.', 1)
-    db_module = import_module(db_module_name)
-    db = getattr(db_module, db_object_name)
-else:
-    db = SQLAlchemy()
 
 
 def check_and_encrypt_password(password, password_confirmation, md5=False):
