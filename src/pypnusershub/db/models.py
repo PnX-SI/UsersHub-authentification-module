@@ -116,7 +116,7 @@ class User(db.Model):
         elif (current_app.config['PASS_METHOD'] == 'hash'):
             return self._password_plus
         else:
-            raise
+            raise Exception
 
     # TODO: change password digest algorithm for something stronger such
     # as bcrypt. This need to be done at usershub level first.
