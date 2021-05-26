@@ -11,7 +11,7 @@ if db_path:
 else:
     db = SQLAlchemy()
 
-marsmallow_path = environ.get('MARSHMALLOW_OBJ')
+marsmallow_path = environ.get('FLASK_MARSHMALLOW')
 if marsmallow_path:
     ma_module_name, ma_object_name = marsmallow_path.rsplit('.', 1)
     ma_module = import_module(ma_module_name)
