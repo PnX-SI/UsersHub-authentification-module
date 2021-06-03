@@ -1,6 +1,22 @@
 CHANGELOG
 *********
 
+1.4.6 (2020-06-03)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout du modèle Organisme et de la table de correspondance ``cor_role``
+* Support de la méthode de mot de passe ``hash`` via l’attribut du modèle
+* Amélioration des relationships
+* Utilisation de @serializable sur les modèles
+* Ajout des schémas Marshmallow
+
+**🐛 Corrections**
+
+* Correction du nom d’un n° de séquence
+
+
 1.4.5 (2020-02-24)
 ------------------
 
@@ -11,6 +27,7 @@ CHANGELOG
 **🐛 Corrections**
 
 * Les dépendances du fichier ``requirements.txt`` ne sont plus fixées à une version
+
 
 1.4.4 (2020-10-17)
 ------------------
