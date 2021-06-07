@@ -155,8 +155,10 @@ class User(db.Model):
         return self.identifiant or ''
 
     def as_dict(self, data):
-        data["nom_role"] = data["nom_role"] or ""
-        data["prenom_role"] = data["prenom_role"] or ""
+        if 'nom_role' in data:
+            data["nom_role"] = data["nom_role"] or ""
+        if 'prenom_role' in data:
+            data["prenom_role"] = data["prenom_role"] or ""
         return data
 
 
