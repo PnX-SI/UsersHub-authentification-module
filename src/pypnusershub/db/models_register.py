@@ -9,9 +9,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from .models import User, db as DB
 
 
-config = current_app.config
-
-
 class TempUser(DB.Model):
     __tablename__ = "temp_users"
     __table_args__ = {"schema": "utilisateurs", "extend_existing": True}

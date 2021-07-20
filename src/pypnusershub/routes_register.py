@@ -34,8 +34,6 @@ from flask import current_app
 # from .routes import check_auth
 
 
-config = current_app.config
-
 s = requests.Session()
 
 bp = Blueprint('register', __name__)
@@ -103,7 +101,7 @@ def connect_admin():
 
             # test si on est déjà connecté
             try:
-                r = s.post(config['URL_USERSHUB'] +
+                r = s.post(current_app.config['URL_USERSHUB'] +
                            "/api_register/test_connexion")
                 b_connexion = (r.status_code == 200)
             except requests.ConnectionError:
@@ -113,10 +111,10 @@ def connect_admin():
             if not b_connexion:
                 # connexion à usershub
                 r = s.post(
-                    config['URL_USERSHUB'] + "/" + "pypn/auth/login",
+                    current_app.config['URL_USERSHUB'] + "/" + "pypn/auth/login",
                     json={
-                        'login': config['ADMIN_APPLICATION_LOGIN'],
-                        'password': config['ADMIN_APPLICATION_PASSWORD'],
+                        'login': current_app.config['ADMIN_APPLICATION_LOGIN'],
+                        'password': current_app.config['ADMIN_APPLICATION_PASSWORD'],
                         'id_application': id_app_usershub
                     }
                 )
@@ -142,7 +140,7 @@ def test():
             - config['ADMIN_APPLICATION_PASSWORD']
     '''
 
-    r = s.post(config['URL_USERSHUB'] + "/api_register/test_connexion")
+    r = s.post(current_app.config['URL_USERSHUB'] + "/api_register/test_connexion")
 
     return req_json_or_text(r, "Test pypn")
 
@@ -176,7 +174,7 @@ def post_usershub(type_action):
 
         q = (db.session.query(AppUser.id_droit_max)
              .filter(AppUser.id_role == id_role)
-             .filter(AppUser.id_application == config['ID_APP']))
+             .filter(AppUser.id_application == current_app.config['ID_APP']))
         id_droit = q.one()[0]
 
     # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible
@@ -186,7 +184,7 @@ def post_usershub(type_action):
 
     # les test de paramètres seront faits dans UsersHub
     data = request.get_json()
-    url = config['URL_USERSHUB'] + "/" + "api_register/" + type_action
+    url = current_app.config['URL_USERSHUB'] + "/" + "api_register/" + type_action
     r_usershub = s.post(url, json=data)
 
     # after request definir route dans app
@@ -195,7 +193,7 @@ def post_usershub(type_action):
     if r_usershub.status_code == 200 and data.get('enable_post_action', True):
         out_after = after_request(type_action, get_json_request(r_usershub))
 
-        # 0 = pas d'action definie dans config['after_USERSHUB_request'][type_action]
+        # 0 = pas d'action definie dans current_app.config['after_USERSHUB_request'][type_action]
         if out_after != 0:
 
             if out_after['msg'] != "ok":
@@ -210,7 +208,7 @@ def after_request(type_action, data, *args, **kwargs):
         lorsqu'une fonction est definie dans config['after_USERSHUB_request'][type_action]
         elle est executée avec les données fournies en retour de la requete USERSHUB
     '''
-    after_request_dict = config.get('after_USERSHUB_request', None)
+    after_request_dict = current_app.config.get('after_USERSHUB_request', None)
 
     if not after_request_dict:
         return 0
