@@ -58,10 +58,15 @@ class TempUser(DB.Model):
         if role:
             is_valid = False
             if role.email == self.email:
-                msg += f"Un compte avec l'email {self.email} existe déjà. "
+                msg += (
+                    f"Un compte avec l'email {self.email} existe déjà. " +
+                    "S'il s'agit de votre email, vous pouvez faire une demande de renouvellement " +
+                    "de mot de passe via la page de login de GeoNature."
+                )
             else:
                 msg += (
-                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. "
+                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. " +
+                    "Veuillez choisir un identifiant différent."
                 )
 
         temp_role = (
@@ -72,10 +77,16 @@ class TempUser(DB.Model):
         if temp_role:
             is_valid = False
             if temp_role.email == self.email:
-                msg += f"Un compte avec l'email {self.email} existe déjà. "
+                msg += (
+                    f"Un compte en attente de validation avec l'email {self.email} existe déjà. "+
+                    "Merci de patienter le temps que votre demande soit traitée."
+
+                )
             else:
                 msg += (
-                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. "
+                    "Un compte en attente de validation avec l'identifiant " +
+                    f"{self.identifiant} existe déjà. " +
+                    "Veuillez choisir un identifiant différent."
                 )
 
         return (is_valid, msg)
@@ -101,8 +112,7 @@ class TempUser(DB.Model):
             "email": self.email,
             "id_organisme": self.id_organisme,
             "remarques": self.remarques,
-            "champs_addi": self.champs_addi
-
+            "champs_addi": self.champs_addi,
         }
 
 
