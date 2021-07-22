@@ -1,7 +1,19 @@
 CHANGELOG
 *********
 
-1.4.6 (2020-06-03)
+1.4.7 (2021-07-22)
+------------------
+
+**🚀 Nouveautés**
+
+* Amélioration des messages et e-mails utilisateurs
+
+**🐛 Corrections**
+
+* Corrections de 2 bugs mineurs
+
+
+1.4.6 (2021-06-03)
 ------------------
 
 **🚀 Nouveautés**
@@ -17,7 +29,7 @@ CHANGELOG
 * Correction du nom d’un n° de séquence
 
 
-1.4.5 (2020-02-24)
+1.4.5 (2021-02-24)
 ------------------
 
 **🚀 Nouveautés**
