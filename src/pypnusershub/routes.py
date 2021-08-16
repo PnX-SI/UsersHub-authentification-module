@@ -23,6 +23,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
+    user_to_token,
     user_from_token,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
@@ -236,11 +237,9 @@ def login():
             return Response(msg, status=status_code)
 
         # Génération d'un token
-        expiration = current_app.config['COOKIE_EXPIRATION']
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        token = s.dumps(user.as_dict())
+        token = user_to_token(user)
         cookie_exp = datetime.datetime.utcnow()
-        cookie_exp += datetime.timedelta(seconds=expiration)
+        cookie_exp += datetime.timedelta(seconds=current_app.config['COOKIE_EXPIRATION'])
         resp = Response(json.dumps({'user': user_dict,
                                     'expires': str(cookie_exp)}))
         resp.set_cookie('token', token, expires=cookie_exp)
