@@ -262,13 +262,14 @@ class UserApplicationRight(db.Model):
     Droit d'acces d'un user particulier a une application particuliere
     '''
     __tablename__ = 'cor_role_app_profil'
-    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
-    id_role = db.Column(db.Integer, primary_key=True)
-    id_profil = db.Column(db.Integer, ForeignKey(
-        'utilisateurs.t_profils.id_profil'), primary_key=True)
-    id_application = db.Column(db.Integer, primary_key=True)
+    __table_args__ = {'schema': 'utilisateurs'}#, 'extend_existing': True}
+    id_role = db.Column(db.Integer, ForeignKey('utilisateurs.t_roles.id_role'), primary_key=True)
+    id_profil = db.Column(db.Integer, ForeignKey('utilisateurs.t_profils.id_profil'), primary_key=True)
+    id_application = db.Column(db.Integer, ForeignKey('utilisateurs.t_applications.id_application'), primary_key=True)
 
+    role = relationship("User")
     profil = relationship("Profils")
+    application = relationship("Application")
 
     def __repr__(self):
         return "<UserApplicationRight role='{}' profil='{}' app='{}'>".format(
