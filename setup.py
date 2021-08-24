@@ -24,6 +24,11 @@ setuptools.setup(
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
     install_requires=requirements,
+    entry_points={
+        'alembic': [
+            'migrations = pypnusershub:migrations',
+        ],
+    },
     zip_safe=False,
     classifiers=['Development Status :: 1 - Planning',
                  'Intended Audience :: Developers',
