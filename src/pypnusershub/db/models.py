@@ -97,7 +97,6 @@ class User(db.Model):
                              primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
                              secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
                              backref=backref('members'))
-    organisme = db.relationship("Organisme", back_populates=('members'))
 
     @hybrid_property
     def nom_complet(self):
@@ -182,7 +181,7 @@ class Organisme(db.Model):
     url_organisme = db.Column(db.Unicode)
     url_logo = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer, db.ForeignKey('utilisateurs.bib_organismes.id_organisme'))
-    members = db.relationship("User", back_populates="organisme")
+    members = db.relationship(User, backref="organisme")
 
 
 class Profils(db.Model):
