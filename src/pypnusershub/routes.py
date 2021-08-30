@@ -60,7 +60,7 @@ log = logging.getLogger(__name__)
 
 class ConfigurableBlueprint(Blueprint):
 
-    def register(self, app, options, first_registration=False):
+    def register(self, app, *args, **kwargs):
 
         # set cookie autorenew
         expiration = app.config.get('COOKIE_EXPIRATION', 3600)
@@ -90,7 +90,7 @@ class ConfigurableBlueprint(Blueprint):
                     return response
 
         parent = super(ConfigurableBlueprint, self)
-        parent.register(app, options, first_registration)
+        parent.register(app, *args, **kwargs)
 
 
 routes = ConfigurableBlueprint('auth', __name__)
