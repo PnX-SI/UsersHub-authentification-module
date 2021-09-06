@@ -21,7 +21,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Sequence, func, ForeignKey
 from sqlalchemy.sql import select, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 from pypnusershub.env import db
@@ -97,6 +97,7 @@ class User(db.Model):
                              primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
                              secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
                              backref=backref('members'))
+    organisme = db.relationship("Organisme", back_populates=('members'))
 
     @hybrid_property
     def nom_complet(self):
@@ -181,6 +182,7 @@ class Organisme(db.Model):
     url_organisme = db.Column(db.Unicode)
     url_logo = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer, db.ForeignKey('utilisateurs.bib_organismes.id_organisme'))
+    additional_data = db.Column(JSONB, nullable=True, default_server='{}')
     members = db.relationship(User, backref="organisme")
 
 
