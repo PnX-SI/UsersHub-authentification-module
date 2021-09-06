@@ -1,6 +1,18 @@
 CHANGELOG
 *********
 
+1.5.0 (2021-09-06)
+------------------
+
+**🚀 Nouveautés**
+
+* Gestion du schéma ``utilisateurs`` avec alembic par ce module (et non plus dans UsersHub)
+
+**🐛 Corrections**
+
+* Corrections mineurs des modèles
+
+
 1.4.7 (2021-07-22)
 ------------------
 
