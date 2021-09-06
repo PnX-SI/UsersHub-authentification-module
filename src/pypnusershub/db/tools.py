@@ -83,6 +83,11 @@ def load_fixtures(con_uri):
             engine.execute("COMMIT")
 
 
+def user_to_token(user):
+    s = Serializer(current_app.config['SECRET_KEY'], current_app.config['COOKIE_EXPIRATION'])
+    return s.dumps(user.as_dict())
+
+
 def user_from_token(token, secret_key=None):
     """Given a, authentification token, return the matching AppUser instance"""
 

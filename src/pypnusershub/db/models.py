@@ -97,7 +97,6 @@ class User(db.Model):
                              primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
                              secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
                              backref=backref('members'))
-    organisme = db.relationship("Organisme", back_populates=('members'))
 
     @hybrid_property
     def nom_complet(self):
@@ -182,7 +181,7 @@ class Organisme(db.Model):
     url_organisme = db.Column(db.Unicode)
     url_logo = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer, db.ForeignKey('utilisateurs.bib_organismes.id_organisme'))
-    members = db.relationship("User", back_populates="organisme")
+    members = db.relationship(User, backref="organisme")
 
 
 class Profils(db.Model):
@@ -262,13 +261,14 @@ class UserApplicationRight(db.Model):
     Droit d'acces d'un user particulier a une application particuliere
     '''
     __tablename__ = 'cor_role_app_profil'
-    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
-    id_role = db.Column(db.Integer, primary_key=True)
-    id_profil = db.Column(db.Integer, ForeignKey(
-        'utilisateurs.t_profils.id_profil'), primary_key=True)
-    id_application = db.Column(db.Integer, primary_key=True)
+    __table_args__ = {'schema': 'utilisateurs'}#, 'extend_existing': True}
+    id_role = db.Column(db.Integer, ForeignKey('utilisateurs.t_roles.id_role'), primary_key=True)
+    id_profil = db.Column(db.Integer, ForeignKey('utilisateurs.t_profils.id_profil'), primary_key=True)
+    id_application = db.Column(db.Integer, ForeignKey('utilisateurs.t_applications.id_application'), primary_key=True)
 
+    role = relationship("User")
     profil = relationship("Profils")
+    application = relationship("Application")
 
     def __repr__(self):
         return "<UserApplicationRight role='{}' profil='{}' app='{}'>".format(

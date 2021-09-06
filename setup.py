@@ -23,8 +23,13 @@ setuptools.setup(
     url='https://github.com/PnX-SI/UsersHub-authentification-module',
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
+    package_data={'pypnusershub.migrations': ['data/*.sql']},
     install_requires=requirements,
-    zip_safe=False,
+    entry_points={
+        'alembic': [
+            'migrations = pypnusershub:migrations',
+        ],
+    },
     classifiers=['Development Status :: 1 - Planning',
                  'Intended Audience :: Developers',
                  'Natural Language :: English',
