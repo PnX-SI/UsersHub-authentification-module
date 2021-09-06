@@ -183,7 +183,7 @@ class Organisme(db.Model):
     url_logo = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer, db.ForeignKey('utilisateurs.bib_organismes.id_organisme'))
     additional_data = db.Column(JSONB, nullable=True, default_server='{}')
-    members = db.relationship("User", back_populates="organisme")
+    members = db.relationship(User, backref="organisme")
 
 
 class Profils(db.Model):
