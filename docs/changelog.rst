@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.5.1 (2021-09-07)
+------------------
+
+**🐛 Corrections**
+
+* Corrections du packaging des migrations
+
+
 1.5.0 (2021-09-06)
 ------------------
 
