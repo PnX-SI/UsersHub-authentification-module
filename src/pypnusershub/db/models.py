@@ -97,7 +97,6 @@ class User(db.Model):
                              primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
                              secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
                              backref=backref('members'))
-    organisme = db.relationship("Organisme", back_populates=('members'))
 
     @hybrid_property
     def nom_complet(self):
