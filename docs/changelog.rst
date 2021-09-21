@@ -6,12 +6,12 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Ajout d’un champs JSONB ``additional_data`` à ``bib_organismes``
+* Ajout d’un champs JSONB ``additional_data`` à la table ``bib_organismes``
 
 **🐛 Corrections**
 
 * Correction de la vue ``v_roleslist_forall_applications``
-* Suppression des SQL d’installation les 2 modifications ci-dessus, celles-ci étant amené par les migratios alembic
+* Suppression des SQL d'installation des 2 modifications ci-dessus, celles-ci étant amenées par les migrations Alembic
 
 
 1.5.1 (2021-09-07)
