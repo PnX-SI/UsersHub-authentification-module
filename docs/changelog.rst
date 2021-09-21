@@ -1,6 +1,39 @@
 CHANGELOG
 *********
 
+1.5.2 (unreleased)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout d’un champs JSONB ``additional_data`` à la table ``bib_organismes``
+
+**🐛 Corrections**
+
+* Correction de la vue ``v_roleslist_forall_applications``
+* Suppression des SQL d'installation des 2 modifications ci-dessus, celles-ci étant amenées par les migrations Alembic
+
+
+1.5.1 (2021-09-07)
+------------------
+
+**🐛 Corrections**
+
+* Corrections du packaging des migrations
+
+
+1.5.0 (2021-09-06)
+------------------
+
+**🚀 Nouveautés**
+
+* Gestion du schéma ``utilisateurs`` avec alembic par ce module (et non plus dans UsersHub)
+
+**🐛 Corrections**
+
+* Corrections mineurs des modèles
+
+
 1.4.7 (2021-07-22)
 ------------------
 

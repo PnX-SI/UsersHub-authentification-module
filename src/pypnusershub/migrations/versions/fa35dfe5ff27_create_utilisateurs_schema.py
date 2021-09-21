@@ -1,4 +1,4 @@
-"""utilisateurs schema 1.4.7
+"""utilisateurs schema 1.4.7 (usershub 2.1.3)
 
 Revision ID: fa35dfe5ff27
 Revises: 
