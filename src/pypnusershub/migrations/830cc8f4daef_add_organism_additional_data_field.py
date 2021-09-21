@@ -13,7 +13,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 # revision identifiers, used by Alembic.
 revision = '830cc8f4daef'
 down_revision = 'fa35dfe5ff27'
-branch_labels = ('add_organism_additional_data_field',)
+branch_labels = None
+depends_on = None
 
 
 def upgrade():
