@@ -1,17 +1,20 @@
 CHANGELOG
 *********
 
-1.5.2 (unreleased)
+1.5.2 (2021-09-29)
 ------------------
 
 **🚀 Nouveautés**
 
 * Ajout d’un champs JSONB ``additional_data`` à la table ``bib_organismes``
+* Ajout d’une contrainte d’unicité sur ``bib_organismes.uuid_organisme`` (permet d’utiliser ``ON CONFLICT UPDATE``)
+* Possibilité d’installer le schéma ``utilisateurs`` avec Alembic sans passer par une application Flask telle que UsersHub (voir documentation)
+* Utilisation d’un dictionnaire ``REGISTER_POST_ACTION_FCT`` pour déclarer les callbacks de post-actions plutôt que l’entrée ``after_USERSHUB_request`` dans la config de Flask
 
 **🐛 Corrections**
 
-* Correction de la vue ``v_roleslist_forall_applications``
-* Suppression des SQL d'installation des 2 modifications ci-dessus, celles-ci étant amenées par les migrations Alembic
+* Correction de la vue ``v_roleslist_forall_applications`` (``LEFT JOIN``)
+* Correction des SQL d’installation : les évolutions sont amenées par les migrations Alembic
 
 
 1.5.1 (2021-09-07)
