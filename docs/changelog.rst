@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.5.3 (2021-09-29)
+------------------
+
+**🐛 Corrections**
+
+* Ajout d’un fichier ``__init__.py`` dont l’absence excluait les révisions Alembic lors du paquetage du module
+
 1.5.2 (2021-09-29)
 ------------------
 
