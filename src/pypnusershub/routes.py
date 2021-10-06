@@ -170,7 +170,7 @@ def login():
     try:
         user_data = request.json
         try:
-            id_app = user_data['id_application']
+            id_app = current_app.config.get('ID_APP', user_data['id_application'])
             login = user_data['login']
 
             user = (models.AppUser
