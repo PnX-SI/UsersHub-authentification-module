@@ -6,7 +6,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Suppression des id_organisme en dure dans les données d’exemple
+* Suppression des ``id_organisme`` en dur dans les données d’exemple
 
 1.5.3 (2021-09-29)
 ------------------
