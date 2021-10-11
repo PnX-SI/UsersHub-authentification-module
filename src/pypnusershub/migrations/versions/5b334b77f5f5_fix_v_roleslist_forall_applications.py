@@ -18,6 +18,10 @@ depends_on = None
 
 def upgrade():
     op.execute("""
+DROP VIEW IF EXISTS utilisateurs.v_userslist_forall_applications;
+
+DROP VIEW IF EXISTS utilisateurs.v_roleslist_forall_applications;
+
 CREATE OR REPLACE VIEW utilisateurs.v_roleslist_forall_applications AS
 SELECT a.groupe,
     a.active,
@@ -47,9 +51,8 @@ SELECT a.groupe,
             u.pass_plus,
             u.email,
             u.id_organisme,
-        u.active,
+            u.active,
             o.nom_organisme AS organisme,
-            0 AS id_unite,
             u.remarques,
             u.date_insert,
             u.date_update,
@@ -71,7 +74,6 @@ SELECT a.groupe,
             u.id_organisme,
             u.active,
             o.nom_organisme AS organisme,
-            0 AS id_unite,
             u.remarques,
             u.date_insert,
             u.date_update,
@@ -83,7 +85,30 @@ SELECT a.groupe,
              LEFT JOIN utilisateurs.bib_organismes o ON o.id_organisme = u.id_organisme
           ) a
   WHERE a.active = true
-  GROUP BY a.groupe, a.active, a.id_role, a.identifiant, a.nom_role, a.prenom_role, a.desc_role, a.pass, a.pass_plus, a.email, a.id_organisme, a.organisme, a.id_unite, a.remarques, a.date_insert, a.date_update, a.id_application;
+  GROUP BY a.groupe, a.active, a.id_role, a.identifiant, a.nom_role, a.prenom_role, a.desc_role, a.pass, a.pass_plus,
+    a.email, a.id_organisme, a.organisme, a.remarques, a.date_insert, a.date_update, a.id_application;
+
+
+  CREATE OR REPLACE VIEW utilisateurs.v_userslist_forall_applications
+  AS SELECT v_roleslist_forall_applications.groupe,
+      v_roleslist_forall_applications.active,
+      v_roleslist_forall_applications.id_role,
+      v_roleslist_forall_applications.identifiant,
+      v_roleslist_forall_applications.nom_role,
+      v_roleslist_forall_applications.prenom_role,
+      v_roleslist_forall_applications.desc_role,
+      v_roleslist_forall_applications.pass,
+      v_roleslist_forall_applications.pass_plus,
+      v_roleslist_forall_applications.email,
+      v_roleslist_forall_applications.id_organisme,
+      v_roleslist_forall_applications.organisme,
+      v_roleslist_forall_applications.remarques,
+      v_roleslist_forall_applications.date_insert,
+      v_roleslist_forall_applications.date_update,
+      v_roleslist_forall_applications.id_droit_max,
+      v_roleslist_forall_applications.id_application
+    FROM utilisateurs.v_roleslist_forall_applications
+    WHERE v_roleslist_forall_applications.groupe = false;
     """)
 
 
@@ -118,7 +143,7 @@ SELECT a.groupe,
             u.pass_plus,
             u.email,
             u.id_organisme,
-        u.active,
+            u.active,
             o.nom_organisme AS organisme,
             0 AS id_unite,
             u.remarques,
@@ -155,4 +180,10 @@ SELECT a.groupe,
           ) a
   WHERE a.active = true
   GROUP BY a.groupe, a.active, a.id_role, a.identifiant, a.nom_role, a.prenom_role, a.desc_role, a.pass, a.pass_plus, a.email, a.id_organisme, a.organisme, a.id_unite, a.remarques, a.date_insert, a.date_update, a.id_application;
+
+
+  CREATE OR REPLACE VIEW utilisateurs.v_userslist_forall_applications
+  AS SELECT *
+    FROM utilisateurs.v_roleslist_forall_applications
+    WHERE v_roleslist_forall_applications.groupe = false;
     """)
