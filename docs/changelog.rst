@@ -1,6 +1,17 @@
 CHANGELOG
 *********
 
+1.5.5 (2021-10-13)
+------------------
+
+**🚀 Nouveautés**
+
+* La route de login est désormais capable de récupèrer l’``id_app`` depuis la configuration Flask
+
+**🐛 Corrections**
+
+* Correction d’un fichier de migration Alembic (suppression d’une vue avant sa création)
+
 1.5.4 (2021-10-06)
 ------------------
 
