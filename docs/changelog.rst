@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.5.7 (2021-10-17)
+------------------
+
+**🐛 Corrections**
+
+* Correction d’un fichier de migration Alembic
+
 1.5.6 (2021-10-18)
 ------------------
 
