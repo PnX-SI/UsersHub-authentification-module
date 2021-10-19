@@ -18,7 +18,10 @@ depends_on = None
 
 def upgrade():
     op.execute("""
+DROP VIEW utilisateurs.v_userslist_forall_applications;
+
 DROP VIEW utilisateurs.v_roleslist_forall_applications;
+
 CREATE VIEW utilisateurs.v_roleslist_forall_applications AS
 SELECT a.groupe,
     a.active,
@@ -85,12 +88,37 @@ SELECT a.groupe,
           ) a
   WHERE a.active = true
   GROUP BY a.groupe, a.active, a.id_role, a.identifiant, a.nom_role, a.prenom_role, a.desc_role, a.pass, a.pass_plus, a.email, a.id_organisme, a.organisme, a.id_unite, a.remarques, a.date_insert, a.date_update, a.id_application;
+
+CREATE VIEW utilisateurs.v_userslist_forall_applications
+AS SELECT d.groupe,
+    d.active,
+    d.id_role,
+    d.identifiant,
+    d.nom_role,
+    d.prenom_role,
+    d.desc_role,
+    d.pass,
+    d.pass_plus,
+    d.email,
+    d.id_organisme,
+    d.organisme,
+    d.id_unite,
+    d.remarques,
+    d.date_insert,
+    d.date_update,
+    d.id_droit_max,
+    d.id_application
+   FROM utilisateurs.v_roleslist_forall_applications d
+  WHERE d.groupe = false;
     """)
 
 
 def downgrade():
     op.execute("""
+DROP VIEW utilisateurs.v_userslist_forall_applications;
+
 DROP VIEW utilisateurs.v_roleslist_forall_applications;
+
 CREATE VIEW utilisateurs.v_roleslist_forall_applications AS
 SELECT a.groupe,
     a.active,
@@ -157,4 +185,26 @@ SELECT a.groupe,
           ) a
   WHERE a.active = true
   GROUP BY a.groupe, a.active, a.id_role, a.identifiant, a.nom_role, a.prenom_role, a.desc_role, a.pass, a.pass_plus, a.email, a.id_organisme, a.organisme, a.id_unite, a.remarques, a.date_insert, a.date_update, a.id_application;
+
+CREATE VIEW utilisateurs.v_userslist_forall_applications
+AS SELECT d.groupe,
+    d.active,
+    d.id_role,
+    d.identifiant,
+    d.nom_role,
+    d.prenom_role,
+    d.desc_role,
+    d.pass,
+    d.pass_plus,
+    d.email,
+    d.id_organisme,
+    d.organisme,
+    d.id_unite,
+    d.remarques,
+    d.date_insert,
+    d.date_update,
+    d.id_droit_max,
+    d.id_application
+   FROM utilisateurs.v_roleslist_forall_applications d
+  WHERE d.groupe = false;
     """)
