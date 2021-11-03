@@ -27,7 +27,6 @@ from pypnusershub.db.tools import (
     user_from_token,
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
-    InsufficientRightsError,
 )
 
 
