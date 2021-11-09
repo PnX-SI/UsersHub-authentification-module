@@ -184,6 +184,9 @@ class Organisme(db.Model):
     additional_data = db.Column(JSONB, nullable=True, server_default='{}')
     members = db.relationship(User, backref="organisme")
 
+    def __str__(self):
+        return self.nom_organisme
+
 
 class Profils(db.Model):
     """
