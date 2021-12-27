@@ -1,9 +1,12 @@
 from marshmallow import pre_load, fields
 
+from utils_flask_sqla.schema import SmartRelationshipsMixin
+
 from pypnusershub.env import MA 
 from pypnusershub.db.models import User, Organisme
 
-class UserSchema(MA.SQLAlchemyAutoSchema):
+
+class UserSchema(SmartRelationshipsMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = User
         load_instance = True
@@ -29,7 +32,8 @@ class UserSchema(MA.SQLAlchemyAutoSchema):
             return dict({"id_role": data})
         return data
 
-class OrganismeSchema(MA.SQLAlchemyAutoSchema):
+
+class OrganismeSchema(SmartRelationshipsMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = Organisme
         load_instance = True
