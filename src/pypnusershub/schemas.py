@@ -20,7 +20,6 @@ class UserSchema(SmartRelationshipsMixin, MA.SQLAlchemyAutoSchema):
             "email",
             "groupe",
             "remarques",
-            "identifiant",
         )
 
     nom_complet = fields.String()
