@@ -20,11 +20,9 @@ class UserSchema(MA.SQLAlchemyAutoSchema):
             "identifiant",
         )
 
-    nom_complet = fields.Function(
-        lambda obj: (obj.nom_role if obj.nom_role else "")
-        + (" " + obj.prenom_role if obj.prenom_role else "")
-    )
+    nom_complet = fields.String()
 
+    # TODO: remove this and fix usage of the schema
     @pre_load
     def make_observer(self, data, **kwargs):
         if isinstance(data, int):
