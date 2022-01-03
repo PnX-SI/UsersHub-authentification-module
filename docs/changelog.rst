@@ -1,6 +1,21 @@
 CHANGELOG
 *********
 
+1.5.8 (2022-01-03)
+------------------
+
+**🚀 Nouveautés**
+
+* L’affichage d’un organisme renvoit son nom
+* Les schémas Marshmallow des modèles User et Organisme utilise ``SmartRelationshipsMixin``
+* Ajout de ``User.identifiant`` aux données sérialisées avec Marshmallow
+
+**🐛 Corrections**
+
+* L’``ID_APP`` peut ne pas être présent dans la configuration.
+* Suppression du calcul du nom complet dans le schéma Marshmallow de l’utilisateur pour utiliser la fonction du modèle
+
+
 1.5.7 (2021-10-17)
 ------------------
 
