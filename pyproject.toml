@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "src",
+]
+
+[tool.coverage.run]
+source = [
+    "pypnusershub",
+]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+]
