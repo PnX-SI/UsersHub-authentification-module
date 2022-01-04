@@ -4,6 +4,7 @@ flask
 psycopg2
 requests
 sqlalchemy
-utils-flask-sqlalchemy
+utils-flask-sqlalchemy>=0.2.6
 flask-marshmallow
 marshmallow-sqlalchemy
+alembic
