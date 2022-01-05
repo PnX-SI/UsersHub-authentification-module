@@ -37,6 +37,7 @@ from pypnusershub.db.tools import (
     UnreadableAccessRightsError,
     AccessRightsExpiredError,
 )
+from pypnusershub.schemas import OrganismeSchema, UserSchema
 
 
 log = logging.getLogger(__name__)
@@ -259,3 +260,25 @@ def logout():
         resp = redirect("", code=302)
     resp.delete_cookie("token")
     return resp
+
+
+def insert_or_update_organism(organism):
+    """
+    Insert a organism
+
+    """
+    organism_schema = OrganismeSchema()
+    organism = organism_schema.load(organism)
+    db.session.add(organism)
+    return organism_schema.dump(organism)
+
+
+
+def insert_or_update_role(data):
+    """
+        Insert or update a role (also add groups if provided)
+    """
+    user_schema = UserSchema(only=["groups"])
+    user = user_schema.load(data)
+    db.session.add(user)
+    return user_schema.dump(user)
