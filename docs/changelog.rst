@@ -1,6 +1,15 @@
 CHANGELOG
 *********
 
+1.6.0 (unreleased)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout des routes ``insert_or_update_organism`` et ``insert_or_update_role``
+* Ajout de tests automatisés
+* Intégration continue du module pour exécuter automatiquement les tests et la couverture de code avec GitHub Actions, à chaque commit ou pull request dans les branches ``develop`` ou ``master``
+
 1.5.8 (2022-01-03)
 ------------------
 
@@ -84,7 +93,7 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Gestion du schéma ``utilisateurs`` avec alembic par ce module (et non plus dans UsersHub)
+* Gestion du schéma ``utilisateurs`` avec Alembic par ce module (et non plus dans UsersHub)
 
 **🐛 Corrections**
 
