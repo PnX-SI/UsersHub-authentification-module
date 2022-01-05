@@ -25,6 +25,9 @@ setuptools.setup(
     package_dir={'': 'src'},
     package_data={'pypnusershub.migrations': ['data/*.sql']},
     install_requires=requirements,
+    extras_require={
+        'tests': [ 'pytest', 'pytest-flask', ],
+    },
     entry_points={
         'alembic': [
             'migrations = pypnusershub.migrations:versions',

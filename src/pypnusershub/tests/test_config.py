@@ -1,1 +1,1 @@
-SQLALCHEMY_DATABASE_URI = "postgresql://geonatadmin:geonatpasswd@localhost:5432/geonature2db"
+SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost/postgres"

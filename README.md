@@ -1,5 +1,8 @@
 # UsersHub-authentification-module
 
+[![pytest](https://github.com/PnX-SI/UsersHub-authentification-module/actions/workflows/pytest.yml/badge.svg)](https://github.com/PnX-SI/UsersHub-authentification-module/actions/workflows/pytest.yml)
+[![codecov](https://codecov.io/gh/PnX-SI/UsersHub-authentification-module/branch/master/graph/badge.svg?token=O57GQEH494)](https://codecov.io/gh/PnX-SI/UsersHub-authentification-module)
+
 Module Flask (Python) permettant de gérer l'authentification suivant le modèle de [UsersHub](https://github.com/PnX-SI/UsersHub/).
 
 Prévu pour être utilisé comme un submodule git.
