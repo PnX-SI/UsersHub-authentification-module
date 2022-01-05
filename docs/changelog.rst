@@ -6,7 +6,7 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Ajout des routes ``insert_or_update_organism`` et ``insert_or_update_role``
+* Ajout des fonctions ``insert_or_update_organism`` et ``insert_or_update_role``
 * Ajout de tests automatisés
 * Intégration continue du module pour exécuter automatiquement les tests et la couverture de code avec GitHub Actions, à chaque commit ou pull request dans les branches ``develop`` ou ``master``
 
