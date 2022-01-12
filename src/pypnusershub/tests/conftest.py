@@ -6,7 +6,7 @@ from pypnusershub.env import db, ma
 
 @pytest.fixture(scope='session', autouse=True)
 def app():
-    app = Flask(__name__)
+    app = Flask('pypnusershub')
     app.config.from_envvar('USERSHUB_AUTH_MODULE_SETTINGS') 
     app.testing = True
     db.init_app(app)

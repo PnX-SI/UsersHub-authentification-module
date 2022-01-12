@@ -70,7 +70,7 @@ jobs:
       run: |
         pytest -v --cov --cov-report xml
       env:
-        USERSHUB_AUTH_MODULE_SETTINGS: test_config.py
+        USERSHUB_AUTH_MODULE_SETTINGS: test_settings.py
     - name: Upload coverage to Codecov
       if: ${{ matrix.name == 'Debian 11' }}
       uses: codecov/codecov-action@v2
