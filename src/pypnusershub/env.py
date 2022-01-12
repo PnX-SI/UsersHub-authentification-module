@@ -15,9 +15,9 @@ marsmallow_path = environ.get('FLASK_MARSHMALLOW')
 if marsmallow_path:
     ma_module_name, ma_object_name = marsmallow_path.rsplit('.', 1)
     ma_module = import_module(ma_module_name)
-    MA = getattr(ma_module, ma_object_name)
+    ma = getattr(ma_module, ma_object_name)
 else:
-    MA = Marshmallow()
+    ma = Marshmallow()
 
 # Dictionnaire des post actions
 #  Fonctions qui sont lancées lors de l'appel
