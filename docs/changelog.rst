@@ -1,7 +1,7 @@
 CHANGELOG
 *********
 
-1.6.0 (unreleased)
+1.5.9 (unreleased)
 ------------------
 
 **🚀 Nouveautés**
