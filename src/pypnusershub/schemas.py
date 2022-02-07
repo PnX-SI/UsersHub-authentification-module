@@ -18,7 +18,7 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         )
 
     nom_complet = fields.String()
-    groups = fields.Nested('self', many=True)
+    groups = fields.Nested(lambda: UserSchema(many=True))
 
     # TODO: remove this and fix usage of the schema
     @pre_load

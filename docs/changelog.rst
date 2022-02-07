@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.5.10 (unreleased)
+-------------------
+
+**🐛 Corrections**
+
+* Correction d’une dépréciation dans un schéma Marshmallow
+
 1.5.9 (2022-01-12)
 ------------------
 
