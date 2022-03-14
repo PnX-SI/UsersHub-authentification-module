@@ -9,3 +9,4 @@ flask-marshmallow
 marshmallow-sqlalchemy
 alembic
 itsdangerous<2.0
+markupsafe<2.1
