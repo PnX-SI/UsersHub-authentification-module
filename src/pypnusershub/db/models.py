@@ -188,6 +188,23 @@ class Organisme(db.Model):
         return self.nom_organisme
 
 
+profils_for_app = db.Table("cor_profil_for_app",
+    db.Column(
+        "id_profil",
+        db.Integer,
+        ForeignKey("utilisateurs.t_profils.id_profil"),
+        primary_key=True,
+    ),
+    db.Column(
+        "id_application",
+        db.Integer,
+        ForeignKey("utilisateurs.t_applications.id_application"),
+        primary_key=True,
+    ),
+    schema="utilisateurs",
+)
+
+
 class Profils(db.Model):
     """
     Model de la classe t_profils
@@ -200,22 +217,8 @@ class Profils(db.Model):
     nom_profil = db.Column(db.Unicode)
     desc_profil = db.Column(db.Unicode)
 
+    applications = relationship("Application", secondary=profils_for_app)
 
-class ProfilsForApp(db.Model):
-    """
-    Model de la classe t_profils
-    """
-
-    __tablename__ = 'cor_profil_for_app'
-    __table_args__ = {'schema': 'utilisateurs', 'extend_existing': True}
-    id_profil = db.Column(
-        db.Integer,
-        ForeignKey('utilisateurs.t_profils.id_profil'),
-        primary_key=True
-    )
-    id_application = db.Column(db.Integer, primary_key=True)
-
-    profil = relationship("Profils")
 
 @serializable
 class Application(db.Model):
@@ -229,6 +232,8 @@ class Application(db.Model):
     nom_application = db.Column(db.Unicode)
     desc_application = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer)
+
+    profils = relationship(Profils, secondary=profils_for_app)
 
     def __repr__(self):
         return "<Application {!r}>".format(self.nom_application)
