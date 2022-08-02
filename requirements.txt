@@ -6,16 +6,22 @@
 #
 alembic==1.8.1
     # via -r requirements-common.in
+authlib==1.0.1
+    # via -r requirements-common.in
 bcrypt==3.2.2
     # via -r requirements-common.in
 certifi==2022.6.15
     # via requests
 cffi==1.15.1
-    # via bcrypt
+    # via
+    #   bcrypt
+    #   cryptography
 charset-normalizer==2.1.0
     # via requests
 click==7.1.2
     # via flask
+cryptography==37.0.4
+    # via authlib
 flask==1.1.4
     # via
     #   -r requirements-common.in

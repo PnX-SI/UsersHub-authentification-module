@@ -6,17 +6,14 @@ from __future__ import unicode_literals, print_function, absolute_import, divisi
     DB tools not related to any model in particular.
 """
 import logging
+from datetime import datetime, timedelta
 
 from flask import current_app
 
 from sqlalchemy.orm.exc import NoResultFound
 import sqlalchemy as sa
-
-from itsdangerous import (
-    TimedJSONWebSignatureSerializer as Serializer,
-    SignatureExpired,
-    BadSignature,
-)
+from authlib.jose import JsonWebToken
+from authlib.jose.errors import ExpiredTokenError, JoseError
 
 from pypnusershub.db import models
 from pypnusershub.utils import text_resource_stream
@@ -82,10 +79,27 @@ def load_fixtures(con_uri):
                     engine.execute(line)
             engine.execute("COMMIT")
 
+def encode_token(payload):
+    expire = datetime.now() + timedelta(seconds=current_app.config['COOKIE_EXPIRATION'])
+    header = {
+        "alg": "HS256",
+        "exp": str(int(datetime.timestamp(expire))),
+    }
+    jwt = JsonWebToken()
+    key = current_app.config['SECRET_KEY'].encode("UTF-8")
+    return jwt.encode(header, payload, key)
+
+
+def decode_token(payload):
+    jwt = JsonWebToken(["HS256"])
+    key = current_app.config['SECRET_KEY'].encode("UTF-8")
+    claims = jwt.decode(payload, key)
+    claims.validate()
+    return dict(claims)
+
 
 def user_to_token(user):
-    s = Serializer(current_app.config['SECRET_KEY'], current_app.config['COOKIE_EXPIRATION'])
-    return s.dumps(user.as_dict())
+    return encode_token(user.as_dict())
 
 
 def user_from_token(token, secret_key=None):
@@ -94,8 +108,7 @@ def user_from_token(token, secret_key=None):
     secret_key = secret_key or current_app.config["SECRET_KEY"]
 
     try:
-        s = Serializer(current_app.config["SECRET_KEY"])
-        data = s.loads(token)
+        data = decode_token(token)
 
         id_role = data["id_role"]
         id_app = data["id_application"]
@@ -118,8 +131,8 @@ def user_from_token(token, secret_key=None):
         raise UnreadableAccessRightsError(
             'No user withd id "{}" for app "{}"'.format(id_role, id_app)
         )
-    except SignatureExpired:
+    except ExpiredTokenError:
         raise AccessRightsExpiredError("Token expired")
 
-    except BadSignature:
-        raise UnreadableAccessRightsError("Token BadSignature", 403)
+    except JoseError:
+        raise UnreadableAccessRightsError("Invalid token", 403)

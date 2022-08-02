@@ -1,3 +1,4 @@
+authlib
 bcrypt
 flask-sqlalchemy
 flask<2.0

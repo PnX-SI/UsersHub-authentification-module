@@ -28,7 +28,6 @@ from flask import (
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
