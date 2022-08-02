@@ -1,11 +1,10 @@
 authlib
 bcrypt
 flask-sqlalchemy
-flask<2.0
+flask
 psycopg2
 requests
 sqlalchemy
 flask-marshmallow
 marshmallow-sqlalchemy
 alembic
-markupsafe<2.1  # jinja incompatibility
