@@ -1,12 +1,19 @@
 CHANGELOG
 *********
 
-1.5.10 (unreleased)
+1.5.10 (2022-08-03)
 -------------------
+
+**🚀 Nouveautés**
+
+* Github Action de publication automatique du paquet sur pypi
+* Ajout de fonctions utilitaires pour les tests
+* Amélioration des modèles (``Application.profils`` & ``Profils.applications``)
 
 **🐛 Corrections**
 
 * Correction d’une dépréciation dans un schéma Marshmallow
+* Correction des versions des dépendances requises
 
 1.5.9 (2022-01-12)
 ------------------
