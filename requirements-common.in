@@ -7,3 +7,4 @@ sqlalchemy
 flask-marshmallow
 marshmallow-sqlalchemy
 alembic
+markupsafe<2.1  # jinja incompatibility

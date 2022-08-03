@@ -49,8 +49,9 @@ jinja2==2.11.3
     # via flask
 mako==1.2.1
     # via alembic
-markupsafe==2.1.1
+markupsafe==2.0.1
     # via
+    #   -r requirements-common.in
     #   jinja2
     #   mako
 marshmallow==3.17.0
