@@ -1,12 +1,2 @@
-bcrypt
-flask-sqlalchemy
-flask
-psycopg2
-requests
-sqlalchemy
-utils-flask-sqlalchemy>=0.2.6
-flask-marshmallow
-marshmallow-sqlalchemy
-alembic
-itsdangerous<2.0
-markupsafe<2.1
+-r requirements-common.in
+-r requirements-dependencies.in

@@ -1,0 +1,9 @@
+bcrypt
+flask-sqlalchemy
+flask<2.0
+psycopg2
+requests
+sqlalchemy
+flask-marshmallow
+marshmallow-sqlalchemy
+alembic

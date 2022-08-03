@@ -7,8 +7,6 @@ with (root_dir / 'VERSION').open() as f:
     version = f.read()
 with (root_dir / 'README.md').open() as f:
     long_description = f.read()
-with (root_dir / 'requirements.in').open() as f:
-    requirements = f.read().splitlines()
 
 
 
@@ -24,7 +22,10 @@ setuptools.setup(
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
     package_data={'pypnusershub.migrations': ['data/*.sql']},
-    install_requires=requirements,
+    install_requires=(
+        list(open("requirements-common.in", "r"))
+        + list(open("requirements-dependencies.in", "r"))
+    ),
     extras_require={
         'tests': [ 'pytest', 'pytest-flask', ],
     },

@@ -1,5 +1,6 @@
 include VERSION
 include LICENSE
 include README.md
-include requirements.in
+include requirements-common.in
+include requirements-dependencies.in
 recursive-include src *.sql
