@@ -7,7 +7,9 @@
 -e file:dependencies/Utils-Flask-SQLAlchemy#egg=utils-flask-sqlalchemy
     # via -r requirements-submodules.in
 alembic==1.8.1
-    # via -r requirements-common.in
+    # via
+    #   -r requirements-common.in
+    #   flask-migrate
 attrs==22.1.0
     # via pytest
 bcrypt==3.2.2
@@ -28,14 +30,18 @@ flask==1.1.4
     # via
     #   -r requirements-common.in
     #   flask-marshmallow
+    #   flask-migrate
     #   flask-sqlalchemy
     #   pytest-flask
     #   utils-flask-sqlalchemy
 flask-marshmallow==0.14.0
     # via -r requirements-common.in
+flask-migrate==3.1.0
+    # via utils-flask-sqlalchemy
 flask-sqlalchemy==2.5.1
     # via
     #   -r requirements-common.in
+    #   flask-migrate
     #   utils-flask-sqlalchemy
 greenlet==1.1.2
     # via sqlalchemy
