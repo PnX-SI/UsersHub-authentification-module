@@ -18,13 +18,15 @@ def unset_logged_user_cookie(client):
     client.delete_cookie(current_app.config['SERVER_NAME'], 'token')
 
 
-def logged_user_headers(user, headers=Headers()):
+def logged_user_headers(user, headers=None):
     app_user = AppUser.query.filter_by(
                                 id_role=user.id_role,
                                 id_application=current_app.config['ID_APP'],
     ).one()
-    cookie = dump_cookie('token', user_to_token(app_user))
+    token = user_to_token(app_user).decode("latin1")
+    if headers is None:
+        headers = Headers()
     headers.extend({
-        'Cookie': cookie,
+        'Cookie': f'token={token}',
     })
     return headers
