@@ -353,3 +353,33 @@ class AppRole(db.Model):
     def as_dict(self):
         cols = (c for c in self.__table__.columns)
         return {c.name: getattr(self, c.name) for c in cols}
+
+
+cor_role_liste = db.Table("cor_role_liste",
+    db.Column(
+        "id_role",
+        db.Integer,
+        ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+    ),
+    db.Column(
+        "id_liste",
+        db.Integer,
+        ForeignKey("utilisateurs.t_listes.id_liste"),
+        primary_key=True,
+    ),
+    schema="utilisateurs",
+)
+
+
+@serializable
+class UserList(db.Model):
+    __tablename__ = "t_listes"
+    __table_args__ = {"schema": "utilisateurs"}
+
+    id_liste = db.Column(db.Integer, primary_key=True)
+    code_liste = db.Column(db.Unicode)
+    nom_liste = db.Column(db.Unicode)
+    desc_liste = db.Column(db.Integer)
+
+    users = db.relationship(User, secondary=cor_role_liste)
