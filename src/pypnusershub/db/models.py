@@ -380,6 +380,6 @@ class UserList(db.Model):
     id_liste = db.Column(db.Integer, primary_key=True)
     code_liste = db.Column(db.Unicode)
     nom_liste = db.Column(db.Unicode)
-    desc_liste = db.Column(db.Integer)
+    desc_liste = db.Column(db.Unicode)
 
     users = db.relationship(User, secondary=cor_role_liste)
