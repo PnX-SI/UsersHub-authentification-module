@@ -1,6 +1,26 @@
 CHANGELOG
 *********
 
+1.6.0 (unreleased)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout d’une contrainte d’unicité sur la colonn ``uuid_role`` de la table ``t_roles``.
+* Ajout des modèles ``UserList`` et ``cor_role_liste`` correspondants aux tables existantes.
+* Compatibilité Flask 2
+
+  * Génération du cookie d’authentification avec ``authlib`` à la place de ``itsdangerous``
+
+* Mise à jour des dépendances
+
+  * Utils-Flask-SQLAlchemy 0.3.0
+
+**🐛 Corrections**
+
+* Correction du format du cookie généré par la fonction ``logged_user_headers``
+
+
 1.5.10 (2022-08-03)
 -------------------
 
