@@ -345,6 +345,8 @@ class AppRole(db.Model):
     id_organisme = db.Column(db.Integer)
     identifiant = db.Column(db.Unicode)
 
+    application = db.relationship(Application)
+
     def as_dict(self):
         cols = (c for c in self.__table__.columns)
         return {c.name: getattr(self, c.name) for c in cols}
