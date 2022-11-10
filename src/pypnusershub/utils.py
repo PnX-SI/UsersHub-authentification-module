@@ -9,8 +9,11 @@ from __future__ import (unicode_literals, print_function,
 
 import os
 import io
-
 from types import ModuleType
+
+from flask import current_app
+
+from pypnusershub.db import models
 
 
 class RessourceError(EnvironmentError):
@@ -66,3 +69,18 @@ def text_resource_stream(path, locations, encoding="utf8", errors=None,
     """ Return a resource from this path or package. Transparently decode the stream. """
     stream = binary_resource_stream(path, locations)
     return io.TextIOWrapper(stream, encoding, errors, newline, line_buffering)
+
+
+def get_current_app_id():
+    if 'ID_APP' in current_app.config:
+        return current_app.config['ID_APP']
+    elif 'CODE_APPLICATION' in current_app.config:
+        return (
+            models.Application.query.filter_by(
+                code_application=current_app.config['CODE_APPLICATION'],
+            )
+            .one()
+            .id_application
+        )
+    else:
+        return None

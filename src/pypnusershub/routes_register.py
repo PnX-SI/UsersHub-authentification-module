@@ -31,6 +31,8 @@ from .env import REGISTER_POST_ACTION_FCT
 
 from flask import current_app
 
+from pypnusershub.utils import get_current_app_id
+
 # from .utils_register import connect_usershub, req_json_or_text
 # from .routes import check_auth
 
@@ -175,7 +177,7 @@ def post_usershub(type_action):
 
         q = (db.session.query(AppUser.id_droit_max)
              .filter(AppUser.id_role == id_role)
-             .filter(AppUser.id_application == current_app.config['ID_APP']))
+             .filter(AppUser.id_application == get_current_app_id()))
         id_droit = q.one()[0]
 
     # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible

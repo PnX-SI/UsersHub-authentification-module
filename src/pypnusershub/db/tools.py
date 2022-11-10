@@ -16,7 +16,7 @@ from authlib.jose import JsonWebToken
 from authlib.jose.errors import ExpiredTokenError, JoseError
 
 from pypnusershub.db import models
-from pypnusershub.utils import text_resource_stream
+from pypnusershub.utils import text_resource_stream, get_current_app_id
 
 log = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ def user_from_token(token, secret_key=None):
 
         id_role = data["id_role"]
         id_app = data["id_application"]
-        id_app_from_config = current_app.config.get("ID_APP", None)
+        id_app_from_config = get_current_app_id()
         # check that the id_app from the token well corespond to the current_app id_application
         # for prevent conflit of token between applications on the same domain
         # if no ID_APP is passed to the app config, we don't check the conformiity of the token

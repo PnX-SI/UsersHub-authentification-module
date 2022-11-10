@@ -29,6 +29,7 @@ from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest
 
+from pypnusershub.utils import get_current_app_id
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
     user_to_token,
@@ -180,9 +181,9 @@ def login():
     try:
         user_data = request.json
         try:
-            id_app = user_data.get("id_application", current_app.config.get("ID_APP"))
             login = user_data.get("login")
             password = user_data.get("password")
+            id_app = user_data.get("id_application", get_current_app_id())
             if id_app is None or login is None or password is None:
                 msg = json.dumps(
                     "One of the following paramter is required ['id_application', 'login', 'password']"
