@@ -1,6 +1,18 @@
 CHANGELOG
 *********
 
+1.6.1 (2022-11-15)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout du paramètre configuration ``CODE_APPLICATION`` permettant de récupérer l’identifiant de l’application courante en l’absence du paramètre ``ID_APP``.
+
+**🐛 Corrections**
+
+* Ajout / correction de relationships dans les modèles
+
+
 1.6.0 (2022-08-31)
 ------------------
 
