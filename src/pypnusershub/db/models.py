@@ -212,7 +212,7 @@ class Profils(db.Model):
     nom_profil = db.Column(db.Unicode)
     desc_profil = db.Column(db.Unicode)
 
-    applications = relationship("Application", secondary=profils_for_app)
+    applications = relationship("Application", secondary=profils_for_app, back_populates="profils")
 
 
 @serializable
@@ -228,7 +228,7 @@ class Application(db.Model):
     desc_application = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer)
 
-    profils = relationship(Profils, secondary=profils_for_app)
+    profils = relationship(Profils, secondary=profils_for_app, back_populates="applications")
 
     def __repr__(self):
         return "<Application {!r}>".format(self.nom_application)
