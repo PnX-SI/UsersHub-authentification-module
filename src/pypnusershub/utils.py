@@ -13,8 +13,6 @@ from types import ModuleType
 
 from flask import current_app
 
-from pypnusershub.db import models
-
 
 class RessourceError(EnvironmentError):
 
@@ -75,8 +73,10 @@ def get_current_app_id():
     if 'ID_APP' in current_app.config:
         return current_app.config['ID_APP']
     elif 'CODE_APPLICATION' in current_app.config:
+        from pypnusershub.db.models import Application
+
         return (
-            models.Application.query.filter_by(
+            Application.query.filter_by(
                 code_application=current_app.config['CODE_APPLICATION'],
             )
             .one()

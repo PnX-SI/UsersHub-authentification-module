@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.6.2 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* Correction d’une inclusion circulaire
+
+
 1.6.1 (2022-11-15)
 ------------------
 
