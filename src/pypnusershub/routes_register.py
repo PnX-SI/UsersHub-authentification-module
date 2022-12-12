@@ -1,7 +1,7 @@
 # coding: utf8
-# Fichier contenant les route pour faire des appels à UsersHub
+# Fichier contenant les routes pour faire des appels à UsersHub
 #
-# - en se connectant en tant que qu'adminisatrateur de l'application courante
+# - en se connectant en tant que qu'administrateur de l'application courante
 # --  qui est utilisateur de USERSHUB avec des droits suffisants pour creer des utilisateurs
 # --  pour cela il faut renseigner dans la configuration
 # --

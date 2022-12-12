@@ -27,7 +27,7 @@ from flask import (
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, Forbidden
 
 from pypnusershub.utils import get_current_app_id
 from pypnusershub.db import models, db
@@ -250,6 +250,28 @@ def login():
         msg = json.dumps({"login": False, "msg": repr(e)})
         return Response(msg, status=403)
 
+@routes.route("/public_login", methods=["POST"])
+def public_login():
+
+    if not current_app.config.get("PUBLIC_ACCESS_USERNAME", {}):
+        raise Forbidden
+
+    user = (
+        models.AppUser.query.filter(models.AppUser.identifiant == current_app.config.get("PUBLIC_ACCESS_USERNAME"))
+        .filter(models.AppUser.id_application == get_current_app_id())
+        .one()
+    )
+    user_dict = user.as_dict()
+    # Génération d'un token
+    token = user_to_token(user)
+    cookie_exp = datetime.datetime.utcnow()
+    cookie_exp += datetime.timedelta(
+        seconds=current_app.config["COOKIE_EXPIRATION"]
+    )
+    resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
+    resp.set_cookie("token", token, expires=cookie_exp)
+
+    return resp
 
 @routes.route("/logout", methods=["GET", "POST"])
 def logout():
