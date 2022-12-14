@@ -6,10 +6,7 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Ajout d’une route ``/public_login`` permettant de se connecter sans mot de passe
-  avec l’utilisateur ayant pour identifiant celui précisé dans le paramètre de configuration 
-  ``PUBLIC_ACCESS_USERNAME``. La route renvoit une erreur 403 (Fobidden) si le paramètre
-  de configuration n’est pas définie.
+* Ajout d’une route ``/public_login`` permettant de se connecter sans mot de passe avec l’utilisateur ayant pour identifiant celui précisé dans le paramètre de configuration ``PUBLIC_ACCESS_USERNAME``. La route renvoie une erreur 403 (Fobidden) si le paramètre de configuration n’est pas défini.
 
 
 1.6.2 (2022-11-22)
