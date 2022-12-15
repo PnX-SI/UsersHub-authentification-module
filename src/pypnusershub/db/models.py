@@ -126,6 +126,10 @@ class User(db.Model):
 
     check_password = fn_check_password
 
+    @property
+    def is_public(self):
+        return current_app.config.get("PUBLIC_ACCESS_USERNAME") and current_app.config.get("PUBLIC_ACCESS_USERNAME") == self.identifiant
+
     def to_json(self):
         out = {
             'id': self.id_role,
