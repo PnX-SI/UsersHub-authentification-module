@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.6.4 (2022-12-16)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout d’une propriété ``is_public`` sur le modèle ``User`` qui vaut vraie quand il s’agit de l’utilisateur public
+
+
 1.6.3 (2022-12-13)
 ------------------
 
