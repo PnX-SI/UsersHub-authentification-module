@@ -85,7 +85,7 @@ def encode_token(payload):
         "alg": "HS256",
         "exp": str(int(datetime.timestamp(expire))),
     }
-    jwt = JsonWebToken()
+    jwt = JsonWebToken(["HS256"])
     key = current_app.config['SECRET_KEY'].encode("UTF-8")
     return jwt.encode(header, payload, key)
 
