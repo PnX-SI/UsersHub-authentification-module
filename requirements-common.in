@@ -1,10 +1,10 @@
 authlib
 bcrypt
-flask-sqlalchemy<3
+flask-sqlalchemy
 flask
 psycopg2
 requests
-sqlalchemy<1.4
+sqlalchemy
 flask-marshmallow
 marshmallow-sqlalchemy
 alembic
