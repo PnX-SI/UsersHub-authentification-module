@@ -1,6 +1,16 @@
 CHANGELOG
 *********
 
+1.6.5 (2023-03-04)
+------------------
+
+**🚀 Nouveautés**
+
+* Compatibilité authlib 1.1
+* Compatibliité SQLAlchemy 1.4
+* Mise à jour Utils-Flask-SQLAlchemy 0.3.2
+
+
 1.6.4 (2022-12-16)
 ------------------
 
