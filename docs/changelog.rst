@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.6.6 (2023-??-??)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout d’une contrainte d’unicité sur la colonne ``email`` de la table ``t_roles``.
+
 1.6.5 (2023-03-04)
 ------------------
 
@@ -52,7 +59,7 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Ajout d’une contrainte d’unicité sur la colonn ``uuid_role`` de la table ``t_roles``.
+* Ajout d’une contrainte d’unicité sur la colonne ``uuid_role`` de la table ``t_roles``.
 * Ajout des modèles ``UserList`` et ``cor_role_liste`` correspondants aux tables existantes.
 * Compatibilité Flask 2
 
