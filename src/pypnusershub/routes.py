@@ -186,7 +186,7 @@ def login():
             id_app = user_data.get("id_application", get_current_app_id())
             if id_app is None or login is None or password is None:
                 msg = json.dumps(
-                    "One of the following paramter is required ['id_application', 'login', 'password']"
+                    "One of the following parameter is required ['id_application', 'login', 'password']"
                 )
                 return Response(msg, status=400)
 
