@@ -123,6 +123,7 @@ class User(db.Model):
     email = db.Column(db.Unicode)
     id_organisme = db.Column(db.Integer, ForeignKey("utilisateurs.bib_organismes.id_organisme"))
     remarques = db.Column(db.Unicode)
+    champs_addi = db.Column(JSONB)
     date_insert = db.Column(db.DateTime)
     date_update = db.Column(db.DateTime)
     active = db.Column(db.Boolean)
