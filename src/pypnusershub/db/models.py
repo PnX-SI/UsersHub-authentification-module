@@ -150,7 +150,7 @@ class User(db.Model):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
     def __str__(self):
-        return self.identifiant or ''
+        return self.identifiant or self.nom_complet
 
     def as_dict(self, data):
         if 'nom_role' in data:
