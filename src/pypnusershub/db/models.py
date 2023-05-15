@@ -21,7 +21,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Sequence, func, ForeignKey
 from sqlalchemy.sql import select, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, array
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 from pypnusershub.env import db
@@ -95,11 +95,11 @@ class User(db.Model):
 
     @hybrid_property
     def nom_complet(self):
-        return '{0} {1}'.format(self.nom_role, self.prenom_role)
+        return " ".join([i for i in [self.nom_role, self.prenom_role] if i])
 
     @nom_complet.expression
     def nom_complet(cls):
-        return db.func.concat(cls.nom_role, ' ', cls.prenom_role)
+        return db.func.array_to_string(array([cls.nom_role, cls.prenom_role]), ' ')
 
     # applications_droits = db.relationship('AppUser', lazy='joined')
 
