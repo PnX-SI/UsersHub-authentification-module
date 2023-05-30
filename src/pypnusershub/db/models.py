@@ -120,7 +120,7 @@ class User(db.Model):
     desc_role = db.Column(db.Unicode)
     _password = db.Column("pass", db.Unicode)
     _password_plus = db.Column("pass_plus", db.Unicode)
-    email = db.Column(db.Unicode)
+    email = db.Column(db.Unicode, unique=True)
     id_organisme = db.Column(db.Integer, ForeignKey("utilisateurs.bib_organismes.id_organisme"))
     remarques = db.Column(db.Unicode)
     champs_addi = db.Column(JSONB)
