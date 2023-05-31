@@ -83,7 +83,7 @@ def encode_token(payload):
     expire = datetime.now() + timedelta(seconds=current_app.config['COOKIE_EXPIRATION'])
     header = {
         "alg": "HS256",
-        "exp": str(int(datetime.timestamp(expire))),
+        "exp": int(datetime.timestamp(expire)),
     }
     jwt = JsonWebToken(["HS256"])
     key = current_app.config['SECRET_KEY'].encode("UTF-8")
