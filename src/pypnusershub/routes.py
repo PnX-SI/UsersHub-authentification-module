@@ -26,7 +26,6 @@ from flask import (
 )
 
 
-
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest, Forbidden
@@ -71,7 +70,6 @@ log = logging.getLogger(__name__)
 
 class ConfigurableBlueprint(Blueprint):
     def register(self, app, *args, **kwargs):
-
         # set cookie autorenew
         expiration = app.config.get("COOKIE_EXPIRATION", 3600 * 24 * 7)
         app.config["PASS_METHOD"] = app.config.get("PASS_METHOD", "hash")
@@ -94,7 +92,12 @@ def check_auth(
         def __check_auth(*args, **kwargs):
             try:
                 # TODO: better name and configurability for the token
-                user = user_from_token(request.cookies["token"])
+                bearer = request.headers.get("Authorization", default=None, type=str)
+                if bearer:
+                    jwt = bearer.replace("Bearer ", "")
+                else:
+                    jwt = request.cookies["token"]
+                user = user_from_token(jwt)
 
                 if user.id_droit_max < level:
                     # HACK better name for callback if right are low
@@ -131,16 +134,12 @@ def check_auth(
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
-                    res = Response(
-                        "Token BadSignature or token not coresponding to the app", 403
-                    )
+                    res = Response("Token BadSignature or token not coresponding to the app", 403)
                 res.set_cookie("token", "", expires=0, httponly=True)
                 return res
 
             except Exception as e:
-                trap_all_exceptions = current_app.config.get(
-                    "TRAP_ALL_EXCEPTIONS", True
-                )
+                trap_all_exceptions = current_app.config.get("TRAP_ALL_EXCEPTIONS", True)
                 if not trap_all_exceptions:
                     raise
                 log.critical(e)
@@ -186,7 +185,6 @@ def login():
             user_dict = user.as_dict()
             user_dict["apps"] = {s.id_application: s.id_droit_max for s in sub_app}
         except (exc.NoResultFound, AssertionError) as e:
-
             msg = json.dumps(
                 {
                     "type": "login",
@@ -215,15 +213,10 @@ def login():
         # Génération d'un token
         token = user_to_token(user)
         cookie_exp = datetime.datetime.utcnow()
-        cookie_exp += datetime.timedelta(
-            seconds=current_app.config["COOKIE_EXPIRATION"]
+        cookie_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+        resp = Response(
+            json.dumps({"user": user_dict, "expires": str(cookie_exp), "idToken": token.decode()})
         )
-        resp = Response(json.dumps(
-            {"user": user_dict, 
-             "expires": str(cookie_exp),
-             "idToken": token.decode()
-            }
-            ))
         resp.set_cookie("token", token, expires=cookie_exp, httponly=True)
 
         return resp
@@ -231,14 +224,16 @@ def login():
         msg = json.dumps({"login": False, "msg": repr(e)})
         return Response(msg, status=403)
 
+
 @routes.route("/public_login", methods=["POST"])
 def public_login():
-
     if not current_app.config.get("PUBLIC_ACCESS_USERNAME", {}):
         raise Forbidden
 
     user = (
-        models.AppUser.query.filter(models.AppUser.identifiant == current_app.config.get("PUBLIC_ACCESS_USERNAME"))
+        models.AppUser.query.filter(
+            models.AppUser.identifiant == current_app.config.get("PUBLIC_ACCESS_USERNAME")
+        )
         .filter(models.AppUser.id_application == get_current_app_id())
         .one()
     )
@@ -246,12 +241,13 @@ def public_login():
     # Génération d'un token
     token = user_to_token(user)
     cookie_exp = datetime.datetime.utcnow()
-    cookie_exp += datetime.timedelta(
-        seconds=current_app.config["COOKIE_EXPIRATION"]
+    cookie_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+    resp = Response(
+        json.dumps({"user": user_dict, "idToken": token.decode(), "expires": str(cookie_exp)})
     )
-    resp = Response(json.dumps({"user": user_dict, "idToken": token.decode(), "expires": str(cookie_exp)}))
     resp.set_cookie("token", token, expires=cookie_exp, httponly=True)
     return resp
+
 
 @routes.route("/logout", methods=["GET", "POST"])
 def logout():
@@ -275,10 +271,9 @@ def insert_or_update_organism(organism):
     return organism_schema.dump(organism)
 
 
-
 def insert_or_update_role(data):
     """
-        Insert or update a role (also add groups if provided)
+    Insert or update a role (also add groups if provided)
     """
     user_schema = UserSchema(only=["groups"])
     user = user_schema.load(data)
