@@ -25,6 +25,8 @@ from flask import (
     session,
 )
 
+
+
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest, Forbidden
@@ -71,34 +73,8 @@ class ConfigurableBlueprint(Blueprint):
     def register(self, app, *args, **kwargs):
 
         # set cookie autorenew
-        expiration = app.config.get("COOKIE_EXPIRATION", 3600)
-        cookie_autorenew = app.config.get("COOKIE_AUTORENEW", True)
+        expiration = app.config.get("COOKIE_EXPIRATION", 3600 * 24 * 7)
         app.config["PASS_METHOD"] = app.config.get("PASS_METHOD", "hash")
-
-        if cookie_autorenew:
-
-            @app.after_request
-            def after_request(response):
-                try:
-                    set_cookie = response.headers.get("Set-Cookie", "")
-                    is_setting_token = set_cookie.startswith("token=")
-                    is_token_set = request.cookies.get("token")
-                    if is_token_set and not is_setting_token:
-                        cookie_exp = datetime.datetime.utcnow()
-                        cookie_exp += datetime.timedelta(seconds=expiration)
-                        response.set_cookie(
-                            "token", request.cookies["token"], expires=cookie_exp
-                        )
-                        response.set_cookie(
-                            "currentUser",
-                            request.cookies["currentUser"],
-                            expires=cookie_exp,
-                        )
-                    return response
-                # TODO: replace the generic exception by a specific one
-                except Exception:
-                    return response
-
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
 
@@ -139,7 +115,7 @@ def check_auth(
                     res = redirect(redirect_on_expiration, code=302)
                 else:
                     res = Response("Token Expired", 403)
-                res.set_cookie("token", "", expires=0)
+                res.set_cookie("token", "", expires=0, httponly=True)
                 return res
 
             except KeyError as e:
@@ -158,7 +134,7 @@ def check_auth(
                     res = Response(
                         "Token BadSignature or token not coresponding to the app", 403
                     )
-                res.set_cookie("token", "", expires=0)
+                res.set_cookie("token", "", expires=0, httponly=True)
                 return res
 
             except Exception as e:
@@ -242,8 +218,13 @@ def login():
         cookie_exp += datetime.timedelta(
             seconds=current_app.config["COOKIE_EXPIRATION"]
         )
-        resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-        resp.set_cookie("token", token, expires=cookie_exp)
+        resp = Response(json.dumps(
+            {"user": user_dict, 
+             "expires": str(cookie_exp),
+             "idToken": token.decode()
+            }
+            ))
+        resp.set_cookie("token", token, expires=cookie_exp, httponly=True)
 
         return resp
     except Exception as e:
@@ -268,9 +249,8 @@ def public_login():
     cookie_exp += datetime.timedelta(
         seconds=current_app.config["COOKIE_EXPIRATION"]
     )
-    resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-    resp.set_cookie("token", token, expires=cookie_exp)
-
+    resp = Response(json.dumps({"user": user_dict, "idToken": token.decode(), "expires": str(cookie_exp)}))
+    resp.set_cookie("token", token, expires=cookie_exp, httponly=True)
     return resp
 
 @routes.route("/logout", methods=["GET", "POST"])
