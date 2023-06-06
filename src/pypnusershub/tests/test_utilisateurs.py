@@ -3,7 +3,8 @@ import pytest
 
 from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
 from pypnusershub.schemas import OrganismeSchema, UserSchema
-from pypnusershub.tests.fixtures import organism
+from pypnusershub.tests.fixtures import *
+
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestUtilisateurs:
@@ -20,7 +21,6 @@ class TestUtilisateurs:
             "email": "test@test.fr",
             "active": True,
             "groups": [user_schema.dump(group)],
-
         }
         insert_or_update_role(user)
         user["identifiant"] = "update"
@@ -53,4 +53,6 @@ class TestUtilisateurs:
         organism_as_dict = organism_schema.dump(create_organism)
         assert organism_as_dict["nom_organisme"] == "update"
 
-
+    def test_filter_by_app(self, group_and_users):
+        roles = User.query.filter_by_app("APPLI_1").all()
+        assert set([group_and_users["group1"], group_and_users["user1"]]).issubset(roles)

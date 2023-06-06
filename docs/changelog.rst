@@ -1,6 +1,15 @@
 CHANGELOG
 *********
 
+1.6.6 (2023-06-06)
+------------------
+
+**🚀 Nouveautés**
+
+* Ajout du champs `champs_addi` dans le model `User` #58
+* Ajout d'une fonction query `filter_by_app` sur le model `User`
+* Amélioration de la méthode `__str__` du model `User`
+
 1.6.5 (2023-03-04)
 ------------------
 

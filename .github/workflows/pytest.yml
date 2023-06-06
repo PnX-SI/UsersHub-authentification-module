@@ -68,7 +68,8 @@ jobs:
           -e .[tests] \
           -e file:dependencies/Utils-Flask-SQLAlchemy#egg=utils-flask-sqlalchemy \
           "sqlalchemy<1.4" \
-          "flask-sqlalchemy<3"
+          "flask-sqlalchemy<3"\
+          "flask-marshmallow<0.15"
     - name: Install dependencies
       if: ${{ matrix.sqlalchemy-version == '1.4' }}
       run: |
