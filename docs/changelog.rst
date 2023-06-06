@@ -6,6 +6,15 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
+* Ajout du champs `champs_addi` dans le model `User` #58
+* Ajout d'une fonction query `filter_by_app` sur le model `User`
+* Amélioration de la méthode `__str__` du model `User`
+
+1.6.5 (2023-03-04)
+------------------
+
+**🚀 Nouveautés**
+
 * Compatibilité authlib 1.1
 * Compatibliité SQLAlchemy 1.4
 * Mise à jour Utils-Flask-SQLAlchemy 0.3.2
