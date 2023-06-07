@@ -1,4 +1,6 @@
 import pytest
+
+from flask_login import logout_user
 from pypnusershub.env import db
 from pypnusershub.db.models import Organisme, Application, User, Profils, UserApplicationRight
 
@@ -15,6 +17,12 @@ organism = {
 }
 
 
+@pytest.fixture(autouse=True)
+def teardown_logout_user():
+    yield
+    logout_user()
+
+
 @pytest.fixture(scope="function")
 def organism(app):
     with db.session.begin_nested():
@@ -24,11 +32,13 @@ def organism(app):
 
 
 @pytest.fixture(scope="function")
-def profil(app):
+def profils(app):
     with db.session.begin_nested():
-        profil = Profils(code_profil="ADMIN", nom_profil="Admin")
-        db.session.add(profil)
-    return profil
+        profil_high = Profils(code_profil=6, nom_profil="Admin")
+        profil_low = Profils(code_profil=1, nom_profil="Lecteur")
+        db.session.add(profil_high)
+        db.session.add(profil_low)
+    return {"admin": profil_high, "reader": profil_low}
 
 
 @pytest.fixture(scope="function")
@@ -45,24 +55,37 @@ def applications(app):
 
 
 @pytest.fixture(scope="function")
-def group_and_users(app, applications, profil):
+def group_and_users(app, applications, profils):
     with db.session.begin_nested():
         group1 = User(groupe=True, identifiant="group1")
         db.session.add(group1)
         user1 = User(groupe=False, identifiant="user_of_group1")
-        user2 = User(groupe=True, identifiant="user2")
+        user1.password = "admin"
+        user_no_group = User(groupe=False, identifiant="user2")
         user1.groups.append(group1)
         db.session.add(user1)
-        db.session.add(user2)
+        db.session.add(user_no_group)
         db.session.flush()
-        user_app = UserApplicationRight(
+        group_app = UserApplicationRight(
             id_role=group1.id_role,
-            id_profil=profil.id_profil,
+            id_profil=profils["admin"].id_profil,
             id_application=applications["app1"].id_application,
         )
+        user_app = UserApplicationRight(
+            id_role=user1.id_role,
+            id_profil=profils["reader"].id_profil,
+            id_application=applications["app1"].id_application,
+        )
+        user_no_group_app = UserApplicationRight(
+            id_role=user_no_group.id_role,
+            id_profil=profils["reader"].id_profil,
+            id_application=applications["app1"].id_application,
+        )
+        db.session.add(group_app)
         db.session.add(user_app)
+        db.session.add(user_no_group_app)
         return {
             "group1": group1,
             "user1": user1,
-            "user2": user2,
+            "user_no_group": user_no_group,
         }

@@ -2,12 +2,28 @@ CHANGELOG
 *********
 
 
+2.0.0
+-----
+
+**🚀 Nouveautés**
+
+* Utilisation de la librairie Flask-Login pour la génération et la manipulation du cookie
+* Ajout de la possibilité de s'authentifier via un JWT
+
+Notes de version : 
+
+Le décorateur `@check_auth` change de signature, les paramètres suivants sont obselètes : 
+- `get_role` : l'utilsateur connecté est disponible via `flask_login.current_user`
+- `redirect_on_expiration` , `redirect_on_invalid_token`: l'utilisateur sera redirigé vers la vue définie par `login_manager.login_view` (à éditer dans l'application utilisant le sous-module)
+- `redirect_on_insufficient_right` : le paramètre applicatif `REDIRECT_ON_FORBIDDEN` controle la route de redirection si les droit pour accéder à la ressource sont insuffisant. Lève une 403 si ce paramètre n'est pas définit.
+
+
 1.6.11 (2023-09-19)
 -------------------
 
 **🐛 Corrections**
 
-* Correction de la suppression du cookie lors du logout, quand l'application est accessible sur un préfixe (#76)
+Correction de la suppression du cookie sur des sous-domaines lors du logout
 
 
 1.6.10 (2023-09-14)

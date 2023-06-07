@@ -12,11 +12,9 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
         sqla_session = db.session
-        exclude = (
-            "_password",
-            "_password_plus",
-        )
+        exclude = ("_password", "_password_plus", "champs_addi")
 
+    max_level_profil = fields.Integer()
     nom_complet = fields.String()
     groups = fields.Nested(lambda: UserSchema, many=True)
 
