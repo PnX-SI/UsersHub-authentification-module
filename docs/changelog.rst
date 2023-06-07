@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.6.7 (2023-06-07)
+------------------
+
+**🐛 Corrections**
+
+* Correction de l'import du répertoire `tests`
+
+
 1.6.6 (2023-06-06)
 ------------------
 
