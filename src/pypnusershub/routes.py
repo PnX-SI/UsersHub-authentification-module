@@ -11,21 +11,28 @@ import json
 import logging
 
 import datetime
-from functools import wraps
 
-from flask import Blueprint, escape, request, Response, current_app, redirect, g, make_response
+from flask import (
+    Blueprint,
+    escape,
+    request,
+    Response,
+    current_app,
+    redirect,
+    g,
+    make_response,
+    jsonify,
+)
+from flask_login import login_user, logout_user
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest, Forbidden
 
-from pypnusershub.utils import get_current_app_id, set_cookie, delete_cookie
+from pypnusershub.utils import get_current_app_id
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
-    user_to_token,
-    user_from_token,
-    UnreadableAccessRightsError,
-    AccessRightsExpiredError,
+    encode_token,
 )
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 
@@ -60,39 +67,9 @@ log = logging.getLogger(__name__)
 class ConfigurableBlueprint(Blueprint):
     def register(self, app, *args, **kwargs):
         # set cookie autorenew
-        expiration = app.config.get("COOKIE_EXPIRATION", 3600)
-        cookie_autorenew = app.config.get("COOKIE_AUTORENEW", True)
         app.config["PASS_METHOD"] = app.config.get("PASS_METHOD", "hash")
 
-        if cookie_autorenew:
-
-            @app.after_request
-            def after_request(response):
-                try:
-                    cookie_set = response.headers.get("Set-Cookie", "")
-                    is_setting_token = cookie_set.startswith("token=")
-                    is_token_set = request.cookies.get("token")
-                    if is_token_set and not is_setting_token:
-                        cookie_exp = datetime.datetime.utcnow()
-                        cookie_exp += datetime.timedelta(seconds=expiration)
-                        set_cookie(
-                            response=response,
-                            application_url=current_app.config.get("URL_APPLICATION"),
-                            key="token",
-                            value=request.cookies["token"],
-                            expires=cookie_exp,
-                        )
-                        set_cookie(
-                            response=response,
-                            application_url=current_app.config.get("URL_APPLICATION"),
-                            key="currentUser",
-                            value=request.cookies["currentUser"],
-                            expires=cookie_exp,
-                        )
-                    return response
-                # TODO: replace the generic exception by a specific one
-                except Exception:
-                    return response
+        app.config["REMEMBER_COOKIE_NAME"] = app.config.get("REMEMBER_COOKIE_NAME", "token")
 
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
@@ -100,161 +77,52 @@ class ConfigurableBlueprint(Blueprint):
 
 routes = ConfigurableBlueprint("auth", __name__)
 
-
-def check_auth(
-    level,
-    get_role=False,
-    redirect_on_expiration=None,
-    redirect_on_invalid_token=None,
-    redirect_on_insufficient_right=None,
-):
-    def _check_auth(fn):
-        @wraps(fn)
-        def __check_auth(*args, **kwargs):
-            try:
-                # TODO: better name and configurability for the token
-                user = user_from_token(request.cookies["token"])
-
-                if user.id_droit_max < level:
-                    # HACK better name for callback if right are low
-                    if redirect_on_insufficient_right:
-                        log.info("Privilege too low")
-                        return redirect(redirect_on_insufficient_right, code=302)
-                    return Response("Forbidden", 403)
-
-                if get_role:
-                    kwargs["id_role"] = user.id_role
-
-                g.user = user
-
-                return fn(*args, **kwargs)
-
-            except AccessRightsExpiredError:
-                if redirect_on_expiration:
-                    res = redirect(redirect_on_expiration, code=302)
-                else:
-                    res = Response("Token Expired", 403)
-                set_cookie(
-                    response=res,
-                    application_url=current_app.config.get("URL_APPLICATION"),
-                    key="token",
-                    value="",
-                    expires=0,
-                )
-                return res
-
-            except KeyError as e:
-                if "token" not in e.args:
-                    raise
-                if redirect_on_expiration:
-                    return redirect(redirect_on_expiration, code=302)
-                return Response("No token", 403)
-
-            except UnreadableAccessRightsError:
-                log.info("Invalid Token : BadSignature")
-                # invalid token
-                if redirect_on_invalid_token:
-                    res = redirect(redirect_on_invalid_token, code=302)
-                else:
-                    res = Response("Token BadSignature or token not coresponding to the app", 403)
-                set_cookie(
-                    response=res,
-                    application_url=current_app.config.get("URL_APPLICATION"),
-                    key="token",
-                    value="",
-                    expires=0,
-                )
-                return res
-
-            except Exception as e:
-                trap_all_exceptions = current_app.config.get("TRAP_ALL_EXCEPTIONS", True)
-                if not trap_all_exceptions:
-                    raise
-                log.critical(e)
-                msg = json.dumps({"type": "Exception", "msg": repr(e)})
-                return Response(msg, 403)
-
-        return __check_auth
-
-    return _check_auth
+# retrocompatibilité before 2.0
+from pypnusershub.decorators import check_auth
 
 
 @routes.route("/login", methods=["POST"])
 def login():
+    user_data = request.json
     try:
-        user_data = request.json
-        try:
-            login = user_data.get("login")
-            password = user_data.get("password")
-            id_app = user_data.get("id_application", get_current_app_id())
-            if id_app is None or login is None or password is None:
-                msg = json.dumps(
-                    "One of the following parameter is required ['id_application', 'login', 'password']"
-                )
-                return Response(msg, status=400)
-
-            user = (
-                models.AppUser.query.filter(models.AppUser.identifiant == login)
-                .filter(models.AppUser.id_application == id_app)
-                .one()
-            )
-
-            # Return child application
-            sub_app = (
-                models.AppUser.query.join(
-                    models.Application,
-                    models.Application.id_application == models.AppUser.id_application,
-                )
-                .filter(models.Application.id_parent == id_app)
-                .filter(models.AppUser.id_role == user.id_role)
-                .all()
-            )
-
-            user_dict = user.as_dict()
-            user_dict["apps"] = {s.id_application: s.id_droit_max for s in sub_app}
-        except (exc.NoResultFound, AssertionError) as e:
+        login = user_data.get("login")
+        password = user_data.get("password")
+        id_app = user_data.get("id_application", get_current_app_id())
+        if id_app is None or login is None or password is None:
             msg = json.dumps(
-                {
-                    "type": "login",
-                    "msg": (
-                        'No user found with the username "{login}" for '
-                        'the application with id "{id_app}"'
-                    ).format(login=escape(login), id_app=id_app),
-                }
+                "One of the following parameter is required ['id_application', 'login', 'password']"
             )
-            log.info(msg)
-            status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-            return Response(msg, status=status_code)
-
-        except Exception as e:
-            log.critical(e)
-            msg = json.dumps({"type": "bug", "msg": "Unkown error during login"})
-            log.info(msg)
-            return Response(msg, status=500)
-
-        if not user.check_password(user_data["password"]):
-            msg = json.dumps({"type": "password", "msg": "Mot de passe invalide"})
-            log.info(msg)
-            status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-            return Response(msg, status=status_code)
-
-        # Génération d'un token
-        token = user_to_token(user)
-        cookie_exp = datetime.datetime.utcnow()
-        cookie_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-        resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-        set_cookie(
-            response=resp,
-            application_url=current_app.config.get("URL_APPLICATION"),
-            key="token",
-            value=token,
-            expires=cookie_exp,
+            return Response(msg, status=400)
+        app = models.Application.query.get(id_app)
+        if not app:
+            raise BadRequest(f"No app for id {id_app}")
+        user = models.User.query.filter(models.User.identifiant == login).filter_by_app().one()
+        user_dict = UserSchema(exclude=["remarques"]).dump(user)
+    except exc.NoResultFound as e:
+        msg = json.dumps(
+            {
+                "type": "login",
+                "msg": (
+                    'No user found with the username "{login}" for '
+                    'the application with id "{id_app}"'
+                ).format(login=escape(login), id_app=id_app),
+            }
         )
+        log.info(msg)
+        status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
+        return Response(msg, status=status_code)
 
-        return resp
-    except Exception as e:
-        msg = json.dumps({"login": False, "msg": repr(e)})
-        return Response(msg, status=403)
+    if not user.check_password(user_data["password"]):
+        msg = json.dumps({"type": "password", "msg": "Mot de passe invalide"})
+        log.info(msg)
+        status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
+        return Response(msg, status=status_code)
+    login_user(user)
+    # Génération d'un token
+    token = encode_token(user_dict)
+    token_exp = datetime.datetime.now(datetime.timezone.utc)
+    token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+    return jsonify({"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()})
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -270,20 +138,13 @@ def public_login():
         .one()
     )
     user_dict = user.as_dict()
+    login_user(user)
     # Génération d'un token
-    token = user_to_token(user)
-    cookie_exp = datetime.datetime.utcnow()
-    cookie_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-    resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-    set_cookie(
-        response=resp,
-        application_url=current_app.config.get("URL_APPLICATION"),
-        key="token",
-        value=token,
-        expires=cookie_exp,
-    )
+    token = encode_token(user_dict)
+    token_exp = datetime.datetime.now(datetime.timezone.utc)
+    token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
 
-    return resp
+    return jsonify({"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()})
 
 
 @routes.route("/logout", methods=["GET", "POST"])
@@ -293,10 +154,7 @@ def logout():
         resp = redirect(params["redirect"], code=302)
     else:
         resp = make_response()
-
-    resp = delete_cookie(
-        resp, key="token", application_url=current_app.config.get("URL_APPLICATION")
-    )
+    logout_user()
     return resp
 
 

@@ -24,15 +24,19 @@ else:
 
 
 from flask import current_app
+from flask_login import UserMixin
 
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm.session import object_session
 from sqlalchemy import Sequence, func, ForeignKey, or_
 from sqlalchemy.sql import select, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB, array
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 from pypnusershub.env import db
+from pypnusershub.utils import get_current_app_id
+
 from utils_flask_sqla.serializers import serializable
 
 
@@ -101,8 +105,8 @@ class UserQuery(Query):
         )
 
 
-@serializable(exclude=["_password", "_password_plus"])
-class User(db.Model):
+@serializable(exclude=["_password", "password", "_password_plus"])
+class User(db.Model, UserMixin):
     __tablename__ = "t_roles"
     __table_args__ = {"schema": "utilisateurs"}
     query_class = UserQuery
@@ -136,6 +140,24 @@ class User(db.Model):
         backref=backref("members"),
     )
 
+    @property
+    def max_level_profil(self):
+        q = (
+            object_session(self)
+            .query(func.max(Profils.code_profil))
+            .select_from(User)
+            .join(
+                UserApplicationRight,
+                or_(
+                    UserApplicationRight.id_role == self.id_role,
+                    UserApplicationRight.id_role.in_([role.id_role for role in self.groups]),
+                ),
+            )
+            .join(Profils, UserApplicationRight.id_profil == Profils.id_profil)
+            .filter(UserApplicationRight.id_application == get_current_app_id())
+        )
+        return q.scalar() or 0
+
     @hybrid_property
     def nom_complet(self):
         return " ".join([i for i in [self.nom_role, self.prenom_role] if i])
@@ -145,6 +167,9 @@ class User(db.Model):
         return db.func.array_to_string(array([cls.nom_role, cls.prenom_role]), " ")
 
     # applications_droits = db.relationship('AppUser', lazy='joined')
+    # for Flask-Admin
+    def get_id(self):
+        return str(self.id_role)
 
     @property
     def password(self):
@@ -176,34 +201,11 @@ class User(db.Model):
             and current_app.config.get("PUBLIC_ACCESS_USERNAME") == self.identifiant
         )
 
-    def to_json(self):
-        out = {
-            "id": self.id_role,
-            "login": self.identifiant,
-            "email": self.email,
-            "applications": [],
-        }
-        for app_data in self.applications_droits:
-            app = {
-                "id": app_data.application_id,
-                "nom": app_data.application.nom_application,
-                "niveau": app_data.id_droit_max,
-            }
-            out["applications"].append(app)
-        return out
-
     def __repr__(self):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
     def __str__(self):
         return self.identifiant or self.nom_complet
-
-    def as_dict(self, data):
-        if "nom_role" in data:
-            data["nom_role"] = data["nom_role"] or ""
-        if "prenom_role" in data:
-            data["prenom_role"] = data["prenom_role"] or ""
-        return data
 
 
 @serializable
@@ -272,7 +274,7 @@ class Application(db.Model):
     __tablename__ = "t_applications"
     __table_args__ = {"schema": "utilisateurs"}
     id_application = db.Column(db.Integer, primary_key=True)
-    code_application = db.Column(db.Unicode)
+    code_application = db.Column(db.Integer)
     nom_application = db.Column(db.Unicode)
     desc_application = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer)

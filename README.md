@@ -11,6 +11,13 @@ Nécessite le schéma `utilisateurs` de UsersHub dans la BDD de l'application l'
 
 Par défaut le sous-module utilise le mot de passe "pass_plus" (méthode de hashage bcrypt) pour s'authentifier. Si vous souhaitez utiliser le champ "pass" (en md5), il faut passer le paramètre `PASS_METHOD = 'md5'` à la configuration Flask de l'application parent qui utilise le sous-module.
 
+## Flask Login
+
+Le sous-module utilise la librairie Flask-Login pour la gestion de l'authentification.
+https://flask-login.readthedocs.io/en/latest/
+Cette librairie offre une méthode standard de gestion de l'authentification via un cookie de session. Le sous-module ajoute la possibilité de s'authentifier via un JWT si notre application utilise une API.
+Il est possible de surcoucher les vue sde redirection ainsi que les callback renvoyé suite à une erreur 401. Voir https://flask-login.readthedocs.io/en/latest/#customizing-the-login-process
+
 ## Routes
 
 - login :
@@ -83,6 +90,10 @@ Pour protéger une route :
 
 ### Configuration
 Paramètres à rajouter dans le fichier de configuration (`config.py`)
+
+Les paramètre concernant la gestion du cookie sont géré par flask-admin : https://flask-login.readthedocs.io/en/latest/#cookie-settings
+
+`REDIRECT_ON_FORBIDDEN` : paramètre de redirection utilisé par le décorateur `check_auth` lorsque les droits d'accès à une ressource/page sont insuffisant (par défaut lève une erreur 403)
 
 ```
 URL_USERSHUB="http://usershub-url.ext"
