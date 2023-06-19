@@ -80,8 +80,8 @@ class ConfigurableBlueprint(Blueprint):
             @app.after_request
             def after_request(response):
                 try:
-                    set_cookie = response.headers.get("Set-Cookie", "")
-                    is_setting_token = set_cookie.startswith("token=")
+                    cookie_set = response.headers.get("Set-Cookie", "")
+                    is_setting_token = cookie_set.startswith("token=")
                     is_token_set = request.cookies.get("token")
                     if is_token_set and not is_setting_token:
                         cookie_exp = datetime.datetime.utcnow()
