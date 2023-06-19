@@ -29,7 +29,7 @@ from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest, Forbidden
 
-from pypnusershub.utils import get_current_app_id
+from pypnusershub.utils import get_current_app_id, set_cookie
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
     user_to_token,
@@ -86,14 +86,10 @@ class ConfigurableBlueprint(Blueprint):
                     if is_token_set and not is_setting_token:
                         cookie_exp = datetime.datetime.utcnow()
                         cookie_exp += datetime.timedelta(seconds=expiration)
-                        response.set_cookie(
-                            "token", request.cookies["token"], expires=cookie_exp
-                        )
-                        response.set_cookie(
-                            "currentUser",
-                            request.cookies["currentUser"],
-                            expires=cookie_exp,
-                        )
+                        set_cookie(response=response, application_url=current_app.config.get("URL_APPLICATION"),
+                                   key="token", value=request.cookies["token"], expires=cookie_exp)
+                        set_cookie(response=response, application_url=current_app.config.get("URL_APPLICATION"),
+                                   key="currentUser", value=request.cookies["currentUser"], expires=cookie_exp)
                     return response
                 # TODO: replace the generic exception by a specific one
                 except Exception:
@@ -139,7 +135,8 @@ def check_auth(
                     res = redirect(redirect_on_expiration, code=302)
                 else:
                     res = Response("Token Expired", 403)
-                res.set_cookie("token", "", expires=0)
+                set_cookie(response=res, application_url=current_app.config.get("URL_APPLICATION"),
+                   key="token", value="", expires=0)
                 return res
 
             except KeyError as e:
@@ -158,7 +155,8 @@ def check_auth(
                     res = Response(
                         "Token BadSignature or token not coresponding to the app", 403
                     )
-                res.set_cookie("token", "", expires=0)
+                set_cookie(response=res, application_url=current_app.config.get("URL_APPLICATION"),
+                            key="token", value="", expires=0)
                 return res
 
             except Exception as e:
@@ -243,7 +241,8 @@ def login():
             seconds=current_app.config["COOKIE_EXPIRATION"]
         )
         resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-        resp.set_cookie("token", token, expires=cookie_exp)
+        set_cookie(response=resp, application_url=current_app.config.get("URL_APPLICATION"),
+                   key="token", value=token, expires=cookie_exp)
 
         return resp
     except Exception as e:
@@ -269,7 +268,8 @@ def public_login():
         seconds=current_app.config["COOKIE_EXPIRATION"]
     )
     resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-    resp.set_cookie("token", token, expires=cookie_exp)
+    set_cookie(response=resp, application_url=current_app.config.get("URL_APPLICATION"),
+               key="token", value=token, expires=cookie_exp)
 
     return resp
 
