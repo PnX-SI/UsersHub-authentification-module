@@ -1,7 +1,6 @@
 # coding: utf8
 
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
+from __future__ import unicode_literals, print_function, absolute_import, division
 
 """
     Collections of utilities unrelated to the main module purpose.
@@ -10,8 +9,10 @@ from __future__ import (unicode_literals, print_function,
 import os
 import io
 from types import ModuleType
+from typing import Optional
+from urllib.parse import urlsplit
 
-from flask import current_app
+from flask import current_app, Response
 
 
 class RessourceError(EnvironmentError):
@@ -84,3 +85,24 @@ def get_current_app_id():
         )
     else:
         return None
+
+
+def get_cookie_path(application_url: Optional[str] = None) -> str:
+    """
+    Returns the cookie path computed from the application_url
+    """
+    if application_url is None:
+        return "/"
+    split_url = urlsplit(application_url)
+    return split_url.path if split_url.path else "/"
+
+
+def set_cookie(response: Response, application_url: Optional[str] = None, **kwargs):
+    """
+    Set automatically a Path on a cookie.
+    All kwargs are passed to Response.set_cookie()
+    """
+    cookie_path = get_cookie_path(application_url=application_url)
+    response.set_cookie(**kwargs, path=cookie_path)
+    return response
+    
