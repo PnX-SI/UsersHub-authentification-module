@@ -6,7 +6,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Meilleur contrôle du cookie (mis uniquement sur le domaine ou le path de l'application)
+* Meilleur contrôle du cookie (mis uniquement sur le domaine ou le path de l'application) #69 @mvergez
 
 
 1.6.7 (2023-06-07)
