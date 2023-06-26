@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.6.8 (2023-06-26)
+------------------
+
+**🐛 Corrections**
+
+* Meilleur contrôle du cookie (mis uniquement sur le domaine ou le path de l'application)
+
+
 1.6.7 (2023-06-07)
 ------------------
 
