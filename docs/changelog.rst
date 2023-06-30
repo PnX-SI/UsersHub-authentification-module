@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+1.6.7 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* Augmentation de la taille du champs utilisateuts.temp_users.organisme
+
+
 1.6.8 (2023-06-26)
 ------------------
 
