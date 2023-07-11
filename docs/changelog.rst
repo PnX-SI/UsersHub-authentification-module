@@ -1,7 +1,7 @@
 CHANGELOG
 *********
 
-1.6.7 (unreleased)
+1.6.9 (unreleased)
 ------------------
 
 **🐛 Corrections**
