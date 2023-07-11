@@ -6,7 +6,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Augmentation de la taille du champs utilisateuts.temp_users.organisme
+* Augmentation de la taille du champs ``utilisateurs.temp_users.organisme`` de 30 à 250 caractères (#73)
 
 
 1.6.8 (2023-06-26)
