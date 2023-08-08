@@ -6,6 +6,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
+* Correction de l'encodage des dates dans le JWT (#62 - par @mvergez)
 * Augmentation de la taille du champs ``utilisateurs.temp_users.organisme`` de 30 à 250 caractères (#73)
 
 
@@ -33,6 +34,7 @@ CHANGELOG
 * Ajout du champs `champs_addi` dans le model `User` #58
 * Ajout d'une fonction query `filter_by_app` sur le model `User`
 * Amélioration de la méthode `__str__` du model `User`
+
 
 1.6.5 (2023-03-04)
 ------------------
@@ -114,6 +116,7 @@ CHANGELOG
 * Correction d’une dépréciation dans un schéma Marshmallow
 * Correction des versions des dépendances requises
 
+
 1.5.9 (2022-01-12)
 ------------------
 
@@ -122,6 +125,7 @@ CHANGELOG
 * Ajout des fonctions ``insert_or_update_organism`` et ``insert_or_update_role``
 * Ajout de tests automatisés
 * Intégration continue du module pour exécuter automatiquement les tests et la couverture de code avec GitHub Actions, à chaque commit ou pull request dans les branches ``develop`` ou ``master``
+
 
 1.5.8 (2022-01-03)
 ------------------
@@ -145,12 +149,14 @@ CHANGELOG
 
 * Correction d’un fichier de migration Alembic
 
+
 1.5.6 (2021-10-18)
 ------------------
 
 **🐛 Corrections**
 
 * Correction d’un fichier de migration Alembic
+
 
 1.5.5 (2021-10-13)
 ------------------
@@ -163,6 +169,7 @@ CHANGELOG
 
 * Correction d’un fichier de migration Alembic (suppression d’une vue avant sa création)
 
+
 1.5.4 (2021-10-06)
 ------------------
 
@@ -170,12 +177,14 @@ CHANGELOG
 
 * Suppression des ``id_organisme`` en dur dans les données d’exemple
 
+
 1.5.3 (2021-09-29)
 ------------------
 
 **🐛 Corrections**
 
 * Ajout d’un fichier ``__init__.py`` dont l’absence excluait les révisions Alembic lors du paquetage du module
+
 
 1.5.2 (2021-09-29)
 ------------------
@@ -286,6 +295,7 @@ CHANGELOG
 
 * Correction de la serialisation du modèle TempUser
 
+
 1.4.0 (2019-09-16)
 ------------------
 
@@ -300,12 +310,14 @@ CHANGELOG
 
 * Corrections, optimisations, nettoyage et refactorisations diverses
 
+
 1.3.3 (2019-05-29)
 ------------------
 
 **Nouveautés**
 
 * Mise à jour de SQLAlchemy 1.1.13 vers 1.3.3
+
 
 1.3.2 (2019-02-27)
 ------------------
@@ -320,6 +332,7 @@ CHANGELOG
 
 Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre ``ID_APP`` dans la configuration des applications utilisant ce sous-module (``config.py``). La vérification que le token correspond bien à l'application courante n'est pas assuré si ce paramètre n'est pas passé, pour des raisons de rétro-compatibilité.
 
+
 1.3.1 (2019-01-15)
 ------------------
 
@@ -327,6 +340,7 @@ Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre 
 
 * Ajout de la classe ``AppRole`` au modèle
 * Redirection si les droits de l'utilisateur sont insuffisants
+
 
 1.3.0 (2019-01-14)
 ------------------
@@ -342,12 +356,14 @@ Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre 
 * Précisions dans la documentation (README) sur le script SQL à utiliser depuis le dépôt de UsersHub
 * Suppression des scripts SQL locaux pour se n'utiliser que ceux à jour dans le dépôt de UsersHub
 
+
 1.2.1 (2018-10-08)
 ------------------
 
 **Corrections**
 
 * Ajout d'un test sur la fonction ``fn_check_password`` pour vérifier si le mot de passe existe
+
 
 1.2.0 (2018-09-19)
 ------------------
@@ -361,10 +377,12 @@ Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre 
 * Correction des droits des applications filles retournées lors du login
 * Correction de la redirection après logout
 
+
 1.1.1 (2018-06-18)
 ------------------
 
 * Version corrective lié à la récupération du CRUVED des sous-modules
+
 
 1.1.0 (2018-05-17)
 ------------------
@@ -396,7 +414,8 @@ Intégration des pull request de @ksamuel
   * redirect_on_invalid_token 
   * redirect_on_expiration
 
-* Diverse petites améliorations
+* Diverses petites améliorations
+
 
 1.0.1 (2017-03-10)
 ------------------
@@ -423,12 +442,14 @@ Intégration de la pull request de @ksamuel.
 * le modèle user est maintenant attaché à Flask.g
 * COOKIE_AUTORENEW passe sur True par défaut pour éviter d'avoir à setter la valeur pour les projets existant. Une erreur de ma part dans la première PR.
 
+
 1.0.0 (2017-03-03)
 ------------------
 
 Première version stable du sous-module d'authentification.
 
 Le module peut désormais être intégré de façon indépendante (merci @ksamuel).
+
 
 0.1.0 (2016-07-07)
 ------------------
