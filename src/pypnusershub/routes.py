@@ -13,17 +13,7 @@ import logging
 import datetime
 from functools import wraps
 
-from flask import (
-    Blueprint,
-    escape,
-    request,
-    Response,
-    current_app,
-    redirect,
-    g,
-    jsonify,
-    session,
-)
+from flask import Blueprint, escape, request, Response, current_app, redirect, g, make_response
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
@@ -69,7 +59,6 @@ log = logging.getLogger(__name__)
 
 class ConfigurableBlueprint(Blueprint):
     def register(self, app, *args, **kwargs):
-
         # set cookie autorenew
         expiration = app.config.get("COOKIE_EXPIRATION", 3600)
         cookie_autorenew = app.config.get("COOKIE_AUTORENEW", True)
@@ -86,10 +75,20 @@ class ConfigurableBlueprint(Blueprint):
                     if is_token_set and not is_setting_token:
                         cookie_exp = datetime.datetime.utcnow()
                         cookie_exp += datetime.timedelta(seconds=expiration)
-                        set_cookie(response=response, application_url=current_app.config.get("URL_APPLICATION"),
-                                   key="token", value=request.cookies["token"], expires=cookie_exp)
-                        set_cookie(response=response, application_url=current_app.config.get("URL_APPLICATION"),
-                                   key="currentUser", value=request.cookies["currentUser"], expires=cookie_exp)
+                        set_cookie(
+                            response=response,
+                            application_url=current_app.config.get("URL_APPLICATION"),
+                            key="token",
+                            value=request.cookies["token"],
+                            expires=cookie_exp,
+                        )
+                        set_cookie(
+                            response=response,
+                            application_url=current_app.config.get("URL_APPLICATION"),
+                            key="currentUser",
+                            value=request.cookies["currentUser"],
+                            expires=cookie_exp,
+                        )
                     return response
                 # TODO: replace the generic exception by a specific one
                 except Exception:
@@ -135,8 +134,13 @@ def check_auth(
                     res = redirect(redirect_on_expiration, code=302)
                 else:
                     res = Response("Token Expired", 403)
-                set_cookie(response=res, application_url=current_app.config.get("URL_APPLICATION"),
-                   key="token", value="", expires=0)
+                set_cookie(
+                    response=res,
+                    application_url=current_app.config.get("URL_APPLICATION"),
+                    key="token",
+                    value="",
+                    expires=0,
+                )
                 return res
 
             except KeyError as e:
@@ -152,17 +156,18 @@ def check_auth(
                 if redirect_on_invalid_token:
                     res = redirect(redirect_on_invalid_token, code=302)
                 else:
-                    res = Response(
-                        "Token BadSignature or token not coresponding to the app", 403
-                    )
-                set_cookie(response=res, application_url=current_app.config.get("URL_APPLICATION"),
-                            key="token", value="", expires=0)
+                    res = Response("Token BadSignature or token not coresponding to the app", 403)
+                set_cookie(
+                    response=res,
+                    application_url=current_app.config.get("URL_APPLICATION"),
+                    key="token",
+                    value="",
+                    expires=0,
+                )
                 return res
 
             except Exception as e:
-                trap_all_exceptions = current_app.config.get(
-                    "TRAP_ALL_EXCEPTIONS", True
-                )
+                trap_all_exceptions = current_app.config.get("TRAP_ALL_EXCEPTIONS", True)
                 if not trap_all_exceptions:
                     raise
                 log.critical(e)
@@ -208,7 +213,6 @@ def login():
             user_dict = user.as_dict()
             user_dict["apps"] = {s.id_application: s.id_droit_max for s in sub_app}
         except (exc.NoResultFound, AssertionError) as e:
-
             msg = json.dumps(
                 {
                     "type": "login",
@@ -237,26 +241,31 @@ def login():
         # Génération d'un token
         token = user_to_token(user)
         cookie_exp = datetime.datetime.utcnow()
-        cookie_exp += datetime.timedelta(
-            seconds=current_app.config["COOKIE_EXPIRATION"]
-        )
+        cookie_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
         resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-        set_cookie(response=resp, application_url=current_app.config.get("URL_APPLICATION"),
-                   key="token", value=token, expires=cookie_exp)
+        set_cookie(
+            response=resp,
+            application_url=current_app.config.get("URL_APPLICATION"),
+            key="token",
+            value=token,
+            expires=cookie_exp,
+        )
 
         return resp
     except Exception as e:
         msg = json.dumps({"login": False, "msg": repr(e)})
         return Response(msg, status=403)
 
+
 @routes.route("/public_login", methods=["POST"])
 def public_login():
-
     if not current_app.config.get("PUBLIC_ACCESS_USERNAME", {}):
         raise Forbidden
 
     user = (
-        models.AppUser.query.filter(models.AppUser.identifiant == current_app.config.get("PUBLIC_ACCESS_USERNAME"))
+        models.AppUser.query.filter(
+            models.AppUser.identifiant == current_app.config.get("PUBLIC_ACCESS_USERNAME")
+        )
         .filter(models.AppUser.id_application == get_current_app_id())
         .one()
     )
@@ -264,14 +273,18 @@ def public_login():
     # Génération d'un token
     token = user_to_token(user)
     cookie_exp = datetime.datetime.utcnow()
-    cookie_exp += datetime.timedelta(
-        seconds=current_app.config["COOKIE_EXPIRATION"]
-    )
+    cookie_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
     resp = Response(json.dumps({"user": user_dict, "expires": str(cookie_exp)}))
-    set_cookie(response=resp, application_url=current_app.config.get("URL_APPLICATION"),
-               key="token", value=token, expires=cookie_exp)
+    set_cookie(
+        response=resp,
+        application_url=current_app.config.get("URL_APPLICATION"),
+        key="token",
+        value=token,
+        expires=cookie_exp,
+    )
 
     return resp
+
 
 @routes.route("/logout", methods=["GET", "POST"])
 def logout():
@@ -279,7 +292,7 @@ def logout():
     if "redirect" in params:
         resp = redirect(params["redirect"], code=302)
     else:
-        resp = redirect("", code=302)
+        resp = make_response()
     resp.delete_cookie("token")
     return resp
 
@@ -295,10 +308,9 @@ def insert_or_update_organism(organism):
     return organism_schema.dump(organism)
 
 
-
 def insert_or_update_role(data):
     """
-        Insert or update a role (also add groups if provided)
+    Insert or update a role (also add groups if provided)
     """
     user_schema = UserSchema(only=["groups"])
     user = user_schema.load(data)
