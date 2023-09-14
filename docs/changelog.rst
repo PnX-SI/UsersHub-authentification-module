@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+1.6.10 (2023-09-14)
+-------------------
+
+**🐛 Corrections**
+
+* Correction d'une mauvaise utilisation de la redirection sur la route de `logout`
+
 1.6.9 (2023-08-08)
 ------------------
 
