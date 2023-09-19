@@ -16,14 +16,13 @@ from flask import current_app, Response
 
 
 class RessourceError(EnvironmentError):
-
     def __init__(self, msg, errors):
         super(RessourceError, self).__init__(msg)
         self.errors = errors
 
 
 def binary_resource_stream(resource, locations):
-    """ Return a resource from this path or package """
+    """Return a resource from this path or package"""
 
     # convert
     errors = []
@@ -33,11 +32,11 @@ def binary_resource_stream(resource, locations):
         locations = (locations,)
 
     for location in locations:
-
         # Assume location is a module and try to load it using pkg_resource
         try:
             import pkg_resources
-            module_name = getattr(location, '__name__', location)
+
+            module_name = getattr(location, "__name__", location)
             return pkg_resources.resource_stream(module_name, resource)
         except (ImportError, EnvironmentError) as e:
             errors.append(e)
@@ -58,27 +57,30 @@ def binary_resource_stream(resource, locations):
             except EnvironmentError as e:
                 errors.append(e)
 
-    msg = ('Unable to find resource "%s" in "%s". '
-           'Inspect RessourceError.errors for list of encountered errors.')
+    msg = (
+        'Unable to find resource "%s" in "%s". '
+        "Inspect RessourceError.errors for list of encountered errors."
+    )
     raise RessourceError(msg % (resource, locations), errors)
 
 
-def text_resource_stream(path, locations, encoding="utf8", errors=None,
-                         newline=None, line_buffering=False):
-    """ Return a resource from this path or package. Transparently decode the stream. """
+def text_resource_stream(
+    path, locations, encoding="utf8", errors=None, newline=None, line_buffering=False
+):
+    """Return a resource from this path or package. Transparently decode the stream."""
     stream = binary_resource_stream(path, locations)
     return io.TextIOWrapper(stream, encoding, errors, newline, line_buffering)
 
 
 def get_current_app_id():
-    if 'ID_APP' in current_app.config:
-        return current_app.config['ID_APP']
-    elif 'CODE_APPLICATION' in current_app.config:
+    if "ID_APP" in current_app.config:
+        return current_app.config["ID_APP"]
+    elif "CODE_APPLICATION" in current_app.config:
         from pypnusershub.db.models import Application
 
         return (
             Application.query.filter_by(
-                code_application=current_app.config['CODE_APPLICATION'],
+                code_application=current_app.config["CODE_APPLICATION"],
             )
             .one()
             .id_application
@@ -97,6 +99,12 @@ def get_cookie_path(application_url: Optional[str] = None) -> str:
     return split_url.path if split_url.path else "/"
 
 
+def delete_cookie(response: Response, application_url: Optional[str] = None, **kwargs):
+    cookie_path = get_cookie_path(application_url=application_url)
+    response.delete_cookie(**kwargs, path=cookie_path)
+    return response
+
+
 def set_cookie(response: Response, application_url: Optional[str] = None, **kwargs):
     """
     Set automatically a Path on a cookie.
@@ -105,4 +113,3 @@ def set_cookie(response: Response, application_url: Optional[str] = None, **kwar
     cookie_path = get_cookie_path(application_url=application_url)
     response.set_cookie(**kwargs, path=cookie_path)
     return response
-    
