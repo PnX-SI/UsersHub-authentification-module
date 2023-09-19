@@ -7,7 +7,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Correction de la suppression du cookie sur des sous-domaines lors du logout
+* Correction de la suppression du cookie lors du logout, quand l'application est accessible sur un préfixe (#76)
 
 
 1.6.10 (2023-09-14)
@@ -15,7 +15,8 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Correction d'une mauvaise utilisation de la redirection sur la route de `logout`
+* Correction d'une mauvaise utilisation de la redirection sur la route de ``logout``
+
 
 1.6.9 (2023-08-08)
 ------------------
