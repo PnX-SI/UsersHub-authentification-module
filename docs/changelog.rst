@@ -1,6 +1,15 @@
 CHANGELOG
 *********
 
+
+1.6.11 (2023-09-19)
+-------------------
+
+**🐛 Corrections**
+
+* Correction de la suppression du cookie sur des sous-domaines lors du logout
+
+
 1.6.10 (2023-09-14)
 -------------------
 
