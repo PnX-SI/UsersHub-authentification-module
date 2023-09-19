@@ -19,7 +19,7 @@ from sqlalchemy.orm import exc
 import sqlalchemy as sa
 from werkzeug.exceptions import BadRequest, Forbidden
 
-from pypnusershub.utils import get_current_app_id, set_cookie
+from pypnusershub.utils import get_current_app_id, set_cookie, delete_cookie
 from pypnusershub.db import models, db
 from pypnusershub.db.tools import (
     user_to_token,
@@ -293,7 +293,10 @@ def logout():
         resp = redirect(params["redirect"], code=302)
     else:
         resp = make_response()
-    resp.delete_cookie("token")
+
+    resp = delete_cookie(
+        resp, key="token", application_url=current_app.config.get("URL_APPLICATION")
+    )
     return resp
 
 
