@@ -13,10 +13,9 @@ Par défaut le sous-module utilise le mot de passe "pass_plus" (méthode de hash
 
 ## Flask Login
 
-Le sous-module utilise la librairie Flask-Login pour la gestion de l'authentification.
-https://flask-login.readthedocs.io/en/latest/
-Cette librairie offre une méthode standard de gestion de l'authentification via un cookie de session. Le sous-module ajoute la possibilité de s'authentifier via un JWT si notre application utilise une API.
-Il est possible de surcoucher les vue sde redirection ainsi que les callback renvoyé suite à une erreur 401. Voir https://flask-login.readthedocs.io/en/latest/#customizing-the-login-process
+Le sous-module utilise la librairie Flask-Login pour la gestion de l'authentification (https://flask-login.readthedocs.io/en/latest/).  
+Cette librairie offre une méthode standard de gestion de l'authentification via un cookie de session. Le sous-module ajoute la possibilité de s'authentifier via un JWT si notre application utilise une API.  
+Il est possible de surcoucher les vues de redirection ainsi que les callbacks renvoyés suite à une erreur 401. Voir https://flask-login.readthedocs.io/en/latest/#customizing-the-login-process.
 
 ## Routes
 
@@ -51,6 +50,7 @@ Pour protéger une route :
   def insertUpdate_bibtaxons(id_taxon=None):
     ...
 ```
+
 ## Utilisation de l'API
 
 ### Routes définies dans UsersHub
@@ -81,19 +81,20 @@ Pour protéger une route :
   * Mise à jour d'un rôle
 
 ### Méthodes définies dans le module
+
  * connect_admin : décorateur pour la connexion d’un utilisateur type admin a une appli ici usershub. Paramètres à renseigner dans config.py
  * post_usershub :
   * route générique pour appeler les route usershub en tant qu'administrateur de l'appli en cours
   * lance l’action spécifié
   * si une post request est définie pour l’action exécute la fonction
 
-
 ### Configuration
+
 Paramètres à rajouter dans le fichier de configuration (`config.py`)
 
-Les paramètre concernant la gestion du cookie sont géré par flask-admin : https://flask-login.readthedocs.io/en/latest/#cookie-settings
+Les paramètre concernant la gestion du cookie sont gérés par flask-admin : https://flask-login.readthedocs.io/en/latest/#cookie-settings
 
-`REDIRECT_ON_FORBIDDEN` : paramètre de redirection utilisé par le décorateur `check_auth` lorsque les droits d'accès à une ressource/page sont insuffisant (par défaut lève une erreur 403)
+`REDIRECT_ON_FORBIDDEN` : paramètre de redirection utilisé par le décorateur `check_auth` lorsque les droits d'accès à une ressource/page sont insuffisants (par défaut lève une erreur 403)
 
 ```
 URL_USERSHUB="http://usershub-url.ext"
@@ -105,6 +106,7 @@ ADMIN_APPLICATION_MAIL="admin-monapplication@mail.ext"
 ```
 
 ### Appel des routes
+
 Pour disposer des routes dans votre application Flask, ajoutez dans votre fichier de lancement de l'application (`server.py` par exemple) :
 
 ```
@@ -114,7 +116,7 @@ app.register_blueprint(routes_register.bp, url_prefix='/pypn/register')
 
 ### Configuration des actions post request
 
-Rajouter le paramètre `after_USERSHUB_request` à la configuration. Ce paramètre est un tableau qui défini pour chaque action un ensemble d'opération à réaliser ensuite. Comme par exemple envoyer un mail.
+Rajouter le paramètre `after_USERSHUB_request` à la configuration. Ce paramètre est un tableau qui définit, pour chaque action, un ensemble d'opérations à réaliser ensuite. Comme par exemple envoyer un email.
 
 ```
 function_dict = {
@@ -125,7 +127,7 @@ function_dict = {
 }
 ```
 
-Chaque fonction prend un paramètre en argument qui correspond aux données retournée par la route de UsersHub
+Chaque fonction prend un paramètre en argument qui correspond aux données retournées par la route de UsersHub.
 
 ## Installation
 
@@ -144,7 +146,7 @@ fatal error: Python.h: Aucun fichier ou dossier de ce type
 ```
 
 Alors il faudra installer au préalable les headers de votre version de Python,
-votre version de postgres et un compilateur.
+votre version de PostgreSQL et un compilateur.
 
 Par exemple, sur Ubuntu avec Python 3.5 et PostgreSQL 9.5 :
 
