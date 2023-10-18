@@ -12,14 +12,11 @@ login_manager = LoginManager()
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = User.query.get(user_id)
-    g.current_user = user
-    return user
+    return User.query.get(user_id)
 
 
 @login_manager.request_loader
 def load_user_from_request(request):
-    g.current_user = None
     bearer = request.headers.get("Authorization", default=None, type=str)
     if bearer:
         jwt = bearer.replace("Bearer ", "")
@@ -28,7 +25,6 @@ def load_user_from_request(request):
     try:
         user_dict = decode_token(jwt)
         user = User.query.get(user_dict["id_role"])
-        g.current_user = user
         g.login_via_request = True
         return user
     except (ExpiredTokenError, JoseError):
