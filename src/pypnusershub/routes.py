@@ -23,7 +23,7 @@ from flask import (
     make_response,
     jsonify,
 )
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
@@ -73,6 +73,10 @@ class ConfigurableBlueprint(Blueprint):
 
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
+
+        @app.before_request
+        def load_current_user():
+            g.current_user = current_user
 
 
 routes = ConfigurableBlueprint("auth", __name__)
