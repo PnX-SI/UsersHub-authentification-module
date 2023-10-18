@@ -1,21 +1,20 @@
 CHANGELOG
 *********
 
-
-2.0.0
------
+2.0.0  (2023-10-18)
+-------------------
 
 **🚀 Nouveautés**
 
 * Utilisation de la librairie Flask-Login pour la génération et la manipulation du cookie
-* Ajout de la possibilité de s'authentifier via un JWT
+* Ajout de la possibilité de s'authentifier via un JWT dans les headers HTTP
 
-Notes de version : 
+**⚠️ Notes de version**
 
-Le décorateur `@check_auth` change de signature, les paramètres suivants sont obselètes : 
+Le décorateur `@check_auth` change de signature, les paramètres suivants sont obsolètes : 
 - `get_role` : l'utilsateur connecté est disponible via `flask_login.current_user`
 - `redirect_on_expiration` , `redirect_on_invalid_token`: l'utilisateur sera redirigé vers la vue définie par `login_manager.login_view` (à éditer dans l'application utilisant le sous-module)
-- `redirect_on_insufficient_right` : le paramètre applicatif `REDIRECT_ON_FORBIDDEN` controle la route de redirection si les droit pour accéder à la ressource sont insuffisant. Lève une 403 si ce paramètre n'est pas définit.
+- `redirect_on_insufficient_right` : le paramètre applicatif `REDIRECT_ON_FORBIDDEN` contrôle la route de redirection si les droits pour accéder à la ressource sont insuffisants. Lève une 403 si ce paramètre n'est pas défini.
 
 
 1.6.11 (2023-09-19)
@@ -430,7 +429,7 @@ Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre 
   * Fonction ``cruved_for_user_in_app`` permettant de récupérer le CRUVED d'un utilisateur
 * Corrections diverses
 
-**Notes de version**
+**⚠️ Notes de version**
 
 Cette release n'est compatible avec UsersHub 1.3.1 minimum, qui inclut d'importantes évolutions de la BDD (https://github.com/PnEcrins/UsersHub/blob/develop/data/update_1.3.0to1.3.1.sql).
 
