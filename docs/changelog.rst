@@ -18,12 +18,13 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 - ``redirect_on_insufficient_right`` : le paramètre applicatif ``REDIRECT_ON_FORBIDDEN`` contrôle la route de redirection si les droits pour accéder à la ressource sont insuffisants. Lève une 403 si ce paramètre n'est pas défini.
 
 
+
 1.6.11 (2023-09-19)
 -------------------
 
 **🐛 Corrections**
 
-Correction de la suppression du cookie sur des sous-domaines lors du logout
+- Correction de la suppression du cookie sur des sous-domaines lors du logout
 
 
 1.6.10 (2023-09-14)
