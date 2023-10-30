@@ -6,8 +6,6 @@ from werkzeug.http import parse_cookie
 
 from pypnusershub.utils import get_cookie_path, set_cookie, delete_cookie
 
-from .utils import set_logged_user_cookie
-
 
 class TestUtils:
     @pytest.mark.parametrize(

@@ -133,7 +133,6 @@ class User(db.Model, UserMixin):
     active = db.Column(db.Boolean)
     groups = db.relationship(
         "User",
-        lazy="joined",
         secondary=cor_roles,
         primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
