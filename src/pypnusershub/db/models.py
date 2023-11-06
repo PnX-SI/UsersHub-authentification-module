@@ -137,7 +137,7 @@ class User(db.Model, UserMixin):
         secondary=cor_roles,
         primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
-        backref=backref("members"),
+        backref=backref("members", cascade_backrefs=False),
     )
 
     @property
