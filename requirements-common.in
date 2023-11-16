@@ -1,8 +1,7 @@
 authlib
 bcrypt
 flask-sqlalchemy
-# pytest flask is incompatible with flask 3
-flask < 3
+flask < 4
 flask-login
 psycopg2
 requests
@@ -11,4 +10,3 @@ flask-marshmallow
 marshmallow-sqlalchemy
 alembic
 # for flask login
-werkzeug<3
