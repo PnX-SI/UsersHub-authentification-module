@@ -106,7 +106,7 @@ def connect_admin():
             try:
                 r = s.post(
                     current_app.config["URL_USERSHUB"] + "/api_register/test_connexion",
-                    json={},
+                    headers={"Content-Type": "application/json"},
                 )
                 b_connexion = r.status_code == 200
             except requests.ConnectionError:
