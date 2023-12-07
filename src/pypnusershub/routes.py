@@ -11,18 +11,9 @@ import json
 import logging
 
 import datetime
-from markupsafe import escape
-from flask import (
-    Blueprint,
-    request,
-    Response,
-    current_app,
-    redirect,
-    g,
-    make_response,
-    jsonify,
-)
 from flask_login import login_user, logout_user, current_user
+from flask import Blueprint, request, Response, current_app, redirect, g, make_response, jsonify
+from markupsafe import escape 
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa

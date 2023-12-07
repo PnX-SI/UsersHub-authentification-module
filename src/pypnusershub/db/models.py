@@ -136,7 +136,7 @@ class User(db.Model, UserMixin):
         secondary=cor_roles,
         primaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_utilisateur",
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
-        backref=backref("members"),
+        backref=backref("members", cascade_backrefs=False),
     )
 
     @property
@@ -213,7 +213,7 @@ class Organisme(db.Model):
     __table_args__ = {"schema": "utilisateurs"}
 
     id_organisme = db.Column(db.Integer, primary_key=True)
-    uuid_organisme = db.Column(UUID(as_uuid=True), default=select([func.uuid_generate_v4()]))
+    uuid_organisme = db.Column(UUID(as_uuid=True), default=select(func.uuid_generate_v4()))
     nom_organisme = db.Column(db.Unicode)
     adresse_organisme = db.Column(db.Unicode)
     cp_organisme = db.Column(db.Unicode)
