@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals, print_function, absolute_import, division
 
+from utils_flask_sqla.models import qfilter
+
 """
 mappings applications et utilisateurs
 """
@@ -125,7 +127,9 @@ class User(db.Model, UserMixin):
     _password = db.Column("pass", db.Unicode)
     _password_plus = db.Column("pass_plus", db.Unicode)
     email = db.Column(db.Unicode)
-    id_organisme = db.Column(db.Integer, ForeignKey("utilisateurs.bib_organismes.id_organisme"))
+    id_organisme = db.Column(
+        db.Integer, ForeignKey("utilisateurs.bib_organismes.id_organisme")
+    )
     remarques = db.Column(db.Unicode)
     champs_addi = db.Column(JSONB)
     date_insert = db.Column(db.DateTime)
@@ -149,7 +153,9 @@ class User(db.Model, UserMixin):
                 UserApplicationRight,
                 or_(
                     UserApplicationRight.id_role == self.id_role,
-                    UserApplicationRight.id_role.in_([role.id_role for role in self.groups]),
+                    UserApplicationRight.id_role.in_(
+                        [role.id_role for role in self.groups]
+                    ),
                 ),
             )
             .join(Profils, UserApplicationRight.id_profil == Profils.id_profil)
@@ -206,6 +212,27 @@ class User(db.Model, UserMixin):
     def __str__(self):
         return self.identifiant or self.nom_complet
 
+    @qfilter
+    def filter_by_app(cls, code_app=None, **kwargs):
+        if code_app is None:
+            code_app = current_app.config["CODE_APPLICATION"]
+        query = kwargs["query"]
+        return (
+            query.outerjoin(cor_roles, User.id_role == cor_roles.c.id_role_utilisateur)
+            .outerjoin(
+                UserApplicationRight,
+                or_(
+                    UserApplicationRight.id_role == cor_roles.c.id_role_groupe,
+                    UserApplicationRight.id_role == User.id_role,
+                ),
+            )
+            .join(
+                Application,
+                Application.id_application == UserApplicationRight.id_application,
+            )
+            .filter(Application.code_application == code_app)
+        ).whereclause
+
 
 @serializable
 class Organisme(db.Model):
@@ -213,7 +240,9 @@ class Organisme(db.Model):
     __table_args__ = {"schema": "utilisateurs"}
 
     id_organisme = db.Column(db.Integer, primary_key=True)
-    uuid_organisme = db.Column(UUID(as_uuid=True), default=select(func.uuid_generate_v4()))
+    uuid_organisme = db.Column(
+        UUID(as_uuid=True), default=select(func.uuid_generate_v4())
+    )
     nom_organisme = db.Column(db.Unicode)
     adresse_organisme = db.Column(db.Unicode)
     cp_organisme = db.Column(db.Unicode)
@@ -223,7 +252,9 @@ class Organisme(db.Model):
     email_organisme = db.Column(db.Unicode)
     url_organisme = db.Column(db.Unicode)
     url_logo = db.Column(db.Unicode)
-    id_parent = db.Column(db.Integer, db.ForeignKey("utilisateurs.bib_organismes.id_organisme"))
+    id_parent = db.Column(
+        db.Integer, db.ForeignKey("utilisateurs.bib_organismes.id_organisme")
+    )
     additional_data = db.Column(JSONB, nullable=True, server_default="{}")
     members = db.relationship(User, backref="organisme")
 
@@ -261,7 +292,9 @@ class Profils(db.Model):
     nom_profil = db.Column(db.Unicode)
     desc_profil = db.Column(db.Unicode)
 
-    applications = relationship("Application", secondary=profils_for_app, back_populates="profils")
+    applications = relationship(
+        "Application", secondary=profils_for_app, back_populates="profils"
+    )
 
 
 @serializable
@@ -278,7 +311,9 @@ class Application(db.Model):
     desc_application = db.Column(db.Unicode)
     id_parent = db.Column(db.Integer)
 
-    profils = relationship(Profils, secondary=profils_for_app, back_populates="applications")
+    profils = relationship(
+        Profils, secondary=profils_for_app, back_populates="applications"
+    )
 
     def __repr__(self):
         return "<Application {!r}>".format(self.nom_application)
@@ -288,7 +323,9 @@ class Application(db.Model):
 
     @staticmethod
     def get_application(nom_application):
-        return Application.query.filter(Application.nom_application == nom_application).one()
+        return db.session.execute(
+            select(Application).where(Application.nom_application == nom_application)
+        ).scalar_one()
 
 
 class ApplicationRight(db.Model):
@@ -316,12 +353,16 @@ class UserApplicationRight(db.Model):
 
     __tablename__ = "cor_role_app_profil"
     __table_args__ = {"schema": "utilisateurs"}  # , 'extend_existing': True}
-    id_role = db.Column(db.Integer, ForeignKey("utilisateurs.t_roles.id_role"), primary_key=True)
+    id_role = db.Column(
+        db.Integer, ForeignKey("utilisateurs.t_roles.id_role"), primary_key=True
+    )
     id_profil = db.Column(
         db.Integer, ForeignKey("utilisateurs.t_profils.id_profil"), primary_key=True
     )
     id_application = db.Column(
-        db.Integer, ForeignKey("utilisateurs.t_applications.id_application"), primary_key=True
+        db.Integer,
+        ForeignKey("utilisateurs.t_applications.id_application"),
+        primary_key=True,
     )
 
     role = relationship("User")
@@ -350,7 +391,9 @@ class AppUser(db.Model):
     nom_role = db.Column(db.Unicode)
     prenom_role = db.Column(db.Unicode)
     id_application = db.Column(
-        db.Integer, db.ForeignKey("utilisateurs.t_applications.id_application"), primary_key=True
+        db.Integer,
+        db.ForeignKey("utilisateurs.t_applications.id_application"),
+        primary_key=True,
     )
     id_organisme = db.Column(db.Integer)
     application = relationship("Application", backref="app_users")
@@ -387,7 +430,9 @@ class AppRole(db.Model):
     nom_role = db.Column(db.Unicode)
     prenom_role = db.Column(db.Unicode)
     id_application = db.Column(
-        db.Integer, db.ForeignKey("utilisateurs.t_applications.id_application"), primary_key=True
+        db.Integer,
+        db.ForeignKey("utilisateurs.t_applications.id_application"),
+        primary_key=True,
     )
     id_organisme = db.Column(db.Integer)
     identifiant = db.Column(db.Unicode)

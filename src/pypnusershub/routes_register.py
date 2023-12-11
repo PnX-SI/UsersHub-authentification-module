@@ -91,11 +91,11 @@ def connect_admin():
         @wraps(f)
         def __connect_admin(*args, **kwargs):
             # connexion à usershub
-            id_app_usershub = (
-                db.session.query(Application.id_application)
-                .filter(Application.code_application == "UH")
-                .first()
-            )
+            id_app_usershub = db.session.scalars(
+                db.select(Application.id_application)
+                .where(Application.code_application == "UH")
+                .limit(1)
+            ).first()
 
             if not id_app_usershub:
                 return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
@@ -184,11 +184,11 @@ def post_usershub(type_action):
         id_role = session["current_user"]["id_role"]
 
         q = (
-            db.session.query(AppUser.id_droit_max)
+            db.select(AppUser.id_droit_max)
             .filter(AppUser.id_role == id_role)
             .filter(AppUser.id_application == get_current_app_id())
         )
-        id_droit = q.one()[0]
+        id_droit = db.session.execute(q).scalar_one()[0]
 
     # si pas de droit definis pour cet action, alors les droits requis sont à 7 => action impossible
     if id_droit < dict_type_action_droit.get(type_action, 7):
