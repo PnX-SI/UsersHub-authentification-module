@@ -103,7 +103,7 @@ class UserQuery(Query):
                 Application,
                 Application.id_application == UserApplicationRight.id_application,
             )
-            .filter(Application.code_application == code_app)
+            .where(Application.code_application == code_app)
         )
 
 
@@ -159,7 +159,7 @@ class User(db.Model, UserMixin):
                 ),
             )
             .join(Profils, UserApplicationRight.id_profil == Profils.id_profil)
-            .filter(UserApplicationRight.id_application == get_current_app_id())
+            .where(UserApplicationRight.id_application == get_current_app_id())
         )
         return q.scalar() or 0
 
@@ -230,7 +230,7 @@ class User(db.Model, UserMixin):
                 Application,
                 Application.id_application == UserApplicationRight.id_application,
             )
-            .filter(Application.code_application == code_app)
+            .where(Application.code_application == code_app)
         ).whereclause
 
 

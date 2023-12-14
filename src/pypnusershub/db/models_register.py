@@ -71,7 +71,7 @@ class TempUser(DB.Model):
 
         temp_role = DB.session.scalars(
             select(TempUser)
-            .filter(
+            .where(
                 or_(
                     TempUser.email == self.email,
                     TempUser.identifiant == self.identifiant,

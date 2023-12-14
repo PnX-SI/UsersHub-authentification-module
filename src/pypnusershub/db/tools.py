@@ -126,7 +126,7 @@ def user_from_token(token, secret_key=None):
         return db.session.execute(
             db.select(models.AppUser)
             .where(models.AppUser.id_role == id_role)
-            .filter(models.AppUser.id_application == id_app)
+            .where(models.AppUser.id_application == id_app)
         ).scalar_one()
 
     except NoResultFound:
