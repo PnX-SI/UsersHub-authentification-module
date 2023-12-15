@@ -124,7 +124,7 @@ def user_from_token(token, secret_key=None):
                 log.info("Invalid token: the token not corespoding to the current app")
                 raise UnreadableAccessRightsError("Token BadSignature", 403)
         return db.session.execute(
-            db.select(models.AppUser)
+            sa.select(models.AppUser)
             .where(models.AppUser.id_role == id_role)
             .where(models.AppUser.id_application == id_app)
         ).scalar_one()
