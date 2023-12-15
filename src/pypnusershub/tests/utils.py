@@ -36,7 +36,7 @@ unset_logged_user_cookie = unset_logged_user
 
 def logged_user_headers(user, headers=None):
     user = db.session.execute(
-        db.select(User).filter_by(
+        select(User).filter_by(
             id_role=user.id_role,
         )
     ).scalar_one()

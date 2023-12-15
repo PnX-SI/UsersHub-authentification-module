@@ -30,6 +30,7 @@ from .db.models import Application, UserApplicationRight, AppUser, db
 from .env import REGISTER_POST_ACTION_FCT
 
 from flask import current_app
+from sqlalchemy import select
 
 from pypnusershub.utils import get_current_app_id
 
@@ -92,7 +93,7 @@ def connect_admin():
         def __connect_admin(*args, **kwargs):
             # connexion à usershub
             id_app_usershub = db.session.scalars(
-                db.select(Application.id_application)
+                select(Application.id_application)
                 .where(Application.code_application == "UH")
                 .limit(1)
             ).first()
