@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from flask import current_app
 from werkzeug.http import dump_cookie
 from werkzeug.datastructures import Headers
@@ -28,6 +30,19 @@ set_logged_user_cookie = set_logged_user
 def unset_logged_user(client):
     logout_user()
     client.environ_base.pop("HTTP_AUTHORIZATION")
+
+
+@contextmanager
+def logged_user(client, user):
+    """
+    Usage:
+
+        with logged_user(client, user):
+            response = client.get(url)
+    """
+    set_logged_user(client, user)
+    yield
+    unset_logged_user(client)
 
 
 # retro compatibility for cookie auth
