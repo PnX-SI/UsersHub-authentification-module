@@ -102,12 +102,11 @@ def login():
         app = db.session.get(models.Application, id_app)
         if not app:
             raise BadRequest(f"No app for id {id_app}")
-        user = (
+        user = db.session.execute(
             sa.select(models.User)
             .where(models.User.identifiant == login)
             .where(models.User.filter_by_app())
-            .one()
-        )
+        ).scalar_one()
         user_dict = UserSchema(exclude=["remarques"]).dump(user)
     except exc.NoResultFound as e:
         msg = json.dumps(
