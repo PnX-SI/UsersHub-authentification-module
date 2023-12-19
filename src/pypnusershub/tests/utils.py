@@ -8,7 +8,7 @@ from sqlalchemy import select
 from pypnusershub.utils import get_current_app_id
 from pypnusershub.db.models import User
 from pypnusershub.db.tools import user_to_token
-from geonature.utils.env import db
+from pypnusershub.env import db
 
 
 def set_logged_user(client, user):

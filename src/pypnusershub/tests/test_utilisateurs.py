@@ -60,7 +60,9 @@ class TestUtilisateurs:
         assert organism_as_dict["nom_organisme"] == "update"
 
     def test_filter_by_app(self, group_and_users):
-        roles = select(User).where(User.filter_by_app("APPLI_1")).all()
+        roles = db.session.scalars(
+            select(User).where(User.filter_by_app("APPLI_1"))
+        ).all()
         assert set([group_and_users["group1"], group_and_users["user1"]]).issubset(
             roles
         )

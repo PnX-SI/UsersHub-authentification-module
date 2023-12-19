@@ -18,7 +18,7 @@ from authlib.jose.errors import ExpiredTokenError, JoseError
 from pypnusershub.db import models
 from pypnusershub.utils import text_resource_stream, get_current_app_id
 
-from geonature.utils.env import db
+from pypnusershub.env import db
 
 log = logging.getLogger(__name__)
 

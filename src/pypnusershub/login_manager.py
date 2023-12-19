@@ -7,7 +7,7 @@ from authlib.jose.errors import ExpiredTokenError, JoseError
 from pypnusershub.db.models import User
 from pypnusershub.db.tools import decode_token
 
-from geonature.utils.env import db
+from pypnusershub.env import db
 
 login_manager = LoginManager()
 

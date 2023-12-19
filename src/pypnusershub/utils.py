@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from flask import current_app, Response
 from sqlalchemy import select
 
-from geonature.utils.env import db
+from pypnusershub.env import db
 
 
 class RessourceError(EnvironmentError):
