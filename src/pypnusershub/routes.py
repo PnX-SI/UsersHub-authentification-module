@@ -11,7 +11,10 @@ import json
 import logging
 
 import datetime
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8f2f783182199f8033b9af01143505c26498a988
 from flask_login import login_user, logout_user, current_user
 from flask import (
     Blueprint,
