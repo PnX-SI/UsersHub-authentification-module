@@ -40,7 +40,9 @@ class TestUtils:
         assert cookie_attrs["Path"] == "/geonature"
         assert cookie_attrs["Expires"] != ""
 
-        logout_response = delete_cookie(response, key=key, application_url=application_url)
+        logout_response = delete_cookie(
+            response, key=key, application_url=application_url
+        )
         cookie = logout_response.headers.getlist("Set-Cookie")[1]
         cookie_attrs = parse_cookie(cookie)
 

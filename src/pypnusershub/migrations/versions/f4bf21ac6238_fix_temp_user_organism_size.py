@@ -5,6 +5,7 @@ Revises: 112ccf1024ce
 Create Date: 2023-06-30 15:02:59.198157
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -17,7 +18,9 @@ depends_on = None
 
 
 def upgrade():
-    op.execute("ALTER TABLE utilisateurs.temp_users ALTER COLUMN organisme TYPE VARCHAR (250);")
+    op.execute(
+        "ALTER TABLE utilisateurs.temp_users ALTER COLUMN organisme TYPE VARCHAR (250);"
+    )
     pass
 
 

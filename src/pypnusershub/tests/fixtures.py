@@ -2,7 +2,13 @@ import pytest
 
 from flask_login import logout_user
 from pypnusershub.env import db
-from pypnusershub.db.models import Organisme, Application, User, Profils, UserApplicationRight
+from pypnusershub.db.models import (
+    Organisme,
+    Application,
+    User,
+    Profils,
+    UserApplicationRight,
+)
 
 organism = {
     "nom_organisme": "test",
