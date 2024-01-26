@@ -10,7 +10,7 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
-sqlalchemy_uri = os.environ.get('SQLALCHEMY_URI')
+sqlalchemy_uri = os.environ.get("SQLALCHEMY_URI")
 if sqlalchemy_uri:
     config.set_main_option("sqlalchemy.url", sqlalchemy_uri)
 
@@ -68,9 +68,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
