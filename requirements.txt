@@ -4,25 +4,27 @@
 #
 #    pip-compile requirements.in
 #
-alembic==1.9.4
+alembic==1.13.1
     # via
     #   -r requirements-common.in
     #   flask-migrate
-authlib==1.2.0
+authlib==1.3.0
     # via -r requirements-common.in
-bcrypt==4.0.1
+bcrypt==4.1.2
     # via -r requirements-common.in
-certifi==2022.12.7
-    # via requests
-cffi==1.15.1
-    # via cryptography
-charset-normalizer==3.0.1
-    # via requests
-click==8.1.3
+blinker==1.7.0
     # via flask
-cryptography==39.0.1
+certifi==2023.11.17
+    # via requests
+cffi==1.16.0
+    # via cryptography
+charset-normalizer==3.3.2
+    # via requests
+click==8.1.7
+    # via flask
+cryptography==42.0.1
     # via authlib
-flask==2.2.3
+flask==3.0.1
     # via
     #   -r requirements-common.in
     #   flask-login
@@ -32,55 +34,53 @@ flask==2.2.3
     #   utils-flask-sqlalchemy
 flask-login==0.6.3
     # via -r requirements-common.in
-flask-marshmallow==0.14.0
+flask-marshmallow==1.1.0
     # via -r requirements-common.in
-flask-migrate==4.0.4
+flask-migrate==4.0.5
     # via utils-flask-sqlalchemy
-flask-sqlalchemy==2.5.1
+flask-sqlalchemy==3.0.5
     # via
     #   -r requirements-common.in
     #   flask-migrate
     #   utils-flask-sqlalchemy
 greenlet==3.0.3
     # via sqlalchemy
-idna==3.4
+idna==3.6
     # via requests
-importlib-metadata==6.0.0
+importlib-metadata==7.0.1
     # via flask
 itsdangerous==2.1.2
     # via flask
-jinja2==3.1.2
+jinja2==3.1.3
     # via flask
-mako==1.2.4
+mako==1.3.0
     # via alembic
-markupsafe==2.1.2
+markupsafe==2.1.4
     # via
     #   jinja2
     #   mako
     #   werkzeug
-marshmallow==3.19.0
+marshmallow==3.20.2
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
     #   utils-flask-sqlalchemy
-marshmallow-sqlalchemy==0.28.1
+marshmallow-sqlalchemy==0.30.0
     # via -r requirements-common.in
-packaging==23.0
+packaging==23.2
     # via
     #   marshmallow
     #   marshmallow-sqlalchemy
-psycopg2==2.9.5
+psycopg2==2.9.9
     # via -r requirements-common.in
 pycparser==2.21
     # via cffi
 python-dateutil==2.8.2
     # via utils-flask-sqlalchemy
-requests==2.28.2
+requests==2.31.0
     # via -r requirements-common.in
 six==1.16.0
-    # via
-    #   flask-marshmallow
-    #   python-dateutil
+    # via python-dateutil
 sqlalchemy==1.4.51
     # via
     #   -r requirements-common.in
@@ -88,13 +88,15 @@ sqlalchemy==1.4.51
     #   flask-sqlalchemy
     #   marshmallow-sqlalchemy
     #   utils-flask-sqlalchemy
-urllib3==1.26.14
+typing-extensions==4.9.0
+    # via alembic
+urllib3==2.1.0
     # via requests
 utils-flask-sqlalchemy==0.4.0
     # via -r requirements-dependencies.in
-werkzeug==2.2.3
+werkzeug==3.0.1
     # via
     #   flask
     #   flask-login
-zipp==3.14.0
+zipp==3.17.0
     # via importlib-metadata

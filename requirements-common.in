@@ -1,7 +1,7 @@
 authlib
 bcrypt
 flask-sqlalchemy
-flask < 4
+flask>=3
 flask-login
 psycopg2
 requests
