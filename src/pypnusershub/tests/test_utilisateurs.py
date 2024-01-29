@@ -9,6 +9,8 @@ from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 from pypnusershub.tests.fixtures import *
 
+from sqlalchemy import select
+
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestUtilisateurs:
@@ -29,7 +31,7 @@ class TestUtilisateurs:
         insert_or_update_role(user)
         user["identifiant"] = "update"
         insert_or_update_role(user)
-        created_user = User.query.get(99999)
+        created_user = db.session.get(User, 99999)
         user_schema = UserSchema(only=["groups"])
         created_user_as_dict = user_schema.dump(created_user)
         assert created_user_as_dict["identifiant"] == "update"
@@ -52,14 +54,18 @@ class TestUtilisateurs:
         organism["nom_organisme"] = "update"
         insert_or_update_organism(organism)
 
-        create_organism = Organisme.query.get(99999)
+        create_organism = db.session.get(Organisme, 99999)
         organism_schema = OrganismeSchema()
         organism_as_dict = organism_schema.dump(create_organism)
         assert organism_as_dict["nom_organisme"] == "update"
 
     def test_filter_by_app(self, group_and_users):
-        roles = User.query.filter_by_app("APPLI_1").all()
-        assert set([group_and_users["group1"], group_and_users["user1"]]).issubset(roles)
+        roles = db.session.scalars(
+            select(User).where(User.filter_by_app("APPLI_1"))
+        ).all()
+        assert set([group_and_users["group1"], group_and_users["user1"]]).issubset(
+            roles
+        )
 
     def test_max_level_profil(self, app, group_and_users):
         app.config["CODE_APPLICATION"] = "APPLI_1"

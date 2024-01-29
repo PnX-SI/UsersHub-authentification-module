@@ -11,10 +11,9 @@ import json
 import logging
 
 import datetime
-
+from flask_login import login_user, logout_user, current_user
 from flask import (
     Blueprint,
-    escape,
     request,
     Response,
     current_app,
@@ -23,7 +22,7 @@ from flask import (
     make_response,
     jsonify,
 )
-from flask_login import login_user, logout_user, current_user
+from markupsafe import escape
 
 from sqlalchemy.orm import exc
 import sqlalchemy as sa
@@ -69,7 +68,9 @@ class ConfigurableBlueprint(Blueprint):
         # set cookie autorenew
         app.config["PASS_METHOD"] = app.config.get("PASS_METHOD", "hash")
 
-        app.config["REMEMBER_COOKIE_NAME"] = app.config.get("REMEMBER_COOKIE_NAME", "token")
+        app.config["REMEMBER_COOKIE_NAME"] = app.config.get(
+            "REMEMBER_COOKIE_NAME", "token"
+        )
 
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
@@ -97,10 +98,14 @@ def login():
                 "One of the following parameter is required ['id_application', 'login', 'password']"
             )
             return Response(msg, status=400)
-        app = models.Application.query.get(id_app)
+        app = db.session.get(models.Application, id_app)
         if not app:
             raise BadRequest(f"No app for id {id_app}")
-        user = models.User.query.filter(models.User.identifiant == login).filter_by_app().one()
+        user = db.session.execute(
+            sa.select(models.User)
+            .where(models.User.identifiant == login)
+            .where(models.User.filter_by_app())
+        ).scalar_one()
         user_dict = UserSchema(exclude=["remarques"]).dump(user)
     except exc.NoResultFound as e:
         msg = json.dumps(
@@ -126,7 +131,9 @@ def login():
     token = encode_token(user_dict)
     token_exp = datetime.datetime.now(datetime.timezone.utc)
     token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-    return jsonify({"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()})
+    return jsonify(
+        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
+    )
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -134,13 +141,14 @@ def public_login():
     if not current_app.config.get("PUBLIC_ACCESS_USERNAME", {}):
         raise Forbidden
 
-    user = (
-        models.AppUser.query.filter(
-            models.AppUser.identifiant == current_app.config.get("PUBLIC_ACCESS_USERNAME")
+    user = db.session.execute(
+        sa.select(models.AppUser)
+        .where(
+            models.AppUser.identifiant
+            == current_app.config.get("PUBLIC_ACCESS_USERNAME")
         )
         .filter(models.AppUser.id_application == get_current_app_id())
-        .one()
-    )
+    ).scalar_one()
     user_dict = user.as_dict()
     login_user(user)
     # Génération d'un token
@@ -148,7 +156,9 @@ def public_login():
     token_exp = datetime.datetime.now(datetime.timezone.utc)
     token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
 
-    return jsonify({"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()})
+    return jsonify(
+        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
+    )
 
 
 @routes.route("/logout", methods=["GET", "POST"])

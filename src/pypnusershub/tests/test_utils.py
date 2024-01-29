@@ -6,8 +6,6 @@ from werkzeug.http import parse_cookie
 
 from pypnusershub.utils import get_cookie_path, set_cookie, delete_cookie
 
-from .utils import set_logged_user_cookie
-
 
 class TestUtils:
     @pytest.mark.parametrize(
@@ -42,7 +40,9 @@ class TestUtils:
         assert cookie_attrs["Path"] == "/geonature"
         assert cookie_attrs["Expires"] != ""
 
-        logout_response = delete_cookie(response, key=key, application_url=application_url)
+        logout_response = delete_cookie(
+            response, key=key, application_url=application_url
+        )
         cookie = logout_response.headers.getlist("Set-Cookie")[1]
         cookie_attrs = parse_cookie(cookie)
 

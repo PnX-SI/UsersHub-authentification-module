@@ -7,12 +7,14 @@ from authlib.jose.errors import ExpiredTokenError, JoseError
 from pypnusershub.db.models import User
 from pypnusershub.db.tools import decode_token
 
+from pypnusershub.env import db
+
 login_manager = LoginManager()
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    return db.session.get(User, user_id)
 
 
 @login_manager.request_loader
@@ -24,7 +26,7 @@ def load_user_from_request(request):
         return None
     try:
         user_dict = decode_token(jwt)
-        user = User.query.get(user_dict["id_role"])
+        user = db.session.get(User, user_dict["id_role"])
         g.login_via_request = True
         return user
     except (ExpiredTokenError, JoseError):

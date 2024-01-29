@@ -5,6 +5,7 @@ Revises:
 Create Date: 2021-08-24 15:39:57.784074
 
 """
+
 import importlib.resources
 
 from alembic import op
@@ -21,7 +22,9 @@ depends_on = ("fa35dfe5ff27",)
 
 def upgrade():
     op.execute(
-        importlib.resources.read_text("pypnusershub.migrations.data", "utilisateurs-samples.sql")
+        importlib.resources.read_text(
+            "pypnusershub.migrations.data", "utilisateurs-samples.sql"
+        )
     )
 
 

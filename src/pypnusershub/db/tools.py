@@ -18,6 +18,8 @@ from authlib.jose.errors import ExpiredTokenError, JoseError
 from pypnusershub.db import models
 from pypnusershub.utils import text_resource_stream, get_current_app_id
 
+from pypnusershub.env import db
+
 log = logging.getLogger(__name__)
 
 
@@ -71,7 +73,6 @@ class DifferentPasswordError(Exception):
 
 def load_fixtures(con_uri):
     with text_resource_stream("fixtures.sql", "pypnusershub.db") as sql_file:
-
         engine = sa.create_engine(con_uri)
         with engine.connect():
             for line in sql_file:
@@ -79,20 +80,21 @@ def load_fixtures(con_uri):
                     engine.execute(line)
             engine.execute("COMMIT")
 
+
 def encode_token(payload):
-    expire = datetime.now() + timedelta(seconds=current_app.config['COOKIE_EXPIRATION'])
+    expire = datetime.now() + timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
     header = {
         "alg": "HS256",
         "exp": int(datetime.timestamp(expire)),
     }
     jwt = JsonWebToken(["HS256"])
-    key = current_app.config['SECRET_KEY'].encode("UTF-8")
+    key = current_app.config["SECRET_KEY"].encode("UTF-8")
     return jwt.encode(header, payload, key)
 
 
 def decode_token(payload):
     jwt = JsonWebToken(["HS256"])
-    key = current_app.config['SECRET_KEY'].encode("UTF-8")
+    key = current_app.config["SECRET_KEY"].encode("UTF-8")
     claims = jwt.decode(payload, key)
     claims.validate()
     return dict(claims)
@@ -121,11 +123,11 @@ def user_from_token(token, secret_key=None):
             if id_app != id_app_from_config:
                 log.info("Invalid token: the token not corespoding to the current app")
                 raise UnreadableAccessRightsError("Token BadSignature", 403)
-        return (
-            models.AppUser.query.filter(models.AppUser.id_role == id_role)
-            .filter(models.AppUser.id_application == id_app)
-            .one()
-        )
+        return db.session.execute(
+            sa.select(models.AppUser)
+            .where(models.AppUser.id_role == id_role)
+            .where(models.AppUser.id_application == id_app)
+        ).scalar_one()
 
     except NoResultFound:
         raise UnreadableAccessRightsError(

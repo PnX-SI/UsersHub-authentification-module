@@ -1,13 +1,32 @@
 CHANGELOG
 *********
 
-2.0.0  (2023-10-18)
--------------------
+2.1.0 (2024-01-29)
+------------------
 
 **🚀 Nouveautés**
 
-* Utilisation de la librairie Flask-Login pour la génération et la manipulation du cookie
-* Ajout de la possibilité de s'authentifier via un JWT dans les headers HTTP
+- Mise à jour de Flask version 2 à 3 (#81)
+- Mise à jour de SQLAlchemy version 1.3 à 1.4 (#81)
+- Arrêt du support de Debian 10 (#81)
+- Ajout de Debian 12 dans les tests automatisés (#81)
+- Mise à jour du linter black en version 24 (#86)
+- Ajout de l'organisme au modèle (#83)
+- Ajout du contexte ``logged_user`` (#84)
+
+**🐛 Corrections**
+
+- Correction de la route de test de connexion à UsersHub (#82)
+- Ajout de la propriété ``max_level_profil`` aux colonnes exclues par défaut (#80)
+
+
+2.0.0 (2023-10-18)
+------------------
+
+**🚀 Nouveautés**
+
+- Utilisation de la librairie Flask-Login pour la génération et la manipulation du cookie
+- Ajout de la possibilité de s'authentifier via un JWT dans les headers HTTP
 
 **⚠️ Notes de version**
 
@@ -16,7 +35,6 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 - ``get_role`` : l'utilisateur connecté est disponible via ``flask_login.current_user``
 - ``redirect_on_expiration`` , ``redirect_on_invalid_token`` : l'utilisateur sera redirigé vers la vue définie par ``login_manager.login_view`` (à modifier dans l'application utilisant le sous-module)
 - ``redirect_on_insufficient_right`` : le paramètre applicatif ``REDIRECT_ON_FORBIDDEN`` contrôle la route de redirection si les droits pour accéder à la ressource sont insuffisants. Lève une 403 si ce paramètre n'est pas défini.
-
 
 
 1.6.11 (2023-09-19)
@@ -32,7 +50,7 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 
 **🐛 Corrections**
 
-* Correction d'une mauvaise utilisation de la redirection sur la route de ``logout``
+- Correction d'une mauvaise utilisation de la redirection sur la route de ``logout``
 
 
 1.6.9 (2023-08-08)
@@ -40,8 +58,8 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 
 **🐛 Corrections**
 
-* Correction de l'encodage des dates dans le JWT (#62 - par @mvergez)
-* Augmentation de la taille du champs ``utilisateurs.temp_users.organisme`` de 30 à 250 caractères (#73)
+- Correction de l'encodage des dates dans le JWT (#62 - par @mvergez)
+- Augmentation de la taille du champs ``utilisateurs.temp_users.organisme`` de 30 à 250 caractères (#73)
 
 
 1.6.8 (2023-06-26)
@@ -49,7 +67,7 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 
 **🐛 Corrections**
 
-* Meilleur contrôle du cookie (mis uniquement sur le domaine ou le path de l'application) #69 @mvergez
+- Meilleur contrôle du cookie (mis uniquement sur le domaine ou le path de l'application) #69 @mvergez
 
 
 1.6.7 (2023-06-07)
@@ -57,7 +75,7 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 
 **🐛 Corrections**
 
-* Correction de l'import du répertoire `tests`
+- Correction de l'import du répertoire `tests`
 
 
 1.6.6 (2023-06-06)

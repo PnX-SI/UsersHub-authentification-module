@@ -13,6 +13,9 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from flask import current_app, Response
+from sqlalchemy import select
+
+from pypnusershub.env import db
 
 
 class RessourceError(EnvironmentError):
@@ -79,10 +82,12 @@ def get_current_app_id():
         from pypnusershub.db.models import Application
 
         return (
-            Application.query.filter_by(
-                code_application=current_app.config["CODE_APPLICATION"],
+            db.session.execute(
+                select(Application).filter_by(
+                    code_application=current_app.config["CODE_APPLICATION"],
+                )
             )
-            .one()
+            .scalar_one()
             .id_application
         )
     else:

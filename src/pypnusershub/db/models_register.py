@@ -3,7 +3,7 @@ import base64
 
 from flask import current_app
 from pypnusershub.db.models import check_and_encrypt_password
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 
 from .models import User, db as DB
@@ -25,13 +25,13 @@ class TempUser(DB.Model):
     desc_role = DB.Column(DB.Unicode)
     password = DB.Column(DB.Unicode)
     pass_md5 = DB.Column(DB.Unicode)
-    email = DB.Column(DB.Unicode)    
+    email = DB.Column(DB.Unicode)
     id_organisme = DB.Column(DB.Integer)
     remarques = DB.Column(DB.Unicode)
     champs_addi = DB.Column(JSONB)
     date_insert = DB.Column(DB.DateTime)
     date_update = DB.Column(DB.DateTime)
-    
+
     def set_password(self, password, password_confirmation, md5):
         self.password, self.pass_md5 = check_and_encrypt_password(
             password, password_confirmation, md5
@@ -50,51 +50,55 @@ class TempUser(DB.Model):
             is_valid = False
             msg += "E-mail is not valid. "
         # check if user or temp user exist with an email or login given
-        role = (
-            DB.session.query(User)
-            .filter(or_(User.email == self.email, User.identifiant == self.identifiant))
-            .first()
-        )
+        role = DB.session.scalars(
+            select(User).where(
+                or_(User.email == self.email, User.identifiant == self.identifiant)
+            )
+        ).first()
         if role:
             is_valid = False
             if role.email == self.email:
                 msg += (
-                    f"Un compte avec l'email {self.email} existe déjà. " +
-                    "S'il s'agit de votre email, vous pouvez faire une demande de renouvellement " +
-                    "de mot de passe via la page de login de GeoNature."
+                    f"Un compte avec l'email {self.email} existe déjà. "
+                    + "S'il s'agit de votre email, vous pouvez faire une demande de renouvellement "
+                    + "de mot de passe via la page de login de GeoNature."
                 )
             else:
                 msg += (
-                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. " +
-                    "Veuillez choisir un identifiant différent."
+                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. "
+                    + "Veuillez choisir un identifiant différent."
                 )
 
-        temp_role = (
-            DB.session.query(TempUser)
-            .filter(or_(TempUser.email == self.email, TempUser.identifiant == self.identifiant))
-            .first()
-        )
+        temp_role = DB.session.scalars(
+            select(TempUser)
+            .where(
+                or_(
+                    TempUser.email == self.email,
+                    TempUser.identifiant == self.identifiant,
+                )
+            )
+            .limit(1)
+        ).first()
         if temp_role:
             is_valid = False
             if temp_role.email == self.email:
                 msg += (
-                    f"Un compte en attente de validation avec l'email {self.email} existe déjà. "+
-                    "Merci de patienter le temps que votre demande soit traitée."
-
+                    f"Un compte en attente de validation avec l'email {self.email} existe déjà. "
+                    + "Merci de patienter le temps que votre demande soit traitée."
                 )
             else:
                 msg += (
-                    "Un compte en attente de validation avec l'identifiant " +
-                    f"{self.identifiant} existe déjà. " +
-                    "Veuillez choisir un identifiant différent."
+                    "Un compte en attente de validation avec l'identifiant "
+                    + f"{self.identifiant} existe déjà. "
+                    + "Veuillez choisir un identifiant différent."
                 )
 
         return (is_valid, msg)
 
     def as_dict(self, recursif=False, columns=(), depth=None):
         """
-            The signature of the function must be the as same the as_dict func 
-            from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        The signature of the function must be the as same the as_dict func
+        from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
         """
         return {
             "id_temp_user": self.id_temp_user,
@@ -117,7 +121,6 @@ class TempUser(DB.Model):
 
 
 class CorRoleToken(DB.Model):
-
     __tablename__ = "cor_role_token"
     __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
 
@@ -126,7 +129,7 @@ class CorRoleToken(DB.Model):
 
     def as_dict(self, recursif=False, columns=(), depth=None):
         """
-            The signature of the function must be the as same the as_dict func 
-            from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        The signature of the function must be the as same the as_dict func
+        from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
         """
         return {"id_role": self.id_role, "token": self.token}
