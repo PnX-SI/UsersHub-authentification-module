@@ -106,7 +106,9 @@ def login():
             .where(models.User.identifiant == login)
             .where(models.User.filter_by_app())
         ).scalar_one()
-        user_dict = UserSchema(exclude=["remarques"]).dump(user)
+        user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
+            user
+        )
     except exc.NoResultFound as e:
         msg = json.dumps(
             {

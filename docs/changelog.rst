@@ -1,6 +1,17 @@
 CHANGELOG
 *********
 
+2.1.1 (2024-01-30)
+-----------------
+
+**🚀 Nouveautés**
+
+- Mise à jour de Utils-Flask-SQLAlchemy en version 0.4.1
+
+**🐛 Corrections**
+
+- Modification de l'instanciation du UserSchema dans la route `/auth/login` pour retourner `max_level_profil`
+
 2.1.0 (2024-01-29)
 ------------------
 
