@@ -81,15 +81,11 @@ def get_current_app_id():
     elif "CODE_APPLICATION" in current_app.config:
         from pypnusershub.db.models import Application
 
-        return (
-            db.session.execute(
-                select(Application).filter_by(
-                    code_application=current_app.config["CODE_APPLICATION"],
-                )
+        return db.session.execute(
+            select(Application.id_application).filter_by(
+                code_application=current_app.config["CODE_APPLICATION"],
             )
-            .scalar_one()
-            .id_application
-        )
+        ).scalar_one()
     else:
         return None
 
