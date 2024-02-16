@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+2.1.2 (2024-02-16)
+------------------
+
+**🐛 Corrections**
+
+- Debug de la route utilisée pour l'accès public dans GeoNature (#89)
+
 2.1.1 (2024-01-30)
 -----------------
 

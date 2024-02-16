@@ -142,15 +142,14 @@ def login():
 def public_login():
     if not current_app.config.get("PUBLIC_ACCESS_USERNAME", {}):
         raise Forbidden
+    login = current_app.config.get("PUBLIC_ACCESS_USERNAME")
 
     user = db.session.execute(
-        sa.select(models.AppUser)
-        .where(
-            models.AppUser.identifiant
-            == current_app.config.get("PUBLIC_ACCESS_USERNAME")
-        )
-        .filter(models.AppUser.id_application == get_current_app_id())
+        sa.select(models.User)
+        .where(models.User.identifiant == login)
+        .where(models.User.filter_by_app(code_app="GN"))
     ).scalar_one()
+
     user_dict = user.as_dict()
     login_user(user)
     # Génération d'un token
