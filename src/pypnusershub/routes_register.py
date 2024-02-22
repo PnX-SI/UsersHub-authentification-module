@@ -92,16 +92,14 @@ def connect_admin():
         @wraps(f)
         def __connect_admin(*args, **kwargs):
             # connexion à usershub
-            id_app_usershub = db.session.scalars(
+            id_app_usershub = db.session.scalar(
                 select(Application.id_application)
                 .where(Application.code_application == "UH")
                 .limit(1)
-            ).first()
+            )
 
             if not id_app_usershub:
                 return json.dumps({"msg": "Pas d'id app USERSHUB"}), 500
-
-            id_app_usershub = id_app_usershub[0]
 
             # test si on est déjà connecté
             try:
