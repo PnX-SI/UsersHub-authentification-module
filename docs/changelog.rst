@@ -1,6 +1,13 @@
 CHANGELOG
 *********
 
+2.1.3 (2024-02-22)
+-----------------
+
+**🐛 Corrections**
+
+- Debug de l'inscription d'un utilisateur depuis GeoNature (#92)
+
 2.1.2 (2024-02-16)
 ------------------
 
