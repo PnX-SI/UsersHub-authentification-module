@@ -11,7 +11,7 @@ import json
 import logging
 
 import datetime
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_required, login_user, logout_user, current_user
 from flask import (
     Blueprint,
     request,
@@ -68,9 +68,7 @@ class ConfigurableBlueprint(Blueprint):
         # set cookie autorenew
         app.config["PASS_METHOD"] = app.config.get("PASS_METHOD", "hash")
 
-        app.config["REMEMBER_COOKIE_NAME"] = app.config.get(
-            "REMEMBER_COOKIE_NAME", "token"
-        )
+        app.config["REMEMBER_COOKIE_NAME"] = app.config.get("REMEMBER_COOKIE_NAME", "token")
 
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
@@ -84,6 +82,23 @@ routes = ConfigurableBlueprint("auth", __name__)
 
 # retrocompatibilité before 2.0
 from pypnusershub.decorators import check_auth
+
+
+@routes.route("/get_current_user")
+@login_required
+def get_user_data():
+    user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(g.current_user)
+
+    token_exp = datetime.datetime.now(datetime.timezone.utc)
+    token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+    data = {
+        "user": user_dict,
+        "token": encode_token(g.current_user.as_dict()).decode(),
+        "expires": token_exp.isoformat(),
+    }
+    print(data)
+
+    return jsonify(data)
 
 
 @routes.route("/login", methods=["POST"])
@@ -106,9 +121,7 @@ def login():
             .where(models.User.identifiant == login)
             .where(models.User.filter_by_app())
         ).scalar_one()
-        user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-            user
-        )
+        user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(user)
     except exc.NoResultFound as e:
         msg = json.dumps(
             {
@@ -133,9 +146,7 @@ def login():
     token = encode_token(user_dict)
     token_exp = datetime.datetime.now(datetime.timezone.utc)
     token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-    return jsonify(
-        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
-    )
+    return jsonify({"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()})
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -157,9 +168,7 @@ def public_login():
     token_exp = datetime.datetime.now(datetime.timezone.utc)
     token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
 
-    return jsonify(
-        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
-    )
+    return jsonify({"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()})
 
 
 @routes.route("/logout", methods=["GET", "POST"])
