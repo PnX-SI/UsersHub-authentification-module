@@ -88,48 +88,14 @@ from pypnusershub.decorators import check_auth
 
 @routes.route("/login", methods=["POST"])
 def login():
-    user_data = request.json
-    try:
-        login = user_data.get("login")
-        password = user_data.get("password")
-        id_app = user_data.get("id_application", get_current_app_id())
-        if id_app is None or login is None or password is None:
-            msg = json.dumps(
-                "One of the following parameter is required ['id_application', 'login', 'password']"
-            )
-            return Response(msg, status=400)
-        app = db.session.get(models.Application, id_app)
-        if not app:
-            raise BadRequest(f"No app for id {id_app}")
-        user = db.session.execute(
-            sa.select(models.User)
-            .where(models.User.identifiant == login)
-            .where(models.User.filter_by_app())
-        ).scalar_one()
-        user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-            user
-        )
-    except exc.NoResultFound as e:
-        msg = json.dumps(
-            {
-                "type": "login",
-                "msg": (
-                    'No user found with the username "{login}" for '
-                    'the application with id "{id_app}"'
-                ).format(login=escape(login), id_app=id_app),
-            }
-        )
-        log.info(msg)
-        status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-        return Response(msg, status=status_code)
+    auth_provider = current_app.auth_manager.authentication_cls()
 
-    if not user.check_password(user_data["password"]):
-        msg = json.dumps({"type": "password", "msg": "Mot de passe invalide"})
-        log.info(msg)
-        status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-        return Response(msg, status=status_code)
+    user = auth_provider.authenticate()
     login_user(user)
-    # Génération d'un token
+    if current_app.config["EXTERNAL_AUTHENTICATION"]:
+        return redirect(auth_provider.url_redirect)
+
+    user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(user)
     token = encode_token(user_dict)
     token_exp = datetime.datetime.now(datetime.timezone.utc)
     token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
