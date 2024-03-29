@@ -146,7 +146,7 @@ def login():
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
 
-        if current_app.config["CAS_AUTHENTIFICATION"]:
+        if current_app.config.get("CAS_AUTHENTIFICATION", False):
             return redirect(current_app.config["URL_APPLICATION"])
         return jsonify(
             {
