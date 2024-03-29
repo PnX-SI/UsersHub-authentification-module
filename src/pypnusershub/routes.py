@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from geonature.core.auth.auth_manager import auth_manager
 from pypnusershub.authentification import DefaultConfiguration
 
 """
@@ -113,6 +112,42 @@ def get_user_data():
     return jsonify(data)
 
 
+@routes.route("/external_provider_url")
+def get_external_provider_url() -> str:
+    """
+    Retrieves the URL of the current authentication provider.
+
+    This route is used to get the URL of the current authentication provider.
+    It uses the `auth_manager` of the Flask app to get the current provider and
+    then calls its `get_provider_url` method to get the URL.
+
+    Returns
+    -------
+    str
+        The URL of the current authentication provider.
+    """
+    return jsonify(current_app.auth_manager.get_current_provider().get_provider_url())
+
+
+@routes.route("/external_provider_revoke_url")
+def get_external_provider_revoke_url() -> str:
+    """
+    Retrieves the URL of the current authentication provider.
+
+    This route is used to get the URL of the current authentication provider.
+    It uses the `auth_manager` of the Flask app to get the current provider and
+    then calls its `get_provider_url` method to get the URL.
+
+    Returns
+    -------
+    str
+        The URL of the current authentication provider.
+    """
+    return jsonify(
+        current_app.auth_manager.get_current_provider().get_provider_revoke_url()
+    )
+
+
 @routes.route("/login", methods=["POST", "GET"])
 def login():
     """
@@ -133,7 +168,7 @@ def login():
     - If the authentication fails, it returns the result of the authentication.
     """
 
-    auth_result = auth_manager.get_current_provider().authenticate()
+    auth_result = current_app.auth_manager.get_current_provider().authenticate()
     if isinstance(auth_result, models.User):
         login_user(auth_result)
         user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
@@ -188,8 +223,9 @@ def logout():
         resp = redirect(params["redirect"], code=302)
     else:
         resp = make_response()
-    auth_manager.get_current_provider().revoke()
+
     logout_user()
+    current_app.auth_manager.get_current_provider().revoke()
 
     return resp
 

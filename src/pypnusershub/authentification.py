@@ -68,6 +68,38 @@ class Authentification:
         """
         raise NotImplementedError()
 
+    def get_provider_url(self) -> str:
+        """
+        Get the URL of the authentication provider.
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+
+        Returns
+        -------
+        str
+            The URL of the authentication provider.
+        """
+        raise NotImplementedError()
+
+    def get_provider_revoke_url(self) -> str:
+        """
+        Get the revoke URL of the authentication provider.
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+
+        Returns
+        -------
+        str
+            The revoke URL of the authentication provider.
+        """
+        raise NotImplementedError()
+
 
 class DefaultConfiguration(Authentification):
 
