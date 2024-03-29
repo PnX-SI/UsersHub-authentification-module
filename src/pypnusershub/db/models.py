@@ -34,6 +34,8 @@ from sqlalchemy.orm.session import object_session
 from sqlalchemy import Sequence, func, ForeignKey, or_
 from sqlalchemy.sql import select, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB, array
+from sqlalchemy.schema import FetchedValue
+
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 from pypnusershub.env import db
@@ -85,6 +87,23 @@ cor_roles = db.Table(
     extend_existing=True,
 )
 
+cor_role_provider = db.Table(
+    "cor_role_provider",
+    db.Column(
+        "id_role",
+        db.Integer,
+        ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+    ),
+    db.Column(
+        "id_provider",
+        db.Integer,
+        ForeignKey("utilisateurs.t_providers.id_provider"),
+        primary_key=True,
+    ),
+    schema="utilisateurs",
+)
+
 
 class UserQuery(Query):
     def filter_by_app(self, code_app=None):
@@ -113,6 +132,7 @@ class User(db.Model, UserMixin):
     __table_args__ = {"schema": "utilisateurs"}
     query_class = UserQuery
 
+    uuid_role = db.Column(UUID, server_default=FetchedValue())
     groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,
@@ -142,6 +162,7 @@ class User(db.Model, UserMixin):
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
         backref=backref("members", cascade_backrefs=False),
     )
+    providers = db.relationship("Provider", secondary=cor_role_provider)
 
     @property
     def max_level_profil(self):
@@ -209,8 +230,8 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
-    def __str__(self):
-        return self.identifiant or self.nom_complet
+    # def __str__(self):
+    #     return self.identifiant or self.nom_complet
 
     @qfilter
     def filter_by_app(cls, code_app=None, **kwargs):
@@ -473,3 +494,15 @@ class UserList(db.Model):
     desc_liste = db.Column(db.Unicode)
 
     users = db.relationship(User, secondary=cor_role_liste)
+
+
+class Provider(db.Model):
+    __tablename__ = "t_providers"
+    __table_args__ = {"schema": "utilisateurs"}
+    id_provider = db.Column(
+        db.Integer,
+        nullable=False,
+        primary_key=True,
+    )
+    name = db.Column(db.Unicode, nullable=False)
+    url = db.Column(db.Unicode, nullable=False)
