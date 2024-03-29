@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from geonature.core.auth.auth_manager import auth_manager
 from pypnusershub.authentification import DefaultConfiguration
 
 """
@@ -132,11 +133,7 @@ def login():
     - If the authentication fails, it returns the result of the authentication.
     """
 
-    auth_class = DefaultConfiguration()
-    if "authentification_class" in current_app.config:
-        auth_class = current_app.config["authentification_class"]()
-
-    auth_result = auth_class.authenticate()
+    auth_result = auth_manager.get_current_provider().authenticate()
     if isinstance(auth_result, models.User):
         login_user(auth_result)
         user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
@@ -185,17 +182,15 @@ def public_login():
 
 @routes.route("/logout", methods=["GET", "POST"])
 def logout():
-    auth_class = DefaultConfiguration()
-    if "authentification_class" in current_app.config:
-        auth_class = current_app.config["authentification_class"]()
 
     params = request.args
     if "redirect" in params:
         resp = redirect(params["redirect"], code=302)
     else:
         resp = make_response()
+    auth_manager.get_current_provider().revoke()
     logout_user()
-    auth_class.revoke()
+
     return resp
 
 
