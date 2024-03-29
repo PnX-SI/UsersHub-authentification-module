@@ -3,12 +3,19 @@ from marshmallow import pre_load, fields
 from utils_flask_sqla.schema import SmartRelationshipsMixin
 
 from pypnusershub.env import ma, db
-from pypnusershub.db.models import User, Organisme
+from pypnusershub.db.models import User, Organisme, Provider
 
 
 class OrganismeSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Organisme
+        load_instance = True
+        sqla_session = db.session
+
+
+class ProviderSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Provider
         load_instance = True
         sqla_session = db.session
 
@@ -25,6 +32,7 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
     nom_complet = fields.String()
     groups = fields.Nested(lambda: UserSchema, many=True)
     organisme = fields.Nested(OrganismeSchema)
+    providers = fields.Nested(ProviderSchema, many=True)
 
     # TODO: remove this and fix usage of the schema
     @pre_load
