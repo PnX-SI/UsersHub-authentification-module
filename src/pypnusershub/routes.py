@@ -80,6 +80,18 @@ routes = ConfigurableBlueprint("auth", __name__)
 from pypnusershub.decorators import check_auth
 
 
+@routes.route("/providers", methods=["GET"])
+def get_providers():
+    property_name = ["id_provider", "is_uh", "logo", "label", "login_url", "logout_url"]
+
+    return jsonify(
+        [
+            {_property: getattr(provider, _property) for _property in property_name}
+            for _, provider in current_app.auth_manager.provider_authentication_cls.items()
+        ]
+    )
+
+
 @routes.route("/get_current_user")
 @login_required
 def get_user_data():
@@ -108,42 +120,6 @@ def get_user_data():
     }
 
     return jsonify(data)
-
-
-@routes.route("/external_provider_url")
-def get_external_provider_url() -> str:
-    """
-    Retrieves the URL of the current authentication provider.
-
-    This route is used to get the URL of the current authentication provider.
-    It uses the `auth_manager` of the Flask app to get the current provider and
-    then calls its `get_provider_url` method to get the URL.
-
-    Returns
-    -------
-    str
-        The URL of the current authentication provider.
-    """
-    return jsonify(current_app.auth_manager.get_current_provider().get_provider_url())
-
-
-@routes.route("/external_provider_revoke_url")
-def get_external_provider_revoke_url() -> str:
-    """
-    Retrieves the URL of the current authentication provider.
-
-    This route is used to get the URL of the current authentication provider.
-    It uses the `auth_manager` of the Flask app to get the current provider and
-    then calls its `get_provider_url` method to get the URL.
-
-    Returns
-    -------
-    str
-        The URL of the current authentication provider.
-    """
-    return jsonify(
-        current_app.auth_manager.get_current_provider().get_provider_revoke_url()
-    )
 
 
 @routes.route("/login/<provider>", methods=["POST", "GET"])
