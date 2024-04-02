@@ -29,6 +29,9 @@ class Authentication:
     Abstract class for authentication implementations.
     """
 
+    def __init__(self, name_provider) -> None:
+        self.name_provider = name_provider
+
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         """
         Authenticate a user with the provided parameters.
@@ -99,6 +102,70 @@ class Authentication:
             The revoke URL of the authentication provider.
         """
         raise NotImplementedError()
+
+    @property
+    def logo(self) -> str:
+        """
+        Get the logo of the authentication provider.
+
+        Returns
+        -------
+        str
+            The logo of the authentication provider.
+        """
+        return "logo"
+
+    @property
+    def is_geonature(self) -> bool:
+        """
+        Indicate if the authentication provider is GeoNature.
+
+        Returns
+        -------
+        bool
+            True if it is GeoNature, False otherwise.
+        """
+        return False
+
+    @property
+    def login_url(self) -> str:
+        """
+        Get the login URL of the authentication provider.
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+
+        Returns
+        -------
+        str
+            The login URL of the authentication provider.
+        """
+        return self.get_provider_url()
+
+    @property
+    def label(self) -> str:
+        """
+        Get the label of the authentication provider.
+
+        Returns
+        -------
+        str
+            The label of the authentication provider.
+        """
+        return self.__class__.__name__
+
+    @property
+    def id_provider(self):
+        """
+        Get the identifier of the authentication provider.
+
+        Returns
+        -------
+        str
+            The name of the authentication provider.
+        """
 
 
 class DefaultConfiguration(Authentication):

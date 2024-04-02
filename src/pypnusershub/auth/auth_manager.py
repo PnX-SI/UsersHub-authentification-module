@@ -28,16 +28,12 @@ class AuthManager:
         """
         return item in self.provider_authentication_cls
 
-    def add_provider(
-        self, provider_name: str, provider_authentification: Authentication
-    ) -> None:
+    def add_provider(self, provider_authentification: Authentication) -> None:
         """
         Registers a new authentication provider.
 
         Parameters
         ----------
-        provider_name : str
-            The name of the provider.
         provider : Authentification
             The authentication provider class.
 
@@ -52,7 +48,9 @@ class AuthManager:
         """
         if not isinstance(provider_authentification, Authentication):
             raise AssertionError("Provider must be an instance of Authentification")
-        self.provider_authentication_cls[provider_name] = provider_authentification
+        self.provider_authentication_cls[provider_authentification.id_provider] = (
+            provider_authentification
+        )
 
     def init_app(self, app, prefix: str = "/auth") -> None:
         """
