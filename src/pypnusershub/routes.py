@@ -165,7 +165,8 @@ def login(provider="default"):
         - `token`: The JWT token.
     - If the authentication fails, it returns the result of the authentication.
     """
-    user = current_app.auth_manager.get_provider(provider).authenticate()
+    auth_provider = current_app.auth_manager.get_provider(provider)
+    user = auth_provider.authenticate()
     if isinstance(user, models.User):
         login_user(user)
         user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
@@ -174,6 +175,9 @@ def login(provider="default"):
         token = encode_token(user_dict)
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+
+        if provider.is_external:
+            return redirect(current_app.auth_manager.home_page)
 
         return jsonify(
             {
@@ -210,8 +214,8 @@ def public_login():
     )
 
 
-@routes.route("/logout", methods=["GET", "POST"])
-def logout():
+@routes.route("/logout/<provider>", methods=["GET", "POST"])
+def logout(provider="default"):
 
     params = request.args
     if "redirect" in params:
@@ -220,7 +224,9 @@ def logout():
         resp = make_response()
 
     logout_user()
-    current_app.auth_manager.get_current_provider().revoke()
+    provider = current_app.auth_manager.get_provider(provider)
+    if provider.is_external:
+        return redirect(provider.logout_url)
 
     return resp
 
