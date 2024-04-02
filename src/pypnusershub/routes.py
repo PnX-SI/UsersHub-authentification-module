@@ -2,8 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from pypnusershub.authentification import DefaultConfiguration
-
 """
 routes relatives aux application, utilisateurs et à l'authentification
 """
@@ -148,8 +146,8 @@ def get_external_provider_revoke_url() -> str:
     )
 
 
-@routes.route("/login", methods=["POST", "GET"])
-def login():
+@routes.route("/login/<provider>", methods=["POST", "GET"])
+def login(provider="default"):
     """
     Authenticates the user and returns their data and a JWT token.
 
@@ -167,19 +165,16 @@ def login():
         - `token`: The JWT token.
     - If the authentication fails, it returns the result of the authentication.
     """
-
-    auth_result = current_app.auth_manager.get_current_provider().authenticate()
-    if isinstance(auth_result, models.User):
-        login_user(auth_result)
+    user = current_app.auth_manager.get_provider(provider).authenticate()
+    if isinstance(user, models.User):
+        login_user(user)
         user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-            auth_result
+            user
         )
         token = encode_token(user_dict)
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
 
-        if current_app.config.get("CAS_AUTHENTIFICATION", False):
-            return redirect(current_app.config["URL_APPLICATION"])
         return jsonify(
             {
                 "user": user_dict,
@@ -187,8 +182,8 @@ def login():
                 "token": token.decode(),
             }
         )
-    else:
-        return auth_result
+
+    # raise AssertionError
 
 
 @routes.route("/public_login", methods=["POST"])

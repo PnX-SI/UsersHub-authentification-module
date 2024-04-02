@@ -209,8 +209,8 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
-    def __str__(self):
-        return self.identifiant or self.nom_complet
+    # def __str__(self):
+    #     return self.identifiant or self.nom_complet
 
     @qfilter
     def filter_by_app(cls, code_app=None, **kwargs):

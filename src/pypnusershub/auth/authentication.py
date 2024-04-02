@@ -24,7 +24,7 @@ from pypnusershub.schemas import OrganismeSchema, UserSchema
 log = logging.getLogger(__name__)
 
 
-class Authentification:
+class Authentication:
     """
     Abstract class for authentication implementations.
     """
@@ -101,7 +101,7 @@ class Authentification:
         raise NotImplementedError()
 
 
-class DefaultConfiguration(Authentification):
+class DefaultConfiguration(Authentication):
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         user_data = request.json
