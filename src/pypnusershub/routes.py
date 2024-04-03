@@ -80,6 +80,27 @@ routes = ConfigurableBlueprint("auth", __name__)
 from pypnusershub.decorators import check_auth
 
 
+@routes.route("/providers", methods=["GET"])
+def get_providers():
+    property_name = [
+        "id_provider",
+        "is_uh",
+        "logo",
+        "label",
+        "login_url",
+        "logout_url",
+        "is_external",
+    ]
+    for _, provider in current_app.auth_manager.provider_authentication_cls.items():
+        print(provider)
+    return jsonify(
+        [
+            {_property: getattr(provider(), _property) for _property in property_name}
+            for _, provider in current_app.auth_manager.provider_authentication_cls.items()
+        ]
+    )
+
+
 @routes.route("/get_current_user")
 @login_required
 def get_user_data():
@@ -110,42 +131,7 @@ def get_user_data():
     return jsonify(data)
 
 
-@routes.route("/external_provider_url")
-def get_external_provider_url() -> str:
-    """
-    Retrieves the URL of the current authentication provider.
-
-    This route is used to get the URL of the current authentication provider.
-    It uses the `auth_manager` of the Flask app to get the current provider and
-    then calls its `get_provider_url` method to get the URL.
-
-    Returns
-    -------
-    str
-        The URL of the current authentication provider.
-    """
-    return jsonify(current_app.auth_manager.get_current_provider().get_provider_url())
-
-
-@routes.route("/external_provider_revoke_url")
-def get_external_provider_revoke_url() -> str:
-    """
-    Retrieves the URL of the current authentication provider.
-
-    This route is used to get the URL of the current authentication provider.
-    It uses the `auth_manager` of the Flask app to get the current provider and
-    then calls its `get_provider_url` method to get the URL.
-
-    Returns
-    -------
-    str
-        The URL of the current authentication provider.
-    """
-    return jsonify(
-        current_app.auth_manager.get_current_provider().get_provider_revoke_url()
-    )
-
-
+@routes.route("/login", methods=["POST", "GET"])
 @routes.route("/login/<provider>", methods=["POST", "GET"])
 def login(provider="default"):
     """
@@ -165,8 +151,11 @@ def login(provider="default"):
         - `token`: The JWT token.
     - If the authentication fails, it returns the result of the authentication.
     """
-    auth_provider = current_app.auth_manager.get_provider(provider)
+    print("ARGS LOGIN", request.args)
+    auth_provider = current_app.auth_manager.get_provider(provider)()
+    print("AUTH PROVIDER", auth_provider)
     user = auth_provider.authenticate()
+    print("LAAA", user)
     if isinstance(user, models.User):
         login_user(user)
         user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
@@ -176,8 +165,10 @@ def login(provider="default"):
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
 
-        if provider.is_external:
-            return redirect(current_app.auth_manager.home_page)
+        if auth_provider.is_external:
+            print("REDIREZCT ? ????")
+
+            return redirect(current_app.config["URL_APPLICATION"])
 
         return jsonify(
             {
@@ -187,6 +178,7 @@ def login(provider="default"):
             }
         )
 
+    return redirect(current_app.config["URL_APPLICATION"])
     # raise AssertionError
 
 
@@ -224,9 +216,6 @@ def logout(provider="default"):
         resp = make_response()
 
     logout_user()
-    provider = current_app.auth_manager.get_provider(provider)
-    if provider.is_external:
-        return redirect(provider.logout_url)
 
     return resp
 

@@ -46,8 +46,9 @@ class AuthManager:
         AssertionError
             If the provider is not an instance of Authentification.
         """
-        if not isinstance(provider_authentification, Authentication):
-            raise AssertionError("Provider must be an instance of Authentification")
+
+        if not issubclass(provider_authentification, Authentication):
+            raise AssertionError("Provider must be an instance of Authentication")
         self.provider_authentication_cls[provider_authentification.id_provider] = (
             provider_authentification
         )
@@ -70,6 +71,8 @@ class AuthManager:
         app.auth_manager = self
 
         app.register_blueprint(routes, url_prefix=prefix)
+        for provider in app.config.get("AUTHENTICATION_CLASS", []):
+            self.add_provider(provider)
 
     def get_provider(self, provider_name: str) -> Authentication:
         """
@@ -81,6 +84,9 @@ class AuthManager:
             The current authentication provider.
         """
         return self.provider_authentication_cls[provider_name]
+
+    # Home page of the app using auth_manager
+    home_page = ""
 
 
 auth_manager = AuthManager()

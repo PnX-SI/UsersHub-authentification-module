@@ -20,8 +20,19 @@ from pypnusershub.db.tools import (
     encode_token,
 )
 from pypnusershub.schemas import OrganismeSchema, UserSchema
+from werkzeug.exceptions import Unauthorized
 
 log = logging.getLogger(__name__)
+
+
+class AuthenticationMeta:
+    pass
+
+    # def __instancecheck__(cls, instance):
+    #     return cls.__subclasscheck__(type(instance))
+
+    # def __subclasscheck__(cls, subclass):
+    #     return all([hasattr(subclass, field) for field in cls.required_fields])
 
 
 class Authentication:
@@ -29,10 +40,95 @@ class Authentication:
     Abstract class for authentication implementations.
     """
 
-    def __init__(self, name_provider) -> None:
-        self.name_provider = name_provider
+    @property
+    def id_provider(self) -> str:
+        """
+        Identifier of the authentication provider.
 
-    def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
+        Returns
+        -------
+        str
+            The authentication provider identifier.
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    @property
+    def label(self) -> str:
+        """
+        Label of the authentication provider.
+
+        Returns
+        -------
+        str
+            The label of the authentication provider.
+        """
+
+    @property
+    def login_url(self) -> str:
+        """
+        External logout URL.
+        Must be define if the authentication provider is external, otherwise put an empty string
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    @property
+    def logout_url(self) -> str:
+        """
+        External logout URL.
+        Must be define if the authentication provider is external, otherwise put an empty string
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    @property
+    def is_external(self) -> bool:
+        """
+        Return whether the authentication provider is external or not.
+
+        Returns
+        -------
+        bool
+            True if the authentication provider is external, False otherwise.
+        """
+        return False
+
+    @property
+    def logo(self) -> str:
+        """
+        Logo of the authentication provider.
+
+        Returns
+        -------
+        str
+            URL of the logo image.
+        """
+        return ""
+
+    @property
+    def is_uh(self) -> bool:
+        """
+        Return whether the authentication is an 'usershub-auth-module' authentication.
+
+        Returns
+        -------
+        bool
+        """
+        return True
+
+    def authenticate(self, *args, **kwargs) -> models.User:
         """
         Authenticate a user with the provided parameters.
 
@@ -50,8 +146,8 @@ class Authentication:
 
         Returns
         -------
-        Union[Response, models.User]
-            The result of the authentication process, which can be either a Response object or a User object.
+        models.User
+            The result of the authentication process, which must be a User object.
         """
         raise NotImplementedError()
 
@@ -71,78 +167,12 @@ class Authentication:
         """
         raise NotImplementedError()
 
-    # the Auth provider is external ? (OAuth, SSO ...)
-    is_external = False
-
-    # Logout URL of the auth provider.
-    logout_url = ""
-
-    @property
-    def logo(self) -> str:
-        """
-        Get the logo of the authentication provider.
-
-        Returns
-        -------
-        str
-            The logo of the authentication provider.
-        """
-        return "logo"
-
-    @property
-    def is_geonature(self) -> bool:
-        """
-        Indicate if the authentication provider is GeoNature.
-
-        Returns
-        -------
-        bool
-            True if it is GeoNature, False otherwise.
-        """
-        return False
-
-    @property
-    def login_url(self) -> str:
-        """
-        Get the login URL of the authentication provider.
-
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
-
-        Returns
-        -------
-        str
-            The login URL of the authentication provider.
-        """
-        return self.get_provider_url()
-
-    @property
-    def label(self) -> str:
-        """
-        Get the label of the authentication provider.
-
-        Returns
-        -------
-        str
-            The label of the authentication provider.
-        """
-        return self.__class__.__name__
-
-    @property
-    def id_provider(self):
-        """
-        Get the identifier of the authentication provider.
-
-        Returns
-        -------
-        str
-            The name of the authentication provider.
-        """
-
 
 class DefaultConfiguration(Authentication):
+    login_url = ""
+    logout_url = ""
+    is_external = False
+    id_provider = "default"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         user_data = request.json
@@ -163,32 +193,13 @@ class DefaultConfiguration(Authentication):
                 .where(models.User.identifiant == username)
                 .where(models.User.filter_by_app())
             ).scalar_one()
-            user_dict = UserSchema(
-                exclude=["remarques"], only=["+max_level_profil"]
-            ).dump(user)
         except exc.NoResultFound as e:
-            msg = json.dumps(
-                {
-                    "type": "login",
-                    "msg": (
-                        'No user found with the username "{login}" for '
-                        'the application with id "{id_app}"'
-                    ).format(login=escape(username), id_app=id_app),
-                }
+            raise Unauthorized(
+                'No user found with the username "{login}" for the application with id "{id_app}"'
             )
-            log.info(msg)
-            status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-            return Response(msg, status=status_code)
 
         if not user.check_password(user_data["password"]):
-            msg = json.dumps({"type": "password", "msg": "Mot de passe invalide"})
-            log.info(msg)
-            status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-            return Response(msg, status=status_code)
-        # Génération d'un token
-        token = encode_token(user_dict)
-        token_exp = datetime.datetime.now(datetime.timezone.utc)
-        token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+            raise Unauthorized("Invalid password")
         return user
 
     def revoke(self) -> Any:
