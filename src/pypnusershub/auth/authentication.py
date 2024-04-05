@@ -94,18 +94,6 @@ class Authentication:
         raise NotImplementedError()
 
     @property
-    def is_external(self) -> bool:
-        """
-        Return whether the authentication provider is external or not.
-
-        Returns
-        -------
-        bool
-            True if the authentication provider is external, False otherwise.
-        """
-        return False
-
-    @property
     def logo(self) -> str:
         """
         Logo of the authentication provider.
@@ -167,11 +155,13 @@ class Authentication:
         """
         raise NotImplementedError()
 
+    def authorize(self) -> Any:
+        raise NotImplementedError()
+
 
 class DefaultConfiguration(Authentication):
     login_url = ""
     logout_url = ""
-    is_external = False
     id_provider = "default"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
