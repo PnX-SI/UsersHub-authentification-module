@@ -60,6 +60,7 @@ Le décorateur ``@check_auth`` change de signature, les paramètres suivants son
 - ``get_role`` : l'utilisateur connecté est disponible via ``flask_login.current_user``
 - ``redirect_on_expiration`` , ``redirect_on_invalid_token`` : l'utilisateur sera redirigé vers la vue définie par ``login_manager.login_view`` (à modifier dans l'application utilisant le sous-module)
 - ``redirect_on_insufficient_right`` : le paramètre applicatif ``REDIRECT_ON_FORBIDDEN`` contrôle la route de redirection si les droits pour accéder à la ressource sont insuffisants. Lève une 403 si ce paramètre n'est pas défini.
+- Le retour de la route ``/auth/login`` change. L'attribut id_droit_max utilisé pour contrôler les droits côté frontend devient ``max_level_profil``
 
 
 1.6.11 (2023-09-19)
