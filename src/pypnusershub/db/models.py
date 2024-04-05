@@ -142,6 +142,7 @@ class User(db.Model, UserMixin):
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
         backref=backref("members", cascade_backrefs=False),
     )
+    provider = db.Column(db.Unicode, nullable=False, server_default="default")
 
     @property
     def max_level_profil(self):
