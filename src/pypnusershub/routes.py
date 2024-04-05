@@ -89,14 +89,12 @@ def get_providers():
         "label",
         "login_url",
         "logout_url",
-        "is_external",
     ]
-    for _, provider in current_app.auth_manager.provider_authentication_cls.items():
-        print(provider)
     return jsonify(
         [
             {_property: getattr(provider(), _property) for _property in property_name}
             for _, provider in current_app.auth_manager.provider_authentication_cls.items()
+            if not provider.id_provider == "default"
         ]
     )
 
@@ -151,24 +149,18 @@ def login(provider="default"):
         - `token`: The JWT token.
     - If the authentication fails, it returns the result of the authentication.
     """
-    print("ARGS LOGIN", request.args)
     auth_provider = current_app.auth_manager.get_provider(provider)()
-    print("AUTH PROVIDER", auth_provider)
     user = auth_provider.authenticate()
-    print("LAAA", user)
+    if isinstance(user, Response):
+        return user
     if isinstance(user, models.User):
         login_user(user)
-        user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-            user
-        )
+        user_dict = UserSchema(
+            exclude=["remarques"], only=["+max_level_profil", "+provider"]
+        ).dump(user)
         token = encode_token(user_dict)
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-
-        if auth_provider.is_external:
-            print("REDIREZCT ? ????")
-
-            return redirect(current_app.config["URL_APPLICATION"])
 
         return jsonify(
             {
@@ -179,7 +171,6 @@ def login(provider="default"):
         )
 
     return redirect(current_app.config["URL_APPLICATION"])
-    # raise AssertionError
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -208,16 +199,30 @@ def public_login():
 
 @routes.route("/logout/<provider>", methods=["GET", "POST"])
 def logout(provider="default"):
+    auth_provider = current_app.auth_manager.get_provider(provider)()
+    logout_user()
+    resp = auth_provider.revoke()
+    if isinstance(resp, Response):
+        return resp
 
     params = request.args
     if "redirect" in params:
         resp = redirect(params["redirect"], code=302)
     else:
-        resp = make_response()
-
-    logout_user()
+        resp = redirect(current_app.config["URL_APPLICATION"])
 
     return resp
+
+
+@routes.route("/authorize/<provider>", methods=["GET", "POST"])
+def authorize(provider="default"):
+    auth_provider = current_app.auth_manager.get_provider(provider)()
+    user = auth_provider.authorize()
+    if isinstance(user, models.User):
+        login_user(user)
+
+    # if auth_provider.is_external:
+    return redirect(current_app.config["URL_APPLICATION"])
 
 
 def insert_or_update_organism(organism):
@@ -235,7 +240,20 @@ def insert_or_update_role(data):
     """
     Insert or update a role (also add groups if provided)
     """
-    user_schema = UserSchema(only=["groups"])
-    user = user_schema.load(data)
-    db.session.add(user)
-    return user_schema.dump(user)
+    user_schema = UserSchema()
+    user_exists = db.session.execute(
+        sa.select(models.User).where(
+            models.User.identifiant == data["identifiant"],
+        )
+    ).scalar_one_or_none()
+    if user_exists:
+        if data["provider"] != user_exists.provider:
+            raise BadRequest(
+                f"User with identifiant {data['identifiant']} already exists for provider {user_exists.provider}"
+            )
+        return user_schema.dump(user_exists)
+    else:
+        user = user_schema.load(data)
+        db.session.add(user)
+        db.session.commit()
+        return user_schema.dump(user)
