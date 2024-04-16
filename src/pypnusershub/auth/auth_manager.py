@@ -1,4 +1,5 @@
-from .authentication import Authentication, DefaultConfiguration
+from .authentication import Authentication
+from .providers import DefaultConfiguration
 
 
 class AuthManager:
