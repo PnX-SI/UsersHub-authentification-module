@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Optional, Union
 import json
 import logging
 
@@ -8,6 +8,8 @@ from flask import (
     Response,
     current_app,
 )
+import warnings
+
 from markupsafe import escape
 
 from sqlalchemy.orm import exc
@@ -22,17 +24,9 @@ from pypnusershub.db.tools import (
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 from werkzeug.exceptions import Unauthorized
 
+from marshmallow import Schema, fields
+
 log = logging.getLogger(__name__)
-
-
-class AuthenticationMeta:
-    pass
-
-    # def __instancecheck__(cls, instance):
-    #     return cls.__subclasscheck__(type(instance))
-
-    # def __subclasscheck__(cls, subclass):
-    #     return all([hasattr(subclass, field) for field in cls.required_fields])
 
 
 class Authentication:
@@ -139,6 +133,27 @@ class Authentication:
         """
         raise NotImplementedError()
 
+    def authorize(self) -> Any:
+        """
+        Authorize the current user.
+
+        This function is meant to be called after a successful authentication (`/login`)
+        in order to complete the authorization process. It will reconcile the data recovered
+        from the login provider and the database. It will return a User object
+        or raise an exception if the authorization process fails.
+
+        Returns
+        -------
+        Any
+            A redirect response or an exception.
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
     def revoke(self) -> Any:
         """
         Revoke current authentication.
@@ -155,5 +170,11 @@ class Authentication:
         """
         raise NotImplementedError()
 
-    def authorize(self) -> Any:
-        raise NotImplementedError()
+    def configure(configuration: Union[dict, Any] = {}):
+        warnings.warn(
+            f"No configuration was declared for the provider {self.__class__.__name__}"
+        )
+        pass
+
+    def configuration_schema(self) -> Optional[Schema]:
+        pass
