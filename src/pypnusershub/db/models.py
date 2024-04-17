@@ -142,6 +142,7 @@ class User(db.Model, UserMixin):
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
         backref=backref("members", cascade_backrefs=False),
     )
+    provider = db.Column(db.Unicode, nullable=False, server_default="default")
 
     @property
     def max_level_profil(self):
@@ -209,8 +210,8 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return "<User '{!r}' id='{}'>".format(self.identifiant, self.id_role)
 
-    def __str__(self):
-        return self.identifiant or self.nom_complet
+    # def __str__(self):
+    #     return self.identifiant or self.nom_complet
 
     @qfilter
     def filter_by_app(cls, code_app=None, **kwargs):
