@@ -3,7 +3,7 @@ from typing import Any, Union
 
 import sqlalchemy as sa
 from flask import Response, request
-from pypnusershub import db, models
+from pypnusershub.db import db, models
 from pypnusershub.utils import get_current_app_id
 from sqlalchemy.orm import exc
 from werkzeug.exceptions import BadRequest, Unauthorized
