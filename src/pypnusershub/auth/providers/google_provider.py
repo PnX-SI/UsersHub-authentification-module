@@ -1,28 +1,20 @@
 import os
-from typing import Any, Union
+from typing import Any, Optional, Tuple, Union
 
 from authlib.integrations.flask_client import OAuth
 from flask import (
     Response,
     current_app,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
     url_for,
 )
-from backend.geonature.core.auth.usershub_providers import ExternalGNAuthProvider
+from marshmallow import Schema, fields
 from geonature.utils.config import config
-from pypnusershub.auth import Authentication
+from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import models, db
 from pypnusershub.db.models import User
 from pypnusershub.routes import insert_or_update_role
 import sqlalchemy as sa
 
-current_app.config["GOOGLE_CLIENT_ID"] = ""
-
-current_app.config["GOOGLE_CLIENT_SECRET"] = ""
 
 oauth = OAuth(current_app)
 CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
@@ -65,6 +57,20 @@ class GoogleAuthProvider(Authentication):
             user.groups.append(group)
         db.session.commit()
         return user
+
+    @staticmethod
+    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
+        class GoogleProviderConfiguration(ProviderConfigurationSchema):
+            GOOGLE_CLIENT_ID = fields.String(load_default="")
+            GOOGLE_CLIENT_SECRET = fields.String(load_default="")
+
+        return "GOOGLE_PROVIDER_CONFIG", GoogleProviderConfiguration
+
+    def configure(self, configuration: Union[dict, Any]):
+        current_app.config["GOOGLE_CLIENT_ID"] = configuration["GOOGLE_CLIENT_ID"]
+        current_app.config["GOOGLE_CLIENT_SECRET"] = configuration[
+            "GOOGLE_CLIENT_SECRET"
+        ]
 
 
 # Accueil : https://ginco2-preprod.mnhn.fr/ (URL publique) + http://ginco2-preprod.patnat.mnhn.fr/ (URL privée)

@@ -82,8 +82,10 @@ from pypnusershub.decorators import check_auth
 
 @routes.route("/providers", methods=["GET"])
 def get_providers():
+    from itertools import chain
+
     property_name = [
-        "id_provider",
+        # "id_provider",
         "is_uh",
         "logo",
         "label",
@@ -92,8 +94,19 @@ def get_providers():
     ]
     return jsonify(
         [
-            {_property: getattr(provider(), _property) for _property in property_name}
-            for _, provider in current_app.auth_manager.provider_authentication_cls.items()
+            dict(
+                chain.from_iterable(
+                    d.items()
+                    for d in (
+                        {
+                            _property: getattr(provider, _property)
+                            for _property in property_name
+                        },
+                        {"id_provider": id_provider},
+                    )
+                )
+            )
+            for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
             if not provider.id_provider == "default"
         ]
     )
@@ -149,7 +162,7 @@ def login(provider="default"):
         - `token`: The JWT token.
     - If the authentication fails, it returns the result of the authentication.
     """
-    auth_provider = current_app.auth_manager.get_provider(provider)()
+    auth_provider = current_app.auth_manager.get_provider(provider)
     user = auth_provider.authenticate()
     if isinstance(user, Response):
         return user
@@ -199,7 +212,7 @@ def public_login():
 
 @routes.route("/logout/<provider>", methods=["GET", "POST"])
 def logout(provider="default"):
-    auth_provider = current_app.auth_manager.get_provider(provider)()
+    auth_provider = current_app.auth_manager.get_provider(provider)
     logout_user()
     resp = auth_provider.revoke()
     if isinstance(resp, Response):
@@ -216,7 +229,7 @@ def logout(provider="default"):
 
 @routes.route("/authorize/<provider>", methods=["GET", "POST"])
 def authorize(provider="default"):
-    auth_provider = current_app.auth_manager.get_provider(provider)()
+    auth_provider = current_app.auth_manager.get_provider(provider)
     user = auth_provider.authorize()
     if isinstance(user, models.User):
         login_user(user)

@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Optional, Tuple, Union
 import json
 import logging
 
@@ -27,6 +27,10 @@ from werkzeug.exceptions import Unauthorized
 from marshmallow import Schema, fields
 
 log = logging.getLogger(__name__)
+
+
+class ProviderConfigurationSchema(Schema):
+    label = fields.Str(required=True)
 
 
 class Authentication:
@@ -170,11 +174,12 @@ class Authentication:
         """
         raise NotImplementedError()
 
-    def configure(configuration: Union[dict, Any] = {}):
+    def configure(self, configuration: Union[dict, Any] = {}):
         warnings.warn(
             f"No configuration was declared for the provider {self.__class__.__name__}"
         )
         pass
 
-    def configuration_schema(self) -> Optional[Schema]:
+    @staticmethod
+    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
         pass
