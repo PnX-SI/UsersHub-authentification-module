@@ -65,13 +65,16 @@ log = logging.getLogger(__name__)
 
 class ConfigurableBlueprint(Blueprint):
     def register(self, app, *args, **kwargs):
-        # set cookie autorenew
         app.config["PASS_METHOD"] = app.config.get("PASS_METHOD", "hash")
 
         app.config["REMEMBER_COOKIE_NAME"] = app.config.get(
             "REMEMBER_COOKIE_NAME", "token"
         )
-
+        # retro-compat set COOKIE_EXPIRATION in REMEMBER_COOKIE_DURATION
+        # (Flask Login parameter, default 1 year)
+        app.config["REMEMBER_COOKIE_DURATION"] = app.config.get(
+            "COOKIE_EXPIRATION", 31557600
+        )
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
 
@@ -128,11 +131,13 @@ def login():
         log.info(msg)
         status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
         return Response(msg, status=status_code)
-    login_user(user)
+    login_user(user, remember=True)
     # Génération d'un token
     token = encode_token(user_dict)
     token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+    token_exp += datetime.timedelta(
+        seconds=current_app.config["REMEMBER_COOKIE_DURATION"]
+    )
     return jsonify(
         {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
     )
@@ -155,7 +160,9 @@ def public_login():
     # Génération d'un token
     token = encode_token(user_dict)
     token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+    token_exp += datetime.timedelta(
+        seconds=current_app.config["REMEMBER_COOKIE_DURATION"]
+    )
 
     return jsonify(
         {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
