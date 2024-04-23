@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+2.1.4 (2024-04-23)
+------------------
+
+**🐛 Corrections**
+
+- Synchronisation de l'expiration des token JWT et du cookie de session généré par `flask-login` (#94)
+
+
 2.1.3 (2024-02-22)
 -----------------
 
