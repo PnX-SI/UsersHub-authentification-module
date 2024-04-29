@@ -1,6 +1,9 @@
 from .authentication import Authentication
 from .providers import DefaultConfiguration
+from pypnusershub.db.models import Provider
 import importlib
+import sqlalchemy as sa
+from pypnusershub.env import db
 
 
 class AuthManager:
@@ -32,7 +35,7 @@ class AuthManager:
         return item in self.provider_authentication_cls
 
     def add_provider(
-        self, id_instance: str, provider_authentification: Authentication
+        self, id_provider: str, provider_authentification: Authentication
     ) -> None:
         """
         Registers a new authentication provider instance.
@@ -51,10 +54,16 @@ class AuthManager:
             If the provider is not an instance of Authentification.
         """
 
-        assert id_instance not in self.provider_authentication_cls
+        assert id_provider not in self.provider_authentication_cls
+        query = sa.exists(Provider).where(Provider.name == id_provider).select()
+        if not db.session.scalar(query):
+            db.session.add(
+                Provider(name=id_provider, url=provider_authentification.login_url)
+            )
+            db.session.commit()
         if not isinstance(provider_authentification, Authentication):
             raise AssertionError("Provider must be an instance of Authentication")
-        self.provider_authentication_cls[id_instance] = provider_authentification
+        self.provider_authentication_cls[id_provider] = provider_authentification
 
     def init_app(self, app, prefix: str = "/auth") -> None:
         """
@@ -82,14 +91,11 @@ class AuthManager:
             )
             module = importlib.import_module(import_path)
             class_ = getattr(module, class_name)
-            name_, _ = class_.configuration_schema()
-            for config in app.config["AUTHENTICATION"]["PROVIDERS_CONFIG"][name_][
-                "CONFIG"
-            ]:
+            for config in app.config["AUTHENTICATION"][class_.name]:
                 instance_provider: Authentication = class_()
                 with app.app_context():
                     instance_provider.configure(configuration=config)
-                    self.add_provider(instance_provider.label, instance_provider)
+                    self.add_provider(instance_provider.id_provider, instance_provider)
 
     def get_provider(self, instance_name: str) -> Authentication:
         """

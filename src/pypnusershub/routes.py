@@ -163,14 +163,14 @@ def login(provider="default"):
     - If the authentication fails, it returns the result of the authentication.
     """
     auth_provider = current_app.auth_manager.get_provider(provider)
-    user = auth_provider.authenticate()
-    if isinstance(user, Response):
-        return user
-    if isinstance(user, models.User):
-        login_user(user)
+    auth_result = auth_provider.authenticate()
+    if isinstance(auth_result, Response):
+        return auth_result
+    if isinstance(auth_result, models.User):
+        login_user(auth_result)
         user_dict = UserSchema(
             exclude=["remarques"], only=["+max_level_profil", "+provider"]
-        ).dump(user)
+        ).dump(auth_result)
         token = encode_token(user_dict)
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
@@ -230,9 +230,9 @@ def logout(provider="default"):
 @routes.route("/authorize/<provider>", methods=["GET", "POST"])
 def authorize(provider="default"):
     auth_provider = current_app.auth_manager.get_provider(provider)
-    user = auth_provider.authorize()
-    if isinstance(user, models.User):
-        login_user(user)
+    authorize_result = auth_provider.authorize()
+    if isinstance(authorize_result, models.User):
+        login_user(authorize_result)
 
     # if auth_provider.is_external:
     return redirect(current_app.config["URL_APPLICATION"])

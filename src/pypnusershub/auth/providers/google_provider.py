@@ -8,7 +8,7 @@ from flask import (
     url_for,
 )
 from marshmallow import Schema, fields
-from geonature.utils.config import config
+
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import models, db
 from pypnusershub.db.models import User
@@ -26,6 +26,7 @@ oauth.register(
 
 
 class GoogleAuthProvider(Authentication):
+    name = "GOOGLE_PROVIDER_CONFIG"
     id_provider = "google"
     label = "Google"
     is_uh = False
@@ -64,9 +65,10 @@ class GoogleAuthProvider(Authentication):
             GOOGLE_CLIENT_ID = fields.String(load_default="")
             GOOGLE_CLIENT_SECRET = fields.String(load_default="")
 
-        return "GOOGLE_PROVIDER_CONFIG", GoogleProviderConfiguration
+        return GoogleProviderConfiguration
 
     def configure(self, configuration: Union[dict, Any]):
+        super().configure(configuration)
         current_app.config["GOOGLE_CLIENT_ID"] = configuration["GOOGLE_CLIENT_ID"]
         current_app.config["GOOGLE_CLIENT_SECRET"] = configuration[
             "GOOGLE_CLIENT_SECRET"

@@ -85,6 +85,23 @@ cor_roles = db.Table(
     extend_existing=True,
 )
 
+cor_role_provider = db.Table(
+    "cor_role_provider",
+    db.Column(
+        "id_role",
+        db.Integer,
+        ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+    ),
+    db.Column(
+        "id_provider",
+        db.Integer,
+        ForeignKey("utilisateurs.t_providers.id_provider"),
+        primary_key=True,
+    ),
+    schema="utilisateurs",
+)
+
 
 class UserQuery(Query):
     def filter_by_app(self, code_app=None):
@@ -142,7 +159,7 @@ class User(db.Model, UserMixin):
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
         backref=backref("members", cascade_backrefs=False),
     )
-    provider = db.Column(db.Unicode, nullable=False, server_default="default")
+    providers = db.relationship("Provider", secondary=cor_role_provider)
 
     @property
     def max_level_profil(self):
@@ -474,3 +491,15 @@ class UserList(db.Model):
     desc_liste = db.Column(db.Unicode)
 
     users = db.relationship(User, secondary=cor_role_liste)
+
+
+class Provider(db.Model):
+    __tablename__ = "t_providers"
+    __table_args__ = {"schema": "utilisateurs"}
+    id_provider = db.Column(
+        db.Integer,
+        nullable=False,
+        primary_key=True,
+    )
+    name = db.Column(db.Unicode, nullable=False)
+    url = db.Column(db.Unicode, nullable=False)

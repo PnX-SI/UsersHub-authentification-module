@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 
 
 class ProviderConfigurationSchema(Schema):
-    label = fields.Str(required=True)
+    id_provider = fields.Str(required=True)
 
 
 class Authentication:
@@ -39,9 +39,22 @@ class Authentication:
     """
 
     @property
+    def name(self) -> str:
+        """
+        Name of the authentication provider.
+        Use for config key
+
+        Returns
+        -------
+        str
+            The name of the authentication provider.
+        """
+        raise NotImplementedError()
+
+    @property
     def id_provider(self) -> str:
         """
-        Identifier of the authentication provider.
+        Identifier of the instance of the authentication provider.
 
         Returns
         -------
@@ -59,7 +72,7 @@ class Authentication:
     def label(self) -> str:
         """
         Label of the authentication provider.
-
+        Use in frontend
         Returns
         -------
         str
@@ -172,14 +185,12 @@ class Authentication:
         Any
             Revocation result depending on the implementation.
         """
-        raise NotImplementedError()
+        log.warn("Revoke is not implemented.")
+        pass
 
     def configure(self, configuration: Union[dict, Any] = {}):
-        warnings.warn(
-            f"No configuration was declared for the provider {self.__class__.__name__}"
-        )
-        pass
+        self.id_provider = configuration["id_provider"]
 
     @staticmethod
-    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
-        pass
+    def configuration_schema() -> ProviderConfigurationSchema:
+        return ProviderConfigurationSchema
