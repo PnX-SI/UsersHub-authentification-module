@@ -55,5 +55,5 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table("t_providers", schema="utilisateurs")
     op.drop_table("cor_role_provider", schema="utilisateurs")
+    op.drop_table("t_providers", schema="utilisateurs")
