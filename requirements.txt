@@ -94,7 +94,7 @@ urllib3==2.1.0
     # via requests
 utils-flask-sqlalchemy==0.4.1
     # via -r requirements-dependencies.in
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via
     #   flask
     #   flask-login
