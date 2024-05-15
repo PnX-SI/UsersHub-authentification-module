@@ -91,8 +91,8 @@ class AuthManager:
             module = importlib.import_module(import_path)
             class_ = getattr(module, class_name)
             for config in app.config["AUTHENTICATION"][class_.name]:
-                instance_provider: Authentication = class_()
                 with app.app_context():
+                    instance_provider: Authentication = class_()
                     instance_provider.configure(configuration=config)
                     self.add_provider(instance_provider.id_provider, instance_provider)
 

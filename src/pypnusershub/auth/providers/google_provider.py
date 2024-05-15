@@ -9,14 +9,15 @@ from flask import (
 )
 from marshmallow import Schema, fields
 
-from pypnusershub.auth import Authentication, ProviderConfigurationSchema
+from pypnusershub.auth import Authentication, ProviderConfigurationSchema, oauth
 from pypnusershub.db import models, db
 from pypnusershub.db.models import User
 from pypnusershub.routes import insert_or_update_role
 import sqlalchemy as sa
 
 
-oauth = OAuth(current_app)
+# TODO : à enlever : fonctionne avec OPENID_PROVIDER
+
 CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
 oauth.register(
     name="google",

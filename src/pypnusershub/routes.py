@@ -24,6 +24,7 @@ from flask import (
 )
 from flask_login import current_user, login_required, login_user, logout_user
 from markupsafe import escape
+from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import OrganismeSchema, UserSchema
@@ -69,6 +70,7 @@ class ConfigurableBlueprint(Blueprint):
 
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
+        oauth.init_app(app)
 
         @app.before_request
         def load_current_user():
@@ -261,7 +263,6 @@ def insert_or_update_role(
     Insert or update a role (also add groups if provided)
     """
     assert hasattr(user, reconciliate_attr)
-    user_schema = UserSchema()
     user_exists = db.session.execute(
         sa.select(models.User).where(
             getattr(models.User, reconciliate_attr) == getattr(user, reconciliate_attr),
@@ -276,6 +277,13 @@ def insert_or_update_role(
             db.session.commit()
         return user_exists
     else:
+        if "ID_GROUP_RECONCILIATION" in current_app.config.get("AUTHENTICATION", {}):
+            group = db.session.get(
+                models.User,
+                current_app.config["AUTHENTICATION"]["ID_GROUP_RECONCILIATION"],
+            )
+            if group:
+                user.groups.append(group)
         user.providers.append(provider)
         db.session.add(user)
         db.session.commit()

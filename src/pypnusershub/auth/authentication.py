@@ -31,6 +31,8 @@ log = logging.getLogger(__name__)
 
 class ProviderConfigurationSchema(Schema):
     id_provider = fields.Str(required=True)
+    logo = fields.String()
+    label = fields.String()
 
 
 class Authentication:
@@ -51,30 +53,24 @@ class Authentication:
         """
         raise NotImplementedError()
 
-    """Identifier of the instance of the authentication provider.
-    Is override by provider config config
-    Returns
-    -------
-    str
-        The authentication provider identifier."""
+    """
+    Identifier of the instance of the authentication provider (str).
+    Is override by provider config if provided
+    """
     id_provider = None
 
-    @property
-    def label(self) -> str:
-        """
-        Label of the authentication provider.
-        Use in frontend
-        Returns
-        -------
-        str
-            The label of the authentication provider.
-        """
+    """
+    Label of the authentication provider.
+    Use in frontend
+    """
+    label = ""
 
     @property
     def login_url(self) -> str:
         """
         External logout URL.
         Must be define if the authentication provider is external, otherwise put an empty string
+        Not mandatory for OpenID Providers
         Raises
         ------
         NotImplementedError
@@ -87,6 +83,7 @@ class Authentication:
         """
         External logout URL.
         Must be define if the authentication provider is external, otherwise put an empty string
+        Not mandatory for OpenID Providers
 
         Raises
         ------
@@ -95,17 +92,11 @@ class Authentication:
         """
         raise NotImplementedError()
 
-    @property
-    def logo(self) -> str:
-        """
-        Logo of the authentication provider.
-
-        Returns
-        -------
-        str
-            URL of the logo image.
-        """
-        return ""
+    """
+    Logo of the authentication provider (str)
+    URL or html of the logo image
+    """
+    logo = ""
 
     @property
     def is_uh(self) -> bool:
@@ -181,6 +172,9 @@ class Authentication:
 
     def configure(self, configuration: Union[dict, Any] = {}):
         self.id_provider = configuration["id_provider"]
+        for field in ["label", "logo"]:
+            if field in configuration:
+                setattr(self, field, configuration[field])
 
     @staticmethod
     def configuration_schema() -> ProviderConfigurationSchema:
