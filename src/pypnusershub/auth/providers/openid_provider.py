@@ -21,7 +21,7 @@ class OpenIDProvider(Authentication):
 
     def __init__(self):
         super().__init__()
-        for provider in current_app.config["AUTHENTICATION"]["OPENID_PROVIDER_CONFIG"]:
+        for provider in current_app.config["AUTHENTICATION"][self.name]:
             oauth.register(
                 name=provider["id_provider"],
                 client_id=provider["CLIENT_ID"],
@@ -63,15 +63,11 @@ class OpenIDProvider(Authentication):
             raise Unauthorized()
         token_response = session["openid_token_resp"]
         oauth_provider = getattr(oauth, self.id_provider)
-
-        issuer = oauth_provider.client_kwargs["issuer"]
-        logout_endpoint = f"{issuer}/protocol/openid-connect/logout"
+        metadata = oauth_provider.load_server_metadata()
         requests.post(
-            logout_endpoint,
+            metadata["revocation_endpoint"],
             data={
-                "client_id": oauth_provider.client_id,
-                "client_secret": oauth_provider.client_secret,
-                "refresh_token": token_response.get("refresh_token", ""),
+                "token": token_response["access_token"],
             },
         )
         session.pop("openid_token_resp")
@@ -82,7 +78,26 @@ class OpenIDProvider(Authentication):
             ISSUER = fields.String(required=True)
             CLIENT_ID = fields.String(required=True)
             CLIENT_SECRET = fields.String(required=True)
-            logo = fields.String()
-            label = fields.String()
 
         return OpenIDProviderConfiguration
+
+
+class OpenIDConnectProvider(OpenIDProvider):
+    name = "OPENID_CONNECT_PROVIDER_CONFIG"
+
+    def revoke(self):
+
+        if not "openid_token_resp" in session:
+            raise Unauthorized()
+        token_response = session["openid_token_resp"]
+        oauth_provider = getattr(oauth, self.id_provider)
+        metadata = oauth_provider.load_server_metadata()
+        requests.post(
+            metadata["end_session_endpoint"],
+            data={
+                "client_id": oauth_provider.client_id,
+                "client_secret": oauth_provider.client_secret,
+                "refresh_token": token_response.get("refresh_token", ""),
+            },
+        )
+        session.pop("openid_token_resp")

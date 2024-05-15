@@ -53,7 +53,7 @@ class AuthenficationCASINPN(Authentication):
     name = "CAS_INPN_PROVIDER"
     label = "INPN"
     is_uh = False
-    logo = """<span class="material-icons">pets</span>"""
+    logo = "<i class='fa fa-paw' aria-hidden='true'></i>"
 
     @property
     def login_url(self):
