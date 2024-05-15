@@ -49,10 +49,8 @@ class GoogleAuthProvider(Authentication):
             "prenom_role": user_info["given_name"],
             "nom_role": user_info["family_name"],
             "active": True,
-            "provider": "google",
         }
-        user_info = insert_or_update_role(new_user)
-        user = db.session.get(models.User, user_info["id_role"])
+        user = insert_or_update_role(User(**new_user), provider_name=self.id_provider)
         if not user.groups:
             group = db.session.get(models.User, 2)  # ADMIN for test
             user.groups.append(group)

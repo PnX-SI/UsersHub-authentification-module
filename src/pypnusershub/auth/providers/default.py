@@ -14,7 +14,7 @@ from ..authentication import Authentication
 class DefaultConfiguration(Authentication):
     login_url = ""
     logout_url = ""
-    id_provider = "default"
+    id_provider = "local_provider"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         user_data = request.json

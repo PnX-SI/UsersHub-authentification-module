@@ -15,8 +15,7 @@ class AuthManager:
         """
         Initializes the AuthManager instance.
         """
-        self.provider_authentication_cls = {}
-        self.add_provider("local_provider", DefaultConfiguration())
+        self.provider_authentication_cls = {"local_provider": DefaultConfiguration()}
 
     def __contains__(self, item) -> bool:
         """

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Union
+from typing import Any, Optional, Tuple, Union
 
 import xmltodict
 from flask import (
@@ -10,9 +10,10 @@ from flask import (
     render_template,
     request,
 )
+from marshmallow import fields
 from geonature.utils import utilsrequests
 from geonature.utils.errors import GeonatureApiError
-from pypnusershub.auth import Authentication
+from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
 from sqlalchemy import select
@@ -30,7 +31,6 @@ AUTHENTIFICATION_CONFIG = {
 }
 
 CAS_AUTHENTIFICATION = True
-PUB_URL = "https://ginco2-preprod.mnhn.fr/"
 CAS_PUBLIC = dict(
     URL_LOGIN="https://inpn.mnhn.fr/auth/login",
     URL_LOGOUT="https://inpn.mnhn.fr/auth/logout",
@@ -50,19 +50,19 @@ ID_USER_SOCLE_2 = 2
 
 
 class AuthenficationCASINPN(Authentication):
-    id_provider = "cas_inpn"
-    label = "CAS INPN"
+    name = "CAS_INPN_PROVIDER"
+    label = "INPN"
     is_uh = False
     logo = """<span class="material-icons">pets</span>"""
 
     @property
     def login_url(self):
         gn_api = f"{current_app.config['API_ENDPOINT']}/auth/authorize/cas_inpn"
-        return f"{CAS_PUBLIC['URL_LOGIN']}?service={gn_api}"
+        return f"{self.URL_LOGIN}?service={gn_api}"
 
     @property
     def logout_url(self):
-        return f"{CAS_PUBLIC['URL_LOGOUT']}?service={current_app.config['URL_APPLICATION']}"
+        return f"{self.URL_LOGOUT}?service={current_app.config['URL_APPLICATION']}"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         return redirect(self.login_url)
@@ -77,9 +77,7 @@ class AuthenficationCASINPN(Authentication):
         base_url = (
             f"{current_app.config['API_ENDPOINT']}/auth/authorize/{self.id_provider}"
         )
-        url_validate = (
-            f"{CAS_PUBLIC['URL_VALIDATION']}?ticket={ticket}&service={base_url}"
-        )
+        url_validate = f"{self.URL_VALIDATION}?ticket={ticket}&service={base_url}"
 
         response = utilsrequests.get(url_validate)
         xml_dict = xmltodict.parse(response.content)
@@ -94,16 +92,16 @@ class AuthenficationCASINPN(Authentication):
             log.error("Erreur d'authentification lié au CAS, voir log du CAS")
             return render_template(
                 "cas_login_error.html",
-                cas_logout=CAS_PUBLIC["URL_LOGOUT"],
+                cas_logout=self.URL_LOGOUT,
                 url_geonature=current_app.config["URL_APPLICATION"],
             )
 
-        ws_user_url = f"{CAS_USER_WS['URL']}/{user}/?verify=false"
+        ws_user_url = f"{self.URL_INFO}/{user}/?verify=false"
         response = utilsrequests.get(
             ws_user_url,
             (
-                CAS_USER_WS["ID"],
-                CAS_USER_WS["PASSWORD"],
+                self.WS_ID,
+                self.WS_PASSWORD,
             ),
         )
 
@@ -158,10 +156,10 @@ class AuthenficationCASINPN(Authentication):
             "id_organisme": organism_id,
             "email": info_user["email"],
             "active": True,
-            "provider": id_provider,
         }
-        user_info = insert_or_update_role(user_info)
-        user = db.session.get(models.User, user_id)
+        user = insert_or_update_role(
+            models.User(**user_info), provider_name=self.id_provider
+        )
         if not user.groups:
             if not USERS_CAN_SEE_ORGANISM_DATA or organism_id is None:
                 # group socle 1
@@ -172,3 +170,28 @@ class AuthenficationCASINPN(Authentication):
             group = db.session.get(models.User, group_id)
             user.groups.append(group)
         return user
+
+    @staticmethod
+    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
+        class CASINPNConfiguration(ProviderConfigurationSchema):
+            URL_LOGIN = fields.String(load_default="https://inpn.mnhn.fr/auth/login")
+            URL_LOGOUT = fields.String(load_default="https://inpn.mnhn.fr/auth/logout")
+            URL_VALIDATION = fields.String(
+                load_default="https://inpn.mnhn.fr/auth/serviceValidate"
+            )
+            URL_AUTHORIZE = fields.String(
+                load_default="https://inpn.mnhn.fr/authentication/"
+            )
+            URL_INFO = fields.String(
+                load_default="https://inpn.mnhn.fr/authentication/information",
+            )
+            WS_ID = fields.String(required=True)
+            WS_PASSWORD = fields.String(required=True)
+
+        return CASINPNConfiguration
+
+    def configure(self, configuration: Union[dict, Any]):
+        super().configure(configuration)
+        print(configuration)
+        for key in configuration:
+            setattr(self, key, configuration[key])

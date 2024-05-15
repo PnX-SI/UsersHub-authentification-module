@@ -20,6 +20,7 @@ from flask import (
     make_response,
     redirect,
     request,
+    session,
 )
 from flask_login import current_user, login_required, login_user, logout_user
 from markupsafe import escape
@@ -28,7 +29,7 @@ from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 from pypnusershub.utils import get_current_app_id
 from sqlalchemy.orm import exc
-from werkzeug.exceptions import BadRequest, Forbidden
+from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -92,6 +93,7 @@ def get_providers():
         "login_url",
         "logout_url",
     ]
+    print(current_app.auth_manager.provider_authentication_cls)
     return jsonify(
         [
             dict(
@@ -107,7 +109,7 @@ def get_providers():
                 )
             )
             for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
-            if not provider.id_provider == "default"
+            if not provider.id_provider == "local_provider"
         ]
     )
 
@@ -127,9 +129,9 @@ def get_user_data():
     dict
         A dictionary containing the user data, token, and expiration time.
     """
-    user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-        g.current_user
-    )
+    user_dict = UserSchema(
+        exclude=["remarques"], only=["+max_level_profil", "+providers"]
+    ).dump(g.current_user)
 
     token_exp = datetime.datetime.now(datetime.timezone.utc)
     token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
@@ -144,7 +146,7 @@ def get_user_data():
 
 @routes.route("/login", methods=["POST", "GET"])
 @routes.route("/login/<provider>", methods=["POST", "GET"])
-def login(provider="default"):
+def login(provider="local_provider"):
     """
     Authenticates the user and returns their data and a JWT token.
 
@@ -163,13 +165,14 @@ def login(provider="default"):
     - If the authentication fails, it returns the result of the authentication.
     """
     auth_provider = current_app.auth_manager.get_provider(provider)
+    session["current_provider"] = provider
     auth_result = auth_provider.authenticate()
     if isinstance(auth_result, Response):
         return auth_result
     if isinstance(auth_result, models.User):
         login_user(auth_result)
         user_dict = UserSchema(
-            exclude=["remarques"], only=["+max_level_profil", "+provider"]
+            exclude=["remarques"], only=["+max_level_profil", "+providers"]
         ).dump(auth_result)
         token = encode_token(user_dict)
         token_exp = datetime.datetime.now(datetime.timezone.utc)
@@ -210,9 +213,11 @@ def public_login():
     )
 
 
-@routes.route("/logout/<provider>", methods=["GET", "POST"])
-def logout(provider="default"):
-    auth_provider = current_app.auth_manager.get_provider(provider)
+@routes.route("/logout", methods=["GET", "POST"])
+def logout():
+    if not "current_provider" in session:
+        raise Unauthorized("No provider in session")
+    auth_provider = current_app.auth_manager.get_provider(session["current_provider"])
     logout_user()
     resp = auth_provider.revoke()
     if isinstance(resp, Response):
@@ -228,7 +233,7 @@ def logout(provider="default"):
 
 
 @routes.route("/authorize/<provider>", methods=["GET", "POST"])
-def authorize(provider="default"):
+def authorize(provider="local_provider"):
     auth_provider = current_app.auth_manager.get_provider(provider)
     authorize_result = auth_provider.authorize()
     if isinstance(authorize_result, models.User):
@@ -249,24 +254,29 @@ def insert_or_update_organism(organism):
     return organism_schema.dump(organism)
 
 
-def insert_or_update_role(data):
+def insert_or_update_role(
+    user: models.User, provider_name: str, reconciliate_attr="email"
+):
     """
     Insert or update a role (also add groups if provided)
     """
+    assert hasattr(user, reconciliate_attr)
     user_schema = UserSchema()
     user_exists = db.session.execute(
         sa.select(models.User).where(
-            models.User.identifiant == data["identifiant"],
+            getattr(models.User, reconciliate_attr) == getattr(user, reconciliate_attr),
         )
     ).scalar_one_or_none()
+    provider = db.session.execute(
+        sa.select(models.Provider).where(models.Provider.name == provider_name)
+    ).scalar_one()
     if user_exists:
-        if data["provider"] != user_exists.provider:
-            raise BadRequest(
-                f"User with identifiant {data['identifiant']} already exists for provider {user_exists.provider}"
-            )
-        return user_schema.dump(user_exists)
+        if not provider in user_exists.providers:
+            user_exists.providers.append(provider)
+            db.session.commit()
+        return user_exists
     else:
-        user = user_schema.load(data)
+        user.providers.append(provider)
         db.session.add(user)
         db.session.commit()
-        return user_schema.dump(user)
+        return user

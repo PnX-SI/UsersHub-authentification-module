@@ -51,22 +51,13 @@ class Authentication:
         """
         raise NotImplementedError()
 
-    @property
-    def id_provider(self) -> str:
-        """
-        Identifier of the instance of the authentication provider.
-
-        Returns
-        -------
-        str
-            The authentication provider identifier.
-
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        raise NotImplementedError()
+    """Identifier of the instance of the authentication provider.
+    Is override by provider config config
+    Returns
+    -------
+    str
+        The authentication provider identifier."""
+    id_provider = None
 
     @property
     def label(self) -> str:

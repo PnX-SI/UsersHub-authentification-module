@@ -9,6 +9,8 @@ Create Date: 2024-04-04 10:35:44.745906
 from alembic import op
 import sqlalchemy as sa
 
+from pypnusershub.db.models import Provider
+
 
 # revision identifiers, used by Alembic.
 revision = "b7c98935d9e8"
@@ -28,7 +30,7 @@ def upgrade():
         sa.Column(
             "url",
             sa.Unicode,
-            nullable=False,
+            nullable=True,
             comment="L'url du fournisseur d'authentification",
         ),
         schema="utilisateurs",
@@ -52,6 +54,7 @@ def upgrade():
         schema="utilisateurs",
         comment="Table de correpondance entre t_roles et t_providers",
     )
+    op.execute(sa.insert(Provider).values(name="local_provider"))
 
 
 def downgrade():
