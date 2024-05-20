@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+unreleased (2024-05-20)
+----------------------
+
+**🚀 Nouveautés**
+
+- Ajout des champs `meta_create_date` et `meta_update_date` à la table `bib_organismes` (#96).
+
+
 2.1.4 (2024-04-23)
 ------------------
 
