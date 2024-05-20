@@ -256,6 +256,8 @@ class Organisme(db.Model):
         db.Integer, db.ForeignKey("utilisateurs.bib_organismes.id_organisme")
     )
     additional_data = db.Column(JSONB, nullable=True, server_default="{}")
+    meta_create_date = db.Column(db.DateTime)
+    meta_update_date = db.Column(db.DateTime)
     members = db.relationship(User, backref="organisme")
 
     def __str__(self):
