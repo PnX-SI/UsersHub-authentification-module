@@ -28,7 +28,8 @@ def upgrade():
         sa.Column("meta_update_date", sa.TIMESTAMP, server_default=sa.func.now()),
         schema="utilisateurs",
     )
-    op.execute("""
+    op.execute(
+        """
 CREATE FUNCTION utilisateurs.fct_trg_meta_dates_change() RETURNS trigger
     LANGUAGE plpgsql
 AS
@@ -51,14 +52,24 @@ CREATE TRIGGER tri_meta_dates_change_organisms
     ON utilisateurs.bib_organismes
     FOR EACH ROW
 EXECUTE PROCEDURE utilisateurs.fct_trg_meta_dates_change();
-               """)
+               """
+    )
 
 
 def downgrade():
-    op.drop_column(table_name="bib_organismes", column_name="meta_create_date", schema="utilisateurs")
-    op.drop_column(table_name="bib_organismes", column_name="meta_update_date", schema="utilisateurs")
-    op.execute("""
+    op.drop_column(
+        table_name="bib_organismes",
+        column_name="meta_create_date",
+        schema="utilisateurs",
+    )
+    op.drop_column(
+        table_name="bib_organismes",
+        column_name="meta_update_date",
+        schema="utilisateurs",
+    )
+    op.execute(
+        """
 DROP TRIGGER tri_meta_dates_change_organisms ON utilisateurs.bib_organismes;
 DROP FUNCTION utilisateurs.fct_trg_meta_dates_change();
-               """)
-    
+               """
+    )
