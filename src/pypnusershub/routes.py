@@ -11,7 +11,7 @@ import json
 import logging
 
 import datetime
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_required, login_user, logout_user, current_user
 from flask import (
     Blueprint,
     request,
@@ -87,6 +87,26 @@ routes = ConfigurableBlueprint("auth", __name__)
 
 # retrocompatibilité before 2.0
 from pypnusershub.decorators import check_auth
+
+
+@routes.route("/get_current_user")
+@login_required
+def get_user_data():
+    user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
+        g.current_user
+    )
+
+    token_exp = datetime.datetime.now(datetime.timezone.utc)
+    token_exp += datetime.timedelta(
+        seconds=current_app.config.get("COOKIE_EXPIRATION", 3600)
+    )
+    data = {
+        "user": user_dict,
+        "token": encode_token(g.current_user.as_dict()).decode(),
+        "expires": token_exp.isoformat(),
+    }
+
+    return jsonify(data)
 
 
 @routes.route("/login", methods=["POST"])
