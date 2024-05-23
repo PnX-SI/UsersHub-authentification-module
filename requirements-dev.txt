@@ -12,11 +12,11 @@ alembic==1.13.1
     #   flask-migrate
 authlib==1.3.0
     # via -r requirements-common.in
-bcrypt==4.1.2
+bcrypt==4.1.3
     # via -r requirements-common.in
-blinker==1.7.0
+blinker==1.8.2
     # via flask
-certifi==2023.11.17
+certifi==2024.2.2
     # via requests
 cffi==1.16.0
     # via cryptography
@@ -24,15 +24,13 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via flask
-contextlib2==21.6.0
-    # via schema
-cryptography==42.0.1
+cryptography==42.0.7
     # via authlib
-exceptiongroup==1.2.0
+exceptiongroup==1.2.1
     # via pytest
 flake8==7.0.0
     # via -r requirements-dev.in
-flask==3.0.1
+flask==3.0.3
     # via
     #   -r requirements-common.in
     #   flask-login
@@ -43,9 +41,9 @@ flask==3.0.1
     #   utils-flask-sqlalchemy
 flask-login==0.6.3
     # via -r requirements-common.in
-flask-marshmallow==1.1.0
+flask-marshmallow==1.2.1
     # via -r requirements-common.in
-flask-migrate==4.0.5
+flask-migrate==4.0.7
     # via utils-flask-sqlalchemy
 flask-sqlalchemy==3.0.5
     # via
@@ -54,62 +52,61 @@ flask-sqlalchemy==3.0.5
     #   utils-flask-sqlalchemy
 greenlet==3.0.3
     # via sqlalchemy
-idna==3.6
+idna==3.7
     # via requests
-importlib-metadata==7.0.1
+importlib-metadata==7.1.0
     # via flask
 iniconfig==2.0.0
     # via pytest
-itsdangerous==2.1.2
+itsdangerous==2.2.0
     # via flask
-jinja2==3.1.3
+jinja2==3.1.4
     # via flask
-mako==1.3.2
+mako==1.3.5
     # via alembic
-markupsafe==2.1.4
+markupsafe==2.1.5
     # via
     #   jinja2
     #   mako
     #   werkzeug
-marshmallow==3.20.2
+marshmallow==3.21.2
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
     #   utils-flask-sqlalchemy
-marshmallow-sqlalchemy==0.30.0
+marshmallow-sqlalchemy==1.0.0
     # via -r requirements-common.in
 mccabe==0.7.0
     # via flake8
-packaging==23.2
+packaging==24.0
     # via
     #   marshmallow
-    #   marshmallow-sqlalchemy
     #   pytest
-pluggy==1.4.0
+pluggy==1.5.0
     # via pytest
 psycopg2==2.9.9
     # via -r requirements-common.in
 pycodestyle==2.11.1
     # via flake8
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pyflakes==3.2.0
     # via flake8
-pytest==8.0.0
+pytest==8.2.1
     # via
     #   -r requirements-dev.in
     #   pytest-flask
 pytest-flask==1.3.0
     # via -r requirements-dev.in
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via utils-flask-sqlalchemy
-requests==2.31.0
+requests==2.32.2
     # via -r requirements-common.in
-schema==0.7.5
+schema==0.7.7
     # via -r requirements-dev.in
 six==1.16.0
     # via python-dateutil
-sqlalchemy==1.4.51
+sqlalchemy==1.4.52
     # via
     #   -r requirements-common.in
     #   alembic
@@ -118,14 +115,14 @@ sqlalchemy==1.4.51
     #   utils-flask-sqlalchemy
 tomli==2.0.1
     # via pytest
-typing-extensions==4.9.0
+typing-extensions==4.11.0
     # via alembic
-urllib3==2.1.0
+urllib3==2.2.1
     # via requests
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via
     #   flask
     #   flask-login
     #   pytest-flask
-zipp==3.17.0
+zipp==3.18.2
     # via importlib-metadata
