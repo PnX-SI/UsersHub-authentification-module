@@ -1,12 +1,22 @@
 CHANGELOG
 *********
 
+
+unreleased (2024-05-xx)
+------------------
+
+**🚀 Nouveautés**
+
+- Ajout des champs `meta_create_date` et `meta_update_date` à la table `bib_organismes` (#96).
+
+
 2.1.5 (2024-05-23)
 ------------------
 
 **🚀 Nouveautés**
 
 - Mise à jour de dépendances critiques : `requests`, `jinja2`, `werkzeug` (#102)
+- Ajout des champs `meta_create_date` et `meta_update_date` à la table `bib_organismes` (#96).
 
 2.1.4 (2024-04-23)
 ------------------
