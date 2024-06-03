@@ -1,4 +1,3 @@
-import os
 from typing import Any, Optional, Tuple, Union
 
 from authlib.integrations.flask_client import OAuth
@@ -51,11 +50,8 @@ class GoogleAuthProvider(Authentication):
             "nom_role": user_info["family_name"],
             "active": True,
         }
-        user = insert_or_update_role(User(**new_user), provider_name=self.id_provider)
-        if not user.groups:
-            group = db.session.get(models.User, 2)  # ADMIN for test
-            user.groups.append(group)
-        db.session.commit()
+        return insert_or_update_role(User(**new_user), provider_name=self.id_provider)
+
         return user
 
     @staticmethod

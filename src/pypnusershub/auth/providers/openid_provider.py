@@ -18,6 +18,10 @@ class OpenIDProvider(Authentication):
     is_uh = False
     login_url = ""
     logout_url = ""
+    """
+    Name of the fields in the OpenID token that contains the groups info
+    """
+    group_claim_name = "groups"
 
     def __init__(self):
         super().__init__()
@@ -52,8 +56,13 @@ class OpenIDProvider(Authentication):
             "nom_role": user_info["family_name"],
             "active": True,
         }
+        kwargs = (
+            dict(group_keys=user_info[self.group_claim_name])
+            if self.group_claim_name in user_info
+            else {}
+        )
         user = insert_or_update_role(
-            models.User(**new_user), provider_name=self.id_provider
+            models.User(**new_user), provider_instance=self, **kwargs
         )
         db.session.commit()
         return user
@@ -78,6 +87,7 @@ class OpenIDProvider(Authentication):
             ISSUER = fields.String(required=True)
             CLIENT_ID = fields.String(required=True)
             CLIENT_SECRET = fields.String(required=True)
+            group_claim_name = fields.String(load_default="groups")
 
         return OpenIDProviderConfiguration
 

@@ -34,6 +34,8 @@ from sqlalchemy.orm.session import object_session
 from sqlalchemy import Sequence, func, ForeignKey, or_
 from sqlalchemy.sql import select, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB, array
+from sqlalchemy.schema import FetchedValue
+
 
 from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
 from pypnusershub.env import db
@@ -130,6 +132,7 @@ class User(db.Model, UserMixin):
     __table_args__ = {"schema": "utilisateurs"}
     query_class = UserQuery
 
+    uuid_role = db.Column(UUID, server_default=FetchedValue())
     groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,

@@ -1,6 +1,7 @@
 # coding: utf8
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+from typing import List
 
 """
 routes relatives aux application, utilisateurs et à l'authentification
@@ -187,7 +188,6 @@ def login(provider="local_provider"):
                 "token": token.decode(),
             }
         )
-
     return redirect(current_app.config["URL_APPLICATION"])
 
 
@@ -257,19 +257,49 @@ def insert_or_update_organism(organism):
 
 
 def insert_or_update_role(
-    user: models.User, provider_name: str, reconciliate_attr="email"
-):
+    user: models.User,
+    provider_instance: models.Provider,
+    reconciliate_attr="email",
+    group_keys: List[int] = [],
+) -> models.User:
     """
     Insert or update a role (also add groups if provided)
+
+    Parameters
+    ----------
+    user: models.User
+        User to insert or update
+    provider_instance: models.Provider
+        Provider instance used to create/log the user
+    reconciliate_attr: str, default="email"
+        Attribute used to reconciliate existing users
+    group_keys: List[int], default=[]
+        List of group keys to compare with existing groups defined in the group_mapping properties of the provider
+
+    Returns
+    -------
+    models.User
+        The updated or created user
+
+    Raises
+    ------
+    Exception
+        If no group mapping indicated for the provider and DEFAULT_RECONCILIATION_GROUP_ID
+        is not set
+    KeyError
+        If Group {group_name} was not found in the mapping
     """
     assert hasattr(user, reconciliate_attr)
+
     user_exists = db.session.execute(
         sa.select(models.User).where(
             getattr(models.User, reconciliate_attr) == getattr(user, reconciliate_attr),
         )
     ).scalar_one_or_none()
     provider = db.session.execute(
-        sa.select(models.Provider).where(models.Provider.name == provider_name)
+        sa.select(models.Provider).where(
+            models.Provider.name == provider_instance.id_provider
+        )
     ).scalar_one()
     if user_exists:
         if not provider in user_exists.providers:
@@ -277,13 +307,33 @@ def insert_or_update_role(
             db.session.commit()
         return user_exists
     else:
-        if "ID_GROUP_RECONCILIATION" in current_app.config.get("AUTHENTICATION", {}):
-            group = db.session.get(
-                models.User,
-                current_app.config["AUTHENTICATION"]["ID_GROUP_RECONCILIATION"],
-            )
+        group_id = ""
+        # No group mapping indicated
+        if not (provider_instance.group_mapping and group_keys):
+            if not "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
+                "AUTHENTICATION", {}
+            ):
+                raise Exception(
+                    f"If no group mapping indicated for the provider {provider.id_provider}, DEFAULT_RECONCILIATION_GROUP_ID must be set !"
+                )
+            group_id = current_app.config["AUTHENTICATION"][
+                "DEFAULT_RECONCILIATION_GROUP_ID"
+            ]
+            group = db.session.get(models.User, group_id)
             if group:
                 user.groups.append(group)
+        # Group Mapping indicated
+        else:
+            for key in group_keys:
+                if not key in provider_instance.group_mapping:
+                    raise KeyError("Group {group_name} was not found in the mapping !")
+                group_id = provider_instance.group_mapping[key]
+
+                group = db.session.get(models.User, group_id)
+
+                if group:
+                    user.groups.append(group)
+
         user.providers.append(provider)
         db.session.add(user)
         db.session.commit()

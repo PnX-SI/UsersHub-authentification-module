@@ -1,28 +1,7 @@
-from typing import Any, Optional, Tuple, Union
-import json
+from typing import Any, Union
 import logging
 
-import datetime
-from flask import (
-    request,
-    Response,
-    current_app,
-)
-import warnings
-
-from markupsafe import escape
-
-from sqlalchemy.orm import exc
-import sqlalchemy as sa
-from werkzeug.exceptions import BadRequest
-
-from pypnusershub.utils import get_current_app_id
-from pypnusershub.db import models, db
-from pypnusershub.db.tools import (
-    encode_token,
-)
-from pypnusershub.schemas import OrganismeSchema, UserSchema
-from werkzeug.exceptions import Unauthorized
+from pypnusershub.db import models
 
 from marshmallow import Schema, fields
 
@@ -31,6 +10,7 @@ log = logging.getLogger(__name__)
 
 class ProviderConfigurationSchema(Schema):
     id_provider = fields.Str(required=True)
+    group_mapping = fields.Dict(keys=fields.Str(), values=fields.Integer())
     logo = fields.String()
     label = fields.String()
 
@@ -65,32 +45,25 @@ class Authentication:
     """
     label = ""
 
-    @property
-    def login_url(self) -> str:
-        """
-        External logout URL.
-        Must be define if the authentication provider is external, otherwise put an empty string
-        Not mandatory for OpenID Providers
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        raise NotImplementedError()
+    """
+    Group mapping between source_group and destination_group. Must be in the following format:
+    [{"grp_src":"admin","grp_dst":"Grp_admin"},...]
+    """
+    group_mapping = []
 
-    @property
-    def logout_url(self) -> str:
-        """
-        External logout URL.
-        Must be define if the authentication provider is external, otherwise put an empty string
-        Not mandatory for OpenID Providers
+    """
+    External login URL.
+    Must be define if the authentication provider is external
+    Not mandatory for OpenID Providers
+    """
+    login_url = ""
 
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        raise NotImplementedError()
+    """
+    External logout URL.
+    Must be define if the authentication provider is external
+    Not mandatory for OpenID Providers
+    """
+    logout_url = ""
 
     """
     Logo of the authentication provider (str)
@@ -172,7 +145,7 @@ class Authentication:
 
     def configure(self, configuration: Union[dict, Any] = {}):
         self.id_provider = configuration["id_provider"]
-        for field in ["label", "logo"]:
+        for field in ["label", "logo", "login_url", "logout_url", "group_mapping"]:
             if field in configuration:
                 setattr(self, field, configuration[field])
 
