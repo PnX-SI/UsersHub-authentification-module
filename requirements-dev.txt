@@ -7,9 +7,7 @@
 -e file:dependencies/Utils-Flask-SQLAlchemy#egg=utils-flask-sqlalchemy
     # via -r requirements-submodules.in
 alembic==1.13.1
-    # via
-    #   -r requirements-common.in
-    #   flask-migrate
+    # via -r requirements-common.in
 authlib==1.3.0
     # via -r requirements-common.in
 bcrypt==4.1.3
@@ -35,21 +33,14 @@ flask==3.0.3
     #   -r requirements-common.in
     #   flask-login
     #   flask-marshmallow
-    #   flask-migrate
     #   flask-sqlalchemy
     #   pytest-flask
-    #   utils-flask-sqlalchemy
 flask-login==0.6.3
     # via -r requirements-common.in
 flask-marshmallow==1.2.1
     # via -r requirements-common.in
-flask-migrate==4.0.7
-    # via utils-flask-sqlalchemy
 flask-sqlalchemy==3.0.5
-    # via
-    #   -r requirements-common.in
-    #   flask-migrate
-    #   utils-flask-sqlalchemy
+    # via -r requirements-common.in
 greenlet==3.0.3
     # via sqlalchemy
 idna==3.7
@@ -73,7 +64,6 @@ marshmallow==3.21.2
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
-    #   utils-flask-sqlalchemy
 marshmallow-sqlalchemy==1.0.0
     # via -r requirements-common.in
 mccabe==0.7.0
@@ -98,26 +88,21 @@ pytest==8.2.1
     #   pytest-flask
 pytest-flask==1.3.0
     # via -r requirements-dev.in
-python-dateutil==2.9.0.post0
-    # via utils-flask-sqlalchemy
 requests==2.32.2
     # via -r requirements-common.in
 schema==0.7.7
     # via -r requirements-dev.in
-six==1.16.0
-    # via python-dateutil
 sqlalchemy==1.4.52
     # via
     #   -r requirements-common.in
     #   alembic
     #   flask-sqlalchemy
     #   marshmallow-sqlalchemy
-    #   utils-flask-sqlalchemy
 tomli==2.0.1
     # via pytest
 typing-extensions==4.11.0
     # via alembic
-urllib3==2.2.1
+urllib3==2.2.2
     # via requests
 werkzeug==3.0.3
     # via
