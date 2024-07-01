@@ -33,7 +33,7 @@ class ExternalUsersHubAuthProvider(Authentication):
             nom_role=user_resp["nom_role"],
             prenom_role=user_resp["prenom_role"],
         )
-        return insert_or_update_role(user, provider_name=self.id_provider)
+        return insert_or_update_role(user, provider_instance=self)
 
     @staticmethod
     def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
