@@ -177,7 +177,7 @@ def login(provider="local_provider"):
     if isinstance(auth_result, Response):
         return auth_result
     if isinstance(auth_result, models.User):
-        login_user(auth_result)
+        login_user(auth_result, remember=True)
         user_dict = UserSchema(
             exclude=["remarques"], only=["+max_level_profil", "+providers"]
         ).dump(auth_result)
@@ -245,7 +245,7 @@ def authorize(provider="local_provider"):
     auth_provider = current_app.auth_manager.get_provider(provider)
     authorize_result = auth_provider.authorize()
     if isinstance(authorize_result, models.User):
-        login_user(authorize_result)
+        login_user(authorize_result, remember=True)
 
     # if auth_provider.is_external:
     return redirect(current_app.config["URL_APPLICATION"])
