@@ -93,7 +93,6 @@ def get_providers():
         "login_url",
         "logout_url",
     ]
-    print(current_app.auth_manager.provider_authentication_cls)
     return jsonify(
         [
             dict(
@@ -303,6 +302,7 @@ def insert_or_update_role(
         )
     ).scalar_one()
     if user_exists:
+
         if not provider in user_exists.providers:
             user_exists.providers.append(provider)
             db.session.commit()
@@ -311,18 +311,17 @@ def insert_or_update_role(
         group_id = ""
         # No group mapping indicated
         if not (provider_instance.group_mapping and group_keys):
-            if not "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
+
+            if "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
                 "AUTHENTICATION", {}
             ):
-                raise Exception(
-                    f"If no group mapping indicated for the provider {provider.id_provider}, DEFAULT_RECONCILIATION_GROUP_ID must be set !"
-                )
-            group_id = current_app.config["AUTHENTICATION"][
-                "DEFAULT_RECONCILIATION_GROUP_ID"
-            ]
-            group = db.session.get(models.User, group_id)
-            if group:
-                user.groups.append(group)
+
+                group_id = current_app.config["AUTHENTICATION"][
+                    "DEFAULT_RECONCILIATION_GROUP_ID"
+                ]
+                group = db.session.get(models.User, group_id)
+                if group:
+                    user.groups.append(group)
         # Group Mapping indicated
         else:
             for key in group_keys:
