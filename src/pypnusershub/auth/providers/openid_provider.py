@@ -1,23 +1,25 @@
+from typing import Optional, Tuple, Union
+
 import requests
-
-from authlib.integrations.flask_client import OAuth
-from marshmallow import Schema, fields
-from typing import Any, Optional, Tuple, Union
-from flask import Response, current_app, url_for, session
-from werkzeug.exceptions import Unauthorized
-
+from flask import Response, current_app, session, url_for
+from marshmallow import fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema, oauth
-from pypnusershub.db import models, db
+from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_role
-from pypnusershub.auth.auth_manager import auth_manager
+from werkzeug.exceptions import Unauthorized
 
 
 class OpenIDProvider(Authentication):
+    """
+    OpenID provider authentication class.
+
+    This class handle the authentication process with an OpenID provider.
+
+    """
+
     name = "OPENID_PROVIDER_CONFIG"
     logo = '<i class="fa fa-sign-in"></i>'
     is_uh = False
-    login_url = ""
-    logout_url = ""
     """
     Name of the fields in the OpenID token that contains the groups info
     """
@@ -93,6 +95,13 @@ class OpenIDProvider(Authentication):
 
 
 class OpenIDConnectProvider(OpenIDProvider):
+    """
+    OpenID Connect provider authentication class.
+
+    This class handle the authentication process with an OpenID Connect provider.
+
+    """
+
     name = "OPENID_CONNECT_PROVIDER_CONFIG"
 
     def revoke(self):

@@ -1,9 +1,8 @@
-from typing import Any, Union
 import logging
-
-from pypnusershub.db import models
+from typing import Any, Union
 
 from marshmallow import Schema, fields
+from pypnusershub.db import models
 
 log = logging.getLogger(__name__)
 
@@ -143,7 +142,17 @@ class Authentication:
         log.warn("Revoke is not implemented.")
         pass
 
-    def configure(self, configuration: Union[dict, Any] = {}):
+    def configure(self, configuration: Union[dict, Any] = {}) -> None:
+        """
+        Configure the authentication provider based on data in the configuration file.
+
+        Parameters
+        ----------
+        configuration : Union[dict, Any], optional
+            The configuration parameters.
+            Default is an empty dictionary.
+
+        """
         self.id_provider = configuration["id_provider"]
         for field in ["label", "logo", "login_url", "logout_url", "group_mapping"]:
             if field in configuration:
@@ -151,4 +160,12 @@ class Authentication:
 
     @staticmethod
     def configuration_schema() -> ProviderConfigurationSchema:
+        """
+        Returns the marshmallow schema used to configure this authentication provider.
+
+        Returns
+        -------
+        ProviderConfigurationSchema
+            The schema used to configure this authentication provider.
+        """
         return ProviderConfigurationSchema

@@ -2,17 +2,10 @@ import logging
 from typing import Any, Optional, Tuple, Union
 
 import xmltodict
-from flask import (
-    Response,
-    current_app,
-    make_response,
-    redirect,
-    render_template,
-    request,
-)
-from marshmallow import fields
+from flask import Response, current_app, redirect, render_template, request
 from geonature.utils import utilsrequests
 from geonature.utils.errors import GeonatureApiError
+from marshmallow import fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
@@ -23,30 +16,6 @@ log = logging.getLogger()
 
 class CasAuthentificationError(GeonatureApiError):
     pass
-
-
-AUTHENTIFICATION_CONFIG = {
-    "PROVIDER_NAME": "inpn",
-    "EXTERNAL_PROVIDER": True,
-}
-
-CAS_AUTHENTIFICATION = True
-CAS_PUBLIC = dict(
-    URL_LOGIN="https://inpn.mnhn.fr/auth/login",
-    URL_LOGOUT="https://inpn.mnhn.fr/auth/logout",
-    URL_VALIDATION="https://inpn.mnhn.fr/auth/serviceValidate",
-)
-
-CAS_USER_WS = dict(
-    URL="https://inpn.mnhn.fr/authentication/information",
-    BASE_URL="https://inpn.mnhn.fr/authentication/",
-    ID="change_value",
-    PASSWORD="change_value",
-)
-USERS_CAN_SEE_ORGANISM_DATA = False
-
-ID_USER_SOCLE_1 = 1
-ID_USER_SOCLE_2 = 2
 
 
 class AuthenficationCASINPN(Authentication):
@@ -157,16 +126,14 @@ class AuthenficationCASINPN(Authentication):
             "email": info_user["email"],
             "active": True,
         }
-        user = insert_or_update_role(
-            models.User(**user_info), provider_name=self.id_provider
-        )
+        user = insert_or_update_role(models.User(**user_info), provider_instance=self)
         if not user.groups:
-            if not USERS_CAN_SEE_ORGANISM_DATA or organism_id is None:
+            if not self.USERS_CAN_SEE_ORGANISM_DATA or organism_id is None:
                 # group socle 1
-                group_id = ID_USER_SOCLE_1
+                group_id = self.ID_USER_SOCLE_1
             else:
                 # group socle 2
-                group_id = ID_USER_SOCLE_2
+                group_id = self.ID_USER_SOCLE_2
             group = db.session.get(models.User, group_id)
             user.groups.append(group)
         return user
@@ -187,11 +154,13 @@ class AuthenficationCASINPN(Authentication):
             )
             WS_ID = fields.String(required=True)
             WS_PASSWORD = fields.String(required=True)
+            USERS_CAN_SEE_ORGANISM_DATA = fields.Boolean(load_default=False)
+            ID_USER_SOCLE_1 = fields.Integer(load_default=7)
+            ID_USER_SOCLE_2 = fields.Integer(load_default=6)
 
         return CASINPNConfiguration
 
     def configure(self, configuration: Union[dict, Any]):
         super().configure(configuration)
-        print(configuration)
         for key in configuration:
             setattr(self, key, configuration[key])
