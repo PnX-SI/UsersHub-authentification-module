@@ -1,15 +1,10 @@
 from typing import Union
 
 from authlib.integrations.flask_client import OAuth
-from flask import (
-    Response,
-    current_app,
-    url_for,
-)
+from flask import Response, current_app, url_for
 from pypnusershub.auth import Authentication
-from pypnusershub.db import models, db
+from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_role
-
 
 oauth = OAuth(current_app)
 oauth.register(
@@ -32,6 +27,7 @@ class GitHubAuthProvider(Authentication):
     login_url = "http://127.0.0.1:8000/auth/login/github"
     logout_url = ""
     logo = '<i class="fa fa-github"></i>'
+    name = "GITHUB_PROVIDER_CONFIG"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         redirect_uri = url_for(
@@ -52,15 +48,11 @@ class GitHubAuthProvider(Authentication):
             "prenom_role": prenom,
             "nom_role": nom,
             "active": True,
-            "provider": "github",
         }
-        user_info = insert_or_update_role(new_user)
+        user_info = insert_or_update_role(new_user, self)
         user = db.session.get(models.User, user_info["id_role"])
         if not user.groups:
             group = db.session.get(models.User, 2)  # ADMIN for test
             user.groups.append(group)
         db.session.commit()
         return user
-
-
-# Accueil : https://ginco2-preprod.mnhn.fr/ (URL publique) + http://ginco2-preprod.patnat.mnhn.fr/ (URL privée)

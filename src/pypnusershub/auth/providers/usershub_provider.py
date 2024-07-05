@@ -1,19 +1,19 @@
+from typing import Optional, Tuple
+
 import requests
-from typing import Any, Optional, Tuple, Union
-
-from marshmallow import Schema, fields
-
-from flask import request, Response, url_for, current_app, redirect
-from werkzeug.exceptions import Unauthorized
-from sqlalchemy import select
-
-from geonature.utils.env import db
+from flask import request
+from marshmallow import fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db.models import User
 from pypnusershub.routes import insert_or_update_role
+from werkzeug.exceptions import Unauthorized
 
 
 class ExternalUsersHubAuthProvider(Authentication):
+    """
+    Authentication provider for Flask application using UsersHub-authentification-module.
+    """
+
     name = "EXTERNAL_USERSHUB_PROVIDER_CONFIG"
     logo = '<i class="fa fa-users"></i>'
 

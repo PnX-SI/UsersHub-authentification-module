@@ -1,18 +1,14 @@
 # coding: utf8
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-from typing import List
-
 """
 routes relatives aux application, utilisateurs et à l'authentification
 """
 
-import datetime
-import json
-import logging
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime
-from flask_login import login_required, login_user, logout_user, current_user
+import logging
+from typing import List
+
 import sqlalchemy as sa
 from flask import (
     Blueprint,
@@ -20,7 +16,6 @@ from flask import (
     current_app,
     g,
     jsonify,
-    make_response,
     redirect,
     request,
     session,
@@ -31,9 +26,7 @@ from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import OrganismeSchema, UserSchema
-from pypnusershub.utils import get_current_app_id
-from sqlalchemy.orm import exc
-from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
+from werkzeug.exceptions import Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -94,7 +87,6 @@ def get_providers():
     from itertools import chain
 
     property_name = [
-        # "id_provider",
         "is_uh",
         "logo",
         "label",

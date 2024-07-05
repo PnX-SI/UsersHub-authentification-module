@@ -1,9 +1,11 @@
+import importlib
+
+import sqlalchemy as sa
+from pypnusershub.db.models import Provider
+from pypnusershub.env import db
+
 from .authentication import Authentication
 from .providers import DefaultConfiguration
-from pypnusershub.db.models import Provider
-import importlib
-import sqlalchemy as sa
-from pypnusershub.env import db
 
 
 class AuthManager:
@@ -66,16 +68,13 @@ class AuthManager:
 
     def init_app(self, app, prefix: str = "/auth") -> None:
         """
-        Initializes the Flask application with the AuthManager.
+        Initializes the Flask application with the AuthManager. In addtion, it registers the authentification module blueprint.
 
         Parameters
         ----------
         app : Flask
             The Flask application instance.
 
-        Returns
-        -------
-        None
         """
         from pypnusershub.routes import routes
 
