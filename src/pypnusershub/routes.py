@@ -145,7 +145,10 @@ def get_user_data():
 
 
 @routes.route("/login/<provider>", methods=["POST", "GET"])
-def login(provider="local_provider"):
+@routes.route(
+    "/login", methods=["POST", "GET"], defaults={"provider": "local_provider"}
+)
+def login(provider):
     """
     Authenticates the user and returns their data and a JWT token.
 
