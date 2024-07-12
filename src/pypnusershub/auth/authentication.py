@@ -165,15 +165,3 @@ class Authentication:
         for field in ["label", "logo", "login_url", "logout_url", "group_mapping"]:
             if field in configuration:
                 setattr(self, field, configuration[field])
-
-    @staticmethod
-    def configuration_schema() -> ProviderConfigurationSchema:
-        """
-        Returns the marshmallow schema used to configure this authentication provider.
-
-        Returns
-        -------
-        ProviderConfigurationSchema
-            The schema used to configure this authentication provider.
-        """
-        return ProviderConfigurationSchema
