@@ -53,7 +53,8 @@ class AuthManager:
         AssertionError
             If the provider is not an instance of Authentification.
         """
-
+        if not db.engine.has_table(Provider.__tablename__, schema="utilisateurs"):
+            return
         assert id_provider not in self.provider_authentication_cls
         query = sa.exists(Provider).where(Provider.name == id_provider).select()
         if not db.session.scalar(query):
