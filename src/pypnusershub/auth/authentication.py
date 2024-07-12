@@ -54,9 +54,9 @@ class Authentication:
 
     """
     Group mapping between source_group and destination_group. Must be in the following format:
-    [{"grp_src":"admin","grp_dst":"Grp_admin"},...]
+    {"grp_src":"grp_dst",...}
     """
-    group_mapping = []
+    group_mapping = {}
 
     """
     External login URL.

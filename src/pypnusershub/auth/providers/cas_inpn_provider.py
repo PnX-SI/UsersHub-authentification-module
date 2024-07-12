@@ -126,7 +126,7 @@ class AuthenficationCASINPN(Authentication):
             "email": info_user["email"],
             "active": True,
         }
-        user = insert_or_update_role(models.User(**user_info), provider_instance=self)
+        user = insert_or_update_role(user_info, provider_instance=self)
         if not user.groups:
             if not self.USERS_CAN_SEE_ORGANISM_DATA or organism_id is None:
                 # group socle 1
