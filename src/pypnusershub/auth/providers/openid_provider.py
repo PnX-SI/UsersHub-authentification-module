@@ -19,7 +19,7 @@ class OpenIDProvider(Authentication):
 
     name = "OPENID_PROVIDER_CONFIG"
     logo = '<i class="fa fa-sign-in"></i>'
-    is_external = False
+    is_external = True
     """
     Name of the fields in the OpenID token that contains the groups info
     """
