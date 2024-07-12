@@ -5,7 +5,7 @@ import xmltodict
 from flask import Response, current_app, redirect, render_template, request
 from geonature.utils import utilsrequests
 from geonature.utils.errors import GeonatureApiError
-from marshmallow import fields
+from marshmallow import EXCLUDE, ValidationError, fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
@@ -21,7 +21,7 @@ class CasAuthentificationError(GeonatureApiError):
 class AuthenficationCASINPN(Authentication):
     name = "CAS_INPN_PROVIDER"
     label = "INPN"
-    is_uh = False
+    is_external = False
     logo = "<i class='fa fa-paw' aria-hidden='true'></i>"
 
     @property
@@ -138,8 +138,9 @@ class AuthenficationCASINPN(Authentication):
             user.groups.append(group)
         return user
 
-    @staticmethod
-    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
+    def configure(self, configuration: Union[dict, Any]):
+        super().configure(configuration)
+
         class CASINPNConfiguration(ProviderConfigurationSchema):
             URL_LOGIN = fields.String(load_default="https://inpn.mnhn.fr/auth/login")
             URL_LOGOUT = fields.String(load_default="https://inpn.mnhn.fr/auth/logout")
@@ -158,9 +159,9 @@ class AuthenficationCASINPN(Authentication):
             ID_USER_SOCLE_1 = fields.Integer(load_default=7)
             ID_USER_SOCLE_2 = fields.Integer(load_default=6)
 
-        return CASINPNConfiguration
-
-    def configure(self, configuration: Union[dict, Any]):
-        super().configure(configuration)
+        try:
+            configuration = CASINPNConfiguration().load(configuration, unknown=EXCLUDE)
+        except ValidationError as e:
+            raise ValidationError(f"Error in CAS INPN configuration {str(e)}")
         for key in configuration:
             setattr(self, key, configuration[key])
