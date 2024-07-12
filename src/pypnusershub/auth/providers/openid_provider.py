@@ -1,8 +1,8 @@
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import requests
 from flask import Response, current_app, session, url_for
-from marshmallow import fields
+from marshmallow import EXCLUDE, ValidationError, fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema, oauth
 from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_role
@@ -19,7 +19,7 @@ class OpenIDProvider(Authentication):
 
     name = "OPENID_PROVIDER_CONFIG"
     logo = '<i class="fa fa-sign-in"></i>'
-    is_uh = False
+    is_ecternal = False
     """
     Name of the fields in the OpenID token that contains the groups info
     """
@@ -27,7 +27,12 @@ class OpenIDProvider(Authentication):
 
     def __init__(self):
         super().__init__()
-        for provider in current_app.config["AUTHENTICATION"][self.name]:
+        for provider in current_app.config["AUTHENTICATION"]["PROVIDERS"]:
+            if not (
+                provider["module"].endswith("OpenIDProvider")
+                or provider["module"].endswith("OpenIDConnectProvider")
+            ):
+                continue
             oauth.register(
                 name=provider["id_provider"],
                 client_id=provider["CLIENT_ID"],
@@ -83,15 +88,22 @@ class OpenIDProvider(Authentication):
         )
         session.pop("openid_token_resp")
 
-    @staticmethod
-    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
+    def configure(self, configuration: dict | Any) -> None:
+
+        super().configure(configuration)
+
         class OpenIDProviderConfiguration(ProviderConfigurationSchema):
             ISSUER = fields.String(required=True)
             CLIENT_ID = fields.String(required=True)
             CLIENT_SECRET = fields.String(required=True)
             group_claim_name = fields.String(load_default="groups")
 
-        return OpenIDProviderConfiguration
+        try:
+            OpenIDProviderConfiguration().load(configuration, unknown=EXCLUDE)
+        except ValidationError as e:
+            raise ValidationError(
+                f"Error while loading OpenID provider configuration: {e}"
+            )
 
 
 class OpenIDConnectProvider(OpenIDProvider):

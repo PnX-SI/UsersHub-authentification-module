@@ -1,36 +1,44 @@
 import logging
 from typing import Any, Union
 
-from marshmallow import Schema, fields
+from marshmallow import Schema, ValidationError, fields, validates_schema
 from pypnusershub.db import models
 
 log = logging.getLogger(__name__)
 
 
 class ProviderConfigurationSchema(Schema):
+    module = fields.Str(required=True)
     id_provider = fields.Str(required=True)
     group_mapping = fields.Dict(keys=fields.Str(), values=fields.Integer())
     logo = fields.String()
     label = fields.String()
+
+    @validates_schema
+    def check_if_module_exists(self, data, **kwargs):
+        import importlib
+
+        path_provider = data["module"]
+        import_path, class_name = (
+            ".".join(path_provider.split(".")[:-1]),
+            path_provider.split(".")[-1],
+        )
+        try:
+            importlib.import_module(import_path)
+        except ModuleNotFoundError:
+            raise ValidationError(f"Module {import_path} not found")
+        try:
+            getattr(importlib.import_module(import_path), class_name)
+        except AttributeError:
+            raise ValidationError(
+                f"Class {class_name} not found in module {import_path}"
+            )
 
 
 class Authentication:
     """
     Abstract class for authentication implementations.
     """
-
-    @property
-    def name(self) -> str:
-        """
-        Name of the authentication provider.
-        Use for config key
-
-        Returns
-        -------
-        str
-            The name of the authentication provider.
-        """
-        raise NotImplementedError()
 
     """
     Identifier of the instance of the authentication provider (str).
@@ -71,9 +79,9 @@ class Authentication:
     logo = ""
 
     @property
-    def is_uh(self) -> bool:
+    def is_external(self) -> bool:
         """
-        Return whether the authentication is an 'usershub-auth-module' authentication.
+        Return whether the authentication is performed by the identity provider.
 
         Returns
         -------

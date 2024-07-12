@@ -87,7 +87,7 @@ def get_providers():
     from itertools import chain
 
     property_name = [
-        "is_uh",
+        "is_external",
         "logo",
         "label",
         "login_url",

@@ -82,18 +82,19 @@ class AuthManager:
 
         app.register_blueprint(routes, url_prefix=prefix)
 
-        for path_provider in app.config["AUTHENTICATION"].get("PROVIDERS", []):
+        for provider_config in app.config["AUTHENTICATION"].get("PROVIDERS", []):
+            path_provider = provider_config.get("module")
             import_path, class_name = (
                 ".".join(path_provider.split(".")[:-1]),
                 path_provider.split(".")[-1],
             )
             module = importlib.import_module(import_path)
             class_ = getattr(module, class_name)
-            for config in app.config["AUTHENTICATION"][class_.name]:
-                with app.app_context():
-                    instance_provider: Authentication = class_()
-                    instance_provider.configure(configuration=config)
-                    self.add_provider(instance_provider.id_provider, instance_provider)
+
+            with app.app_context():
+                instance_provider: Authentication = class_()
+                instance_provider.configure(configuration=provider_config)
+                self.add_provider(instance_provider.id_provider, instance_provider)
 
     def get_provider(self, instance_name: str) -> Authentication:
         """

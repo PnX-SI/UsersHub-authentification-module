@@ -1,8 +1,8 @@
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import requests
 from flask import request
-from marshmallow import fields
+from marshmallow import EXCLUDE, ValidationError, fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db.models import User
 from pypnusershub.routes import insert_or_update_role
@@ -35,10 +35,18 @@ class ExternalUsersHubAuthProvider(Authentication):
         )
         return insert_or_update_role(user, provider_instance=self)
 
-    @staticmethod
-    def configuration_schema() -> Optional[Tuple[str, ProviderConfigurationSchema]]:
+    def configure(self, configuration: dict | Any) -> None:
+
         class ExternalGNConfiguration(ProviderConfigurationSchema):
             login_url = fields.String(required=True)
             logout_url = fields.String(required=True)
 
-        return ExternalGNConfiguration
+        try:
+            configuration = ExternalGNConfiguration().load(
+                configuration, unknown=EXCLUDE
+            )
+        except ValidationError as e:
+            raise ValidationError(
+                f"Error while loading OpenID provider configuration: {e}"
+            )
+        super().configure(configuration)
