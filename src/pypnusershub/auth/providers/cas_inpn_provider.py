@@ -21,7 +21,7 @@ class CasAuthentificationError(GeonatureApiError):
 class AuthenficationCASINPN(Authentication):
     name = "CAS_INPN_PROVIDER"
     label = "INPN"
-    is_external = False
+    is_external = True
     logo = "<i class='fa fa-paw' aria-hidden='true'></i>"
 
     @property

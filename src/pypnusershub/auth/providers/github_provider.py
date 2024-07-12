@@ -23,7 +23,7 @@ oauth.register(
 class GitHubAuthProvider(Authentication):
     id_provider = "github"
     label = "GitHub"
-    is_external = False
+    is_external = True
     login_url = "http://127.0.0.1:8000/auth/login/github"
     logout_url = ""
     logo = '<i class="fa fa-github"></i>'

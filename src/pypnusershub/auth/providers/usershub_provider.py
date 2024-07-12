@@ -16,6 +16,7 @@ class ExternalUsersHubAuthProvider(Authentication):
 
     name = "EXTERNAL_USERSHUB_PROVIDER_CONFIG"
     logo = '<i class="fa fa-users"></i>'
+    is_external = False
 
     def authenticate(self):
         params = request.json
