@@ -26,14 +26,14 @@ class ExternalUsersHubAuthProvider(Authentication):
         if login_response.status_code != 200:
             raise Unauthorized(f"Connexion impossible à {self.label} ")
         user_resp = login_response.json()["user"]
-        user = User(
+        user_dict = dict(
             uuid_role=user_resp.get("uuid_role"),
             identifiant=user_resp["identifiant"],
             email=user_resp["email"],
             nom_role=user_resp["nom_role"],
             prenom_role=user_resp["prenom_role"],
         )
-        return insert_or_update_role(user, provider_instance=self)
+        return insert_or_update_role(user_dict, provider_instance=self)
 
     def configure(self, configuration: dict | Any) -> None:
 

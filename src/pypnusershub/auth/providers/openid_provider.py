@@ -19,7 +19,7 @@ class OpenIDProvider(Authentication):
 
     name = "OPENID_PROVIDER_CONFIG"
     logo = '<i class="fa fa-sign-in"></i>'
-    is_ecternal = False
+    is_external = False
     """
     Name of the fields in the OpenID token that contains the groups info
     """
@@ -68,9 +68,7 @@ class OpenIDProvider(Authentication):
             if self.group_claim_name in user_info
             else {}
         )
-        user = insert_or_update_role(
-            models.User(**new_user), provider_instance=self, **kwargs
-        )
+        user = insert_or_update_role(new_user, provider_instance=self, **kwargs)
         db.session.commit()
         return user
 

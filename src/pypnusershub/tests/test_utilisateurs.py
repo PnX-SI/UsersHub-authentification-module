@@ -35,11 +35,9 @@ class TestUtilisateurs:
             "active": True,
             "groups": [group],
         }
-        user_ = User(**user_dict)
-        user_ = insert_or_update_role(user_, provider_instance)
-        user_.identifiant = "update"
-        db.session.commit()
-
+        insert_or_update_role(user_dict, provider_instance)
+        user_dict["identifiant"] = "update"
+        insert_or_update_role(user_dict, provider_instance)
         created_user = db.session.get(User, 99999)
         user_schema = UserSchema(only=["groups"])
         created_user_as_dict = user_schema.dump(created_user)
@@ -50,9 +48,8 @@ class TestUtilisateurs:
         app.config["AUTHENTICATION"]["DEFAULT_RECONCILIATION_GROUP_ID"] = 2
         user_dict["id_role"] = 99998
         user_dict["email"] = "test@test2.fr"
-        user_ = User(**user_dict)
-        user_ = insert_or_update_role(user_, provider_instance)
-        assert len(user_.groups) == 2
+        user_ = insert_or_update_role(user_dict, provider_instance)
+        assert len(db.session.get(User, 99998).groups) == 2
 
     def test_insert_organisme(self):
         organism = {

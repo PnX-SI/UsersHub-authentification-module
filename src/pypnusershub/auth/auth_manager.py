@@ -5,7 +5,6 @@ from pypnusershub.db.models import Provider
 from pypnusershub.env import db
 
 from .authentication import Authentication
-from .providers import DefaultConfiguration
 
 
 class AuthManager:
@@ -17,7 +16,7 @@ class AuthManager:
         """
         Initializes the AuthManager instance.
         """
-        self.provider_authentication_cls = {"local_provider": DefaultConfiguration()}
+        self.provider_authentication_cls = {}
 
     def __contains__(self, item) -> bool:
         """
