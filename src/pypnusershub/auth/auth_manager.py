@@ -7,6 +7,20 @@ from pypnusershub.env import db
 from .authentication import Authentication
 
 
+from typing import TypedDict
+
+ProviderType = TypedDict(
+    "Provider",
+    {
+        "id_provider": str,
+        "module": str,
+        "label": str,
+        "group_mapping": dict,
+        "logo": str,
+    },
+)
+
+
 class AuthManager:
     """
     Manages authentication providers.
@@ -66,7 +80,9 @@ class AuthManager:
             raise AssertionError("Provider must be an instance of Authentication")
         self.provider_authentication_cls[id_provider] = provider_authentification
 
-    def init_app(self, app, prefix: str = "/auth") -> None:
+    def init_app(
+        self, app, prefix: str = "/auth", providers_declaration: list[ProviderType] = []
+    ) -> None:
         """
         Initializes the Flask application with the AuthManager. In addtion, it registers the authentification module blueprint.
 
@@ -82,7 +98,7 @@ class AuthManager:
 
         app.register_blueprint(routes, url_prefix=prefix)
 
-        for provider_config in app.config["AUTHENTICATION"].get("PROVIDERS", []):
+        for provider_config in providers_declaration:
             path_provider = provider_config.get("module")
             import_path, class_name = (
                 ".".join(path_provider.split(".")[:-1]),
