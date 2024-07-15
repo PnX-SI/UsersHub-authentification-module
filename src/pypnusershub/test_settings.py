@@ -3,6 +3,7 @@ CODE_APPLICATION = "APPLI_1"
 PASS_METHOD = "hash"
 SECRET_KEY = "151VD61V6DF1V6F"
 COOKIE_EXPIRATION = 3600
+URL_APPLICATION = "/"
 
 AUTHENTICATION = {
     "PROVIDERS": [
@@ -34,7 +35,7 @@ AUTHENTICATION = {
         },
         {
             "module": "pypnusershub.auth.providers.usershub_provider.ExternalUsersHubAuthProvider",
-            "id_provider": "bis",
+            "id_provider": "ter",
             "label": "bidule",
             "login_url": "bidule",
             "logout_url": "bidule",

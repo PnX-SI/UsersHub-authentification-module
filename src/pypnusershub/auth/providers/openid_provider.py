@@ -25,25 +25,6 @@ class OpenIDProvider(Authentication):
     """
     group_claim_name = "groups"
 
-    def __init__(self):
-        super().__init__()
-        for provider in current_app.config["AUTHENTICATION"]["PROVIDERS"]:
-            if not (
-                provider["module"].endswith("OpenIDProvider")
-                or provider["module"].endswith("OpenIDConnectProvider")
-            ):
-                continue
-            oauth.register(
-                name=provider["id_provider"],
-                client_id=provider["CLIENT_ID"],
-                client_secret=provider["CLIENT_SECRET"],
-                server_metadata_url=f'{provider["ISSUER"]}/.well-known/openid-configuration',
-                client_kwargs={
-                    "scope": "openid email profile",
-                    "issuer": provider["ISSUER"],
-                },
-            )
-
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         redirect_uri = url_for(
             "auth.authorize", provider=self.id_provider, _external=True
@@ -89,6 +70,17 @@ class OpenIDProvider(Authentication):
     def configure(self, configuration: dict | Any) -> None:
 
         super().configure(configuration)
+
+        oauth.register(
+            name=configuration["id_provider"],
+            client_id=configuration["CLIENT_ID"],
+            client_secret=configuration["CLIENT_SECRET"],
+            server_metadata_url=f'{configuration["ISSUER"]}/.well-known/openid-configuration',
+            client_kwargs={
+                "scope": "openid email profile",
+                "issuer": configuration["ISSUER"],
+            },
+        )
 
         class OpenIDProviderConfiguration(ProviderConfigurationSchema):
             ISSUER = fields.String(required=True)

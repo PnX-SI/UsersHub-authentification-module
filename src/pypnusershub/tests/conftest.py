@@ -17,14 +17,6 @@ def app():
 
     app.testing = True
     app.test_client_class = JSONClient
-    app.config["AUTHENTICATION"] = {
-        "PROVIDERS": [
-            dict(
-                module="pypnusershub.auth.providers.default.DefaultConfiguration",
-                id_provider="local_provider",
-            )
-        ]
-    }
     app.config.from_envvar("USERSHUB_AUTH_MODULE_SETTINGS")
     app.testing = True
     db.init_app(app)

@@ -67,15 +67,10 @@ class AuthManager:
         AssertionError
             If the provider is not an instance of Authentification.
         """
-        if not db.engine.has_table(Provider.__tablename__, schema="utilisateurs"):
-            return
-        assert id_provider not in self.provider_authentication_cls
-        query = sa.exists(Provider).where(Provider.name == id_provider).select()
-        if not db.session.scalar(query):
-            db.session.add(
-                Provider(name=id_provider, url=provider_authentification.login_url)
+        if id_provider in self.provider_authentication_cls:
+            raise Exception(
+                f"Id provider {id_provider} already exist, please check your authentication config"
             )
-            db.session.commit()
         if not isinstance(provider_authentification, Authentication):
             raise AssertionError("Provider must be an instance of Authentication")
         self.provider_authentication_cls[id_provider] = provider_authentification
@@ -95,9 +90,7 @@ class AuthManager:
         from pypnusershub.routes import routes
 
         app.auth_manager = self
-
         app.register_blueprint(routes, url_prefix=prefix)
-
         for provider_config in providers_declaration:
             path_provider = provider_config.get("module")
             import_path, class_name = (
