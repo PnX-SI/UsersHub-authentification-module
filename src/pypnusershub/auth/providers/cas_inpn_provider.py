@@ -3,7 +3,7 @@ from typing import Any, Optional, Tuple, Union
 
 import requests
 import xmltodict
-from flask import Response, current_app, redirect, render_template, request
+from flask import Response, current_app, redirect, render_template, request, url_for
 from marshmallow import EXCLUDE, ValidationError, fields
 from marshmallow import fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
@@ -22,22 +22,24 @@ class AuthenficationCASINPN(Authentication):
     logo = "<i class='fa fa-paw' aria-hidden='true'></i>"
 
     @property
-    def login_url(self):
-        gn_api = f"{current_app.config['API_ENDPOINT']}/auth/authorize/cas_inpn"
-        return f"{self.URL_LOGIN}?service={gn_api}"
-
-    @property
     def logout_url(self):
         return f"{self.URL_LOGOUT}?service={current_app.config['URL_APPLICATION']}"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
-        return redirect(self.login_url)
+        redirect_uri = url_for(
+            "auth.authorize", provider=self.id_provider, _external=True
+        )
+
+        return redirect(f"{self.URL_LOGIN}?service={redirect_uri}")
 
     def authorize(self):
         user = None
+        redirect_uri = url_for(
+            "auth.authorize", provider=self.id_provider, _external=True
+        )
 
         if not "ticket" in request.args:
-            return redirect(self.login_url)
+            return redirect(f"{self.URL_LOGIN}?service={redirect_uri}")
 
         ticket = request.args["ticket"]
         base_url = (
@@ -75,7 +77,7 @@ class AuthenficationCASINPN(Authentication):
             raise InternalServerError("Error with the inpn authentification service")
 
         info_user = response.json()
-        user = self.insert_user_and_org(info_user, self.id_provider)
+        user = self.insert_user_and_org(info_user)
         db.session.commit()
         organism_id = info_user["codeOrganisme"]
         if not organism_id:
@@ -92,7 +94,7 @@ class AuthenficationCASINPN(Authentication):
     def revoke(self) -> Any:
         return redirect(self.logout_url)
 
-    def insert_user_and_org(self, info_user, id_provider):
+    def insert_user_and_org(self, info_user):
         organism_id = info_user["codeOrganisme"]
         if info_user["libelleLongOrganisme"] is not None:
             organism_name = info_user["libelleLongOrganisme"]

@@ -26,6 +26,7 @@ from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import OrganismeSchema, UserSchema
+from pypnusershub.auth.authentication import Authentication
 from werkzeug.exceptions import Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
@@ -185,7 +186,6 @@ def login(provider):
                 "token": token.decode(),
             }
         )
-    return redirect(current_app.config["URL_APPLICATION"])
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -257,7 +257,7 @@ def insert_or_update_organism(organism):
 
 def insert_or_update_role(
     user_dict: dict,
-    provider_instance: models.Provider,
+    provider_instance: Authentication,
     reconciliate_attr="email",
     source_groups: List[int] = [],
 ) -> models.User:
@@ -268,8 +268,8 @@ def insert_or_update_role(
     ----------
     user: models.User
         User to insert or update
-    provider_instance: models.Provider
-        Provider instance used to create/log the user
+    provider_instance: pypnusershub.auth.Authentication
+        the autentication instance use for connexion
     reconciliate_attr: str, default="email"
         Attribute used to reconciliate existing users
     source_groups: List[str], default=[]
@@ -288,6 +288,7 @@ def insert_or_update_role(
     KeyError
         If Group {group_name} was not found in the mapping
     """
+
     assert reconciliate_attr in user_dict
 
     user_exists = db.session.execute(
@@ -295,13 +296,20 @@ def insert_or_update_role(
             getattr(models.User, reconciliate_attr) == user_dict[reconciliate_attr],
         )
     ).scalar_one_or_none()
+
     provider = db.session.execute(
         sa.select(models.Provider).where(
             models.Provider.name == provider_instance.id_provider
         )
-    ).scalar_one()
-    if user_exists:
+    ).scalar_one_or_none()
+    if not provider:
+        provider = models.Provider(
+            name=provider_instance.id_provider, url=provider_instance.login_url
+        )
+        db.session.add()
+        db.session.commit()
 
+    if user_exists:
         if not provider in user_exists.providers:
             user_exists.providers.append(provider)
 
