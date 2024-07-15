@@ -29,7 +29,9 @@ def app():
     app.testing = True
     db.init_app(app)
     ma.init_app(app)
-    auth_manager.init_app(app)
+    auth_manager.init_app(
+        app, providers_declaration=app.config["AUTHENTICATION"]["PROVIDERS"]
+    )
     login_manager.init_app(app)
 
     with app.app_context():
