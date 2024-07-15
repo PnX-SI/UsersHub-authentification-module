@@ -1,21 +1,18 @@
 import logging
 from typing import Any, Optional, Tuple, Union
 
+import requests
 import xmltodict
 from flask import Response, current_app, redirect, render_template, request
-from geonature.utils import utilsrequests
-from geonature.utils.errors import GeonatureApiError
 from marshmallow import EXCLUDE, ValidationError, fields
+from marshmallow import fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
 from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
 from sqlalchemy import select
+from werkzeug.exceptions import InternalServerError
 
 log = logging.getLogger()
-
-
-class CasAuthentificationError(GeonatureApiError):
-    pass
 
 
 class AuthenficationCASINPN(Authentication):
@@ -48,7 +45,7 @@ class AuthenficationCASINPN(Authentication):
         )
         url_validate = f"{self.URL_VALIDATION}?ticket={ticket}&service={base_url}"
 
-        response = utilsrequests.get(url_validate)
+        response = requests.get(url_validate)
         xml_dict = xmltodict.parse(response.content)
 
         if "cas:authenticationSuccess" in xml_dict["cas:serviceResponse"]:
@@ -66,7 +63,7 @@ class AuthenficationCASINPN(Authentication):
             )
 
         ws_user_url = f"{self.URL_INFO}/{user}/?verify=false"
-        response = utilsrequests.get(
+        response = requests.get(
             ws_user_url,
             (
                 self.WS_ID,
@@ -75,9 +72,7 @@ class AuthenficationCASINPN(Authentication):
         )
 
         if response.status_code != 200:
-            raise CasAuthentificationError(
-                "Error with the inpn authentification service", status_code=500
-            )
+            raise InternalServerError("Error with the inpn authentification service")
 
         info_user = response.json()
         user = self.insert_user_and_org(info_user, self.id_provider)
@@ -110,8 +105,8 @@ class AuthenficationCASINPN(Authentication):
             assert user_id is not None and user_login is not None
         except AssertionError:
             log.error("'CAS ERROR: no ID or LOGIN provided'")
-            raise CasAuthentificationError(
-                "CAS ERROR: no ID or LOGIN provided", status_code=500
+            raise InternalServerError(
+                "CAS ERROR: no ID or LOGIN provided",
             )
         # Reconciliation avec base GeoNature
         if organism_id:
