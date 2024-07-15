@@ -28,12 +28,13 @@ class ExternalUsersHubAuthProvider(Authentication):
             raise Unauthorized(f"Connexion impossible à {self.label} ")
         user_resp = login_response.json()["user"]
         user_dict = dict(
-            uuid_role=user_resp.get("uuid_role"),
             identifiant=user_resp["identifiant"],
             email=user_resp["email"],
             nom_role=user_resp["nom_role"],
             prenom_role=user_resp["prenom_role"],
         )
+        if "uuid_role" in user_dict:
+            user_dict["uuid_role"] = user_resp.get("uuid_role")
         return insert_or_update_role(user_dict, provider_instance=self)
 
     def configure(self, configuration: dict | Any) -> None:
