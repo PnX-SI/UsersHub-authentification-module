@@ -13,7 +13,6 @@ class ExternalUsersHubAuthProvider(Authentication):
     Authentication provider for Flask application using UsersHub-authentification-module.
     """
 
-    name = "EXTERNAL_USERSHUB_PROVIDER_CONFIG"
     logo = '<i class="fa fa-users"></i>'
     is_external = False
 

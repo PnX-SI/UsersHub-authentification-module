@@ -16,7 +16,6 @@ log = logging.getLogger()
 
 
 class AuthenficationCASINPN(Authentication):
-    name = "CAS_INPN_PROVIDER"
     label = "INPN"
     is_external = True
     logo = "<i class='fa fa-paw' aria-hidden='true'></i>"
@@ -54,20 +53,15 @@ class AuthenficationCASINPN(Authentication):
             user = xml_dict["cas:serviceResponse"]["cas:authenticationSuccess"][
                 "cas:user"
             ]
-
         if not user:
             log.info("Erreur d'authentification lié au CAS, voir log du CAS")
             log.error("Erreur d'authentification lié au CAS, voir log du CAS")
-            return render_template(
-                "cas_login_error.html",
-                cas_logout=self.URL_LOGOUT,
-                url_geonature=current_app.config["URL_APPLICATION"],
-            )
+            return redirect(self.logout_url)
 
         ws_user_url = f"{self.URL_INFO}/{user}/?verify=false"
         response = requests.get(
             ws_user_url,
-            (
+            auth=(
                 self.WS_ID,
                 self.WS_PASSWORD,
             ),
@@ -143,9 +137,6 @@ class AuthenficationCASINPN(Authentication):
             URL_LOGOUT = fields.String(load_default="https://inpn.mnhn.fr/auth/logout")
             URL_VALIDATION = fields.String(
                 load_default="https://inpn.mnhn.fr/auth/serviceValidate"
-            )
-            URL_AUTHORIZE = fields.String(
-                load_default="https://inpn.mnhn.fr/authentication/"
             )
             URL_INFO = fields.String(
                 load_default="https://inpn.mnhn.fr/authentication/information",

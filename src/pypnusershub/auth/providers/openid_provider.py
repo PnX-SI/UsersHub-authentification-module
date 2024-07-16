@@ -16,7 +16,6 @@ class OpenIDProvider(Authentication):
 
     """
 
-    name = "OPENID_PROVIDER_CONFIG"
     logo = '<i class="fa fa-sign-in"></i>'
     is_external = True
     """
@@ -105,8 +104,6 @@ class OpenIDConnectProvider(OpenIDProvider):
     This class handle the authentication process with an OpenID Connect provider.
 
     """
-
-    name = "OPENID_CONNECT_PROVIDER_CONFIG"
 
     def revoke(self):
 
