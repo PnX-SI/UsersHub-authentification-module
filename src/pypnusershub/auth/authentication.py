@@ -216,7 +216,7 @@ class Authentication:
         ).scalar_one_or_none()
         if not provider:
             provider = models.Provider(name=self.id_provider, url=self.login_url)
-            db.session.add()
+            db.session.add(provider)
             db.session.commit()
 
         if user_exists:
