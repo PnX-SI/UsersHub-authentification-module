@@ -1,4 +1,3 @@
-from pypnusershub.auth.providers.default import DefaultConfiguration
 import pytest
 
 from flask import Flask

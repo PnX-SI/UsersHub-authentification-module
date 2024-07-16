@@ -5,7 +5,6 @@ from flask import Response, current_app, session, url_for
 from marshmallow import EXCLUDE, ValidationError, fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema, oauth
 from pypnusershub.db import db, models
-from pypnusershub.routes import insert_or_update_role
 from werkzeug.exceptions import Unauthorized
 
 
@@ -44,12 +43,12 @@ class OpenIDProvider(Authentication):
             "nom_role": user_info["family_name"],
             "active": True,
         }
-        kwargs = (
-            dict(group_keys=user_info[self.group_claim_name])
+        source_groups = (
+            user_info[self.group_claim_name]
             if self.group_claim_name in user_info
-            else {}
+            else []
         )
-        user = insert_or_update_role(new_user, provider_instance=self, **kwargs)
+        user = self.insert_or_update_role(new_user, source_groups=source_groups)
         db.session.commit()
         return user
 
@@ -67,7 +66,7 @@ class OpenIDProvider(Authentication):
         )
         session.pop("openid_token_resp")
 
-    def configure(self, configuration: dict | Any) -> None:
+    def configure(self, configuration: Union[dict, Any]) -> None:
 
         super().configure(configuration)
 
@@ -89,11 +88,14 @@ class OpenIDProvider(Authentication):
             group_claim_name = fields.String(load_default="groups")
 
         try:
-            OpenIDProviderConfiguration().load(configuration, unknown=EXCLUDE)
+            configuration = OpenIDProviderConfiguration().load(
+                configuration, unknown=EXCLUDE
+            )
         except ValidationError as e:
             raise ValidationError(
                 f"Error while loading OpenID provider configuration: {e}"
             )
+        self.group_claim_name = configuration["group_claim_name"]
 
 
 class OpenIDConnectProvider(OpenIDProvider):

@@ -128,19 +128,11 @@ def get_user_data():
     dict
         A dictionary containing the user data, token, and expiration time.
     """
-    user_dict = UserSchema(
+    user_dict_with_token = UserSchema(
         exclude=["remarques"], only=["+max_level_profil", "+providers"]
-    ).dump(g.current_user)
+    ).dump_with_token(g.current_user)
 
-    token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-    data = {
-        "user": user_dict,
-        "token": encode_token(g.current_user.as_dict()).decode(),
-        "expires": token_exp.isoformat(),
-    }
-
-    return jsonify(data)
+    return jsonify(user_dict_with_token)
 
 
 @routes.route("/login/<provider>", methods=["POST", "GET"])
@@ -172,20 +164,10 @@ def login(provider):
         return auth_result
     if isinstance(auth_result, models.User):
         login_user(auth_result, remember=True)
-        user_dict = UserSchema(
+        user_dict_with_token = UserSchema(
             exclude=["remarques"], only=["+max_level_profil", "+providers"]
-        ).dump(auth_result)
-        token = encode_token(user_dict)
-        token_exp = datetime.datetime.now(datetime.timezone.utc)
-        token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
-
-        return jsonify(
-            {
-                "user": user_dict,
-                "expires": token_exp.isoformat(),
-                "token": token.decode(),
-            }
-        )
+        ).dump_with_token(auth_result)
+        return jsonify(user_dict_with_token)
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -253,99 +235,3 @@ def insert_or_update_organism(organism):
     organism = organism_schema.load(organism)
     db.session.add(organism)
     return organism_schema.dump(organism)
-
-
-def insert_or_update_role(
-    user_dict: dict,
-    provider_instance: Authentication,
-    reconciliate_attr="email",
-    source_groups: List[int] = [],
-) -> models.User:
-    """
-    Insert or update a role (also add groups if provided)
-
-    Parameters
-    ----------
-    user: models.User
-        User to insert or update
-    provider_instance: pypnusershub.auth.Authentication
-        the autentication instance use for connexion
-    reconciliate_attr: str, default="email"
-        Attribute used to reconciliate existing users
-    source_groups: List[str], default=[]
-        List of group names to compare with existing groups defined in the group_mapping properties of the provider
-
-    Returns
-    -------
-    models.User
-        The updated or created user
-
-    Raises
-    ------
-    Exception
-        If no group mapping indicated for the provider and DEFAULT_RECONCILIATION_GROUP_ID
-        is not set
-    KeyError
-        If Group {group_name} was not found in the mapping
-    """
-
-    assert reconciliate_attr in user_dict
-
-    user_exists = db.session.execute(
-        sa.select(models.User).where(
-            getattr(models.User, reconciliate_attr) == user_dict[reconciliate_attr],
-        )
-    ).scalar_one_or_none()
-
-    provider = db.session.execute(
-        sa.select(models.Provider).where(
-            models.Provider.name == provider_instance.id_provider
-        )
-    ).scalar_one_or_none()
-    if not provider:
-        provider = models.Provider(
-            name=provider_instance.id_provider, url=provider_instance.login_url
-        )
-        db.session.add()
-        db.session.commit()
-
-    if user_exists:
-        if not provider in user_exists.providers:
-            user_exists.providers.append(provider)
-
-        for attr_key, attr_value in user_dict.items():
-            setattr(user_exists, attr_key, attr_value)
-        db.session.commit()
-        return user_exists
-    else:
-        user_ = models.User(**user_dict)
-        group_id = ""
-        # No group mapping indicated
-        if not (provider_instance.group_mapping and source_groups):
-
-            if "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
-                "AUTHENTICATION", {}
-            ):
-
-                group_id = current_app.config["AUTHENTICATION"][
-                    "DEFAULT_RECONCILIATION_GROUP_ID"
-                ]
-                group = db.session.get(models.User, group_id)
-                if group:
-                    user_.groups.append(group)
-        # Group Mapping indicated
-        else:
-            for group_source_name in source_groups:
-                if not group_source_name in provider_instance.group_mapping:
-                    raise KeyError("Group {group_name} was not found in the mapping !")
-                group_id = provider_instance.group_mapping[group_source_name]
-
-                group = db.session.get(models.User, group_id)
-
-                if group:
-                    user_.groups.append(group)
-
-        user_.providers.append(provider)
-        db.session.add(user_)
-        db.session.commit()
-        return user_

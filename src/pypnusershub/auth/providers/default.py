@@ -11,7 +11,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from ..authentication import Authentication
 
 
-class DefaultConfiguration(Authentication):
+class LocalProvider(Authentication):
     login_url = ""
     logout_url = ""
     id_provider = "local_provider"
@@ -35,6 +35,7 @@ class DefaultConfiguration(Authentication):
                 .where(models.User.identifiant == username)
                 .where(models.User.filter_by_app())
             ).scalar_one()
+
         except exc.NoResultFound as e:
             raise Unauthorized(
                 'No user found with the username "{login}" for the application with id "{id_app}"'
@@ -42,6 +43,17 @@ class DefaultConfiguration(Authentication):
 
         if not user.check_password(user_data["password"]):
             raise Unauthorized("Invalid password")
+
+        provider = db.session.execute(
+            sa.select(models.Provider).where(models.Provider.name == self.id_provider)
+        ).scalar_one_or_none()
+        if not provider:
+            provider = models.Provider(name=self.id_provider, url=self.login_url)
+            db.session.add()
+            db.session.commit()
+        if not provider in user.providers:
+            user.providers.append(provider)
+            db.session.commit()
         return user
 
     def revoke(self) -> Any:

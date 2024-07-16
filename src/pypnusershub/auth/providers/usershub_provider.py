@@ -5,7 +5,6 @@ from flask import request
 from marshmallow import EXCLUDE, ValidationError, fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db.models import User
-from pypnusershub.routes import insert_or_update_role
 from werkzeug.exceptions import Unauthorized
 
 
@@ -35,7 +34,7 @@ class ExternalUsersHubAuthProvider(Authentication):
         )
         if "uuid_role" in user_dict:
             user_dict["uuid_role"] = user_resp.get("uuid_role")
-        return insert_or_update_role(user_dict, provider_instance=self)
+        return self.insert_or_update_role(user_dict)
 
     def configure(self, configuration: dict | Any) -> None:
 

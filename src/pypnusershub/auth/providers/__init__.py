@@ -1,1 +1,1 @@
-from .default import DefaultConfiguration
+from .default import LocalProvider

@@ -5,17 +5,18 @@ import pytest
 
 from pypnusershub.db.models import Organisme, User
 
-from pypnusershub.routes import insert_or_update_organism, insert_or_update_role
+from pypnusershub.routes import insert_or_update_organism
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 from pypnusershub.tests.fixtures import *
+from pypnusershub.tests.utils import set_logged_user
 
 from sqlalchemy import select
 
-from pypnusershub.auth.auth_manager import auth_manager
+from pypnusershub.auth.auth_manager import auth_manager, Authentication
 
 
 @pytest.fixture
-def provider_instance():
+def provider_instance() -> Authentication:
     return auth_manager.get_provider("local_provider")
 
 
@@ -35,9 +36,9 @@ class TestUtilisateurs:
             "active": True,
             "groups": [group],
         }
-        insert_or_update_role(user_dict, provider_instance)
+        provider_instance.insert_or_update_role(user_dict)
         user_dict["identifiant"] = "update"
-        insert_or_update_role(user_dict, provider_instance)
+        provider_instance.insert_or_update_role(user_dict)
         created_user = db.session.get(User, 99999)
         user_schema = UserSchema(only=["groups"])
         created_user_as_dict = user_schema.dump(created_user)
@@ -48,8 +49,35 @@ class TestUtilisateurs:
         app.config["AUTHENTICATION"]["DEFAULT_RECONCILIATION_GROUP_ID"] = 2
         user_dict["id_role"] = 99998
         user_dict["email"] = "test@test2.fr"
-        user_ = insert_or_update_role(user_dict, provider_instance)
+        user_ = provider_instance.insert_or_update_role(user_dict)
         assert len(db.session.get(User, 99998).groups) == 2
+
+    def test_insert_or_update_role_grp_reconcialiation(
+        self, provider_instance, group_and_users
+    ):
+        # test modification du local provider pour lui ajouter un group mapping
+        # et un group_claim_name
+        # provider_instance.configure(provider_config)
+        provider_instance.group_claim_name = "provided_groups"
+        provider_instance.group_mapping = {
+            "group1": group_and_users["group1"].id_role,
+            "group2": group_and_users["group1"].id_role,
+        }
+
+        user_to_reconcialite = {
+            "id_role": 999998,
+            "identifiant": "test2.user",
+            "nom_role": "test2",
+            "prenom_role": "test2",
+            "email": "test3@test.fr",
+        }
+
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_to_reconcialite, source_groups=["group1", "group2"]
+        )
+
+        user_group_id = map(lambda g: g.id_role, user.groups)
+        assert set(user_group_id) == {group_and_users["group1"].id_role}
 
     def test_insert_organisme(self):
         organism = {
@@ -102,3 +130,16 @@ class TestUtilisateurs:
         datetime_expires = datetime.fromisoformat(expires)
         # the token expiration must be tz aware to avoid issue in date comparison
         assert datetime_expires.tzinfo is not None
+
+    def test_get_user_data(self, group_and_users):
+        set_logged_user(self.client, group_and_users["user1"])
+
+        response = self.client.get(url_for("auth.get_user_data"))
+        assert response.status_code == 200
+        data = response.json
+        assert "token" in data
+        assert "expires" in data
+        assert "user" in data
+
+        assert "max_level_profil" in data["user"]
+        assert "providers" in data["user"]
