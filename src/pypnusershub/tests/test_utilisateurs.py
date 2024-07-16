@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import url_for
+from flask import url_for, session
 
 import pytest
 
@@ -125,6 +125,7 @@ class TestUtilisateurs:
         assert "user" in resp.json
         assert "expires" in resp.json
         assert "token" in resp.json
+        assert session["current_provider"] == "local_provider"
 
         expires = resp.json["expires"]
         datetime_expires = datetime.fromisoformat(expires)
