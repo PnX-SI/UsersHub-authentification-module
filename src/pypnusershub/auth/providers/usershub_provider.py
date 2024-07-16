@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 import requests
 from flask import request
@@ -36,7 +36,7 @@ class ExternalUsersHubAuthProvider(Authentication):
             user_dict["uuid_role"] = user_resp.get("uuid_role")
         return self.insert_or_update_role(user_dict)
 
-    def configure(self, configuration: dict | Any) -> None:
+    def configure(self, configuration: Union[dict, Any]) -> None:
 
         class ExternalGNConfiguration(ProviderConfigurationSchema):
             login_url = fields.String(required=True)
