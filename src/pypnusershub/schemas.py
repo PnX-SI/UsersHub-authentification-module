@@ -48,6 +48,22 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         return data
 
     def dump_with_token(self, obj):
+        """
+        Dumps user information with a JWT token and its expiration date.
+
+        Parameters
+        ----------
+        obj : User
+            The user object to dump.
+
+        Returns
+        -------
+        dict
+            A dictionary with the user information and the token. The token is
+            encoded using the user's information and the secret key from the
+            current Flask application configuration. The dictionary also
+            contains the expiration date of the token.
+        """
         user_dict = self.dump(obj)
         token_exp = datetime.datetime.now(datetime.timezone.utc)
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
