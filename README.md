@@ -463,7 +463,7 @@ providers_config = # Declare identity providers used to log into your app
     [
       # Default identity provider (comes with UH-AM)
       {
-        "module" : "pypnusershub.auth.providers.default.DefaultConfiguration",
+        "module" : "pypnusershub.auth.providers.default.LocalProvider",
         "id_provider":"local_provider"
       },
       # Other identity provider
@@ -484,6 +484,29 @@ if __name__ == "__main__":
 ```
 
 Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la route `/login/<id_provider>`.
+
+### Paramètres de configurations des protocoles de connexions inclus
+
+**OpenID et OpenIDConnect**.
+
+- `group_claim_name` (string) : nom du champs retournée par le fournisseur d'identités dans lequel se trouve la liste de groupes auquel l'utilisateur appartient (par défaut : "groups").
+- `ISSUER` (string) : URL du fournisseur d'identités
+- `CLIENT_ID` (string) : Identifiant publique de l'application auprès du fournisseur d'identités.
+- `CLIENT_SECRET` (string) : Clé secrete connue uniquement par l'application et le fournisseur d'identités.
+
+**UsersHub-authentification-module**
+
+- `login_url` : URL absolue vers la route `/auth/login` de l'application Flask.
+- `logout_url` : URL absolue vers la route `/auth/login` de l'application Flask.
+
+**CAS INPN**
+
+- `URL_LOGIN` et `URL_LOGOUT` (string) : route de déconnexion de l'API de l'INPN (par défaut https://inpn.mnhn.fr/auth/login et https://inpn.mnhn.fr/auth/logout)
+- `URL_VALIDATION` (string) : URL qui permet de valider le token renvoyer après l'authentification de l'utilisateur sur le portail de l'INPN (par défaut: https://inpn.mnhn.fr/auth/serviceValidate").
+- `URL_INFO` (string) : A l'aide des infos retournées par `URL_VALIDATION`, permet de récupérer les informations d'un utilisateurs (par défaut: https://inpn.mnhn.fr/authentication/information).
+- `WS_ID` et `WS_PASSWORD` (string): identifiant et mot de passe permettant d'accéder au service accessible sur `URL_INFO`.
+- `USERS_CAN_SEE_ORGANISM_DATA` (boolean): indique si l'utilisateur connecté peut voir les données de son organisme (par défaut: false).
+- `ID_USER_SOCLE_1` et `ID_USER_SOCLE_2` : `ID_USER_SOCLE_1` indique le groupe dans l'instance GeoNature qui permet à l'utilisateur de voir les données de son organisme. Dans le cas contraire, il est associé au groupe indiqué dans `ID_USER_SOCLE_2`.
 
 ### Ajouter son propre protocole de connexion
 
