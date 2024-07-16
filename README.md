@@ -82,8 +82,10 @@ pip install .
 
 Indiquer la route de la _homepage_ de votre application dans la variable `URL_APPLICATION`
 
-Pour manipuler la base de données, nous utilisons l'extension `flask-sqlalchemy`. Si votre application déclare déjà l'object `flask_sqlalchemy.SQLAlchemy`, déclarer le chemin python vers celui-ci dans `FLASK_SQLALCHEMY_DB`.
+Pour manipuler la base de données, nous utilisons l'extension `flask-sqlalchemy`. Si votre application déclare déjà un objet `flask_sqlalchemy.SQLAlchemy`, déclarer le chemin python vers celui-ci dans la variable de configuration `FLASK_SQLALCHEMY_DB`.
 
+````python
+os.environ["FLASK_SQLALCHEMY_DB"] = "unmodule.unsousmodule.nomvariable"
 #### Configuration de Flask-login
 
 Paramètres à rajouter dans la configuration ( attribut `config` de l'objet `Flask`) de votre application.
@@ -106,7 +108,7 @@ app.config["URL_USERSHUB"]="http://usershub-url.ext"
 app.config["ADMIN_APPLICATION_LOGIN"]="admin-monapplication"
 app.config["ADMIN_APPLICATION_PASSWORD"]="monpassword"
 app.config["ADMIN_APPLICATION_MAIL"]="admin-monapplication@mail.ext"
-```
+````
 
 > [!TIP]
 > Si vous souhaitez une interface permettant de modifier les données utilisateurs décritent dans `UsersHub-authentification-module`, il est conseillé d'utiliser [UsersHub](https://github.com/PnX-SI/UsersHub).
