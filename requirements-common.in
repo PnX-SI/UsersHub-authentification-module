@@ -9,4 +9,5 @@ sqlalchemy>=1.4,<2
 flask-marshmallow
 marshmallow-sqlalchemy
 alembic
+xmltodict
 # for flask login
