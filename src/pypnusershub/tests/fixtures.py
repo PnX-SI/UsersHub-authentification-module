@@ -95,3 +95,17 @@ def group_and_users(app, applications, profils):
             "user1": user1,
             "user_no_group": user_no_group,
         }
+
+
+@pytest.fixture()
+def provider_config():
+    return {
+        "module": "pypnusershub.auth.providers.openid_provider.OpenIDConnectProvider",
+        "id_provider": "bis",
+        "label": "bidule",
+        "ISSUER": "bidule",
+        "CLIENT_ID": "bidule",
+        "CLIENT_SECRET": "bidule",
+        "group_claim_name": "provided_groups",
+        "group_mapping": {"group1": 1, "group2": 2},
+    }

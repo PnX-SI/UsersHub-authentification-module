@@ -1,9 +1,15 @@
+import datetime
+
+from typing import Any
+
+from flask import current_app
 from marshmallow import pre_load, fields
 
 from utils_flask_sqla.schema import SmartRelationshipsMixin
 
 from pypnusershub.env import ma, db
 from pypnusershub.db.models import User, Organisme, Provider
+from pypnusershub.db.tools import encode_token
 
 
 class OrganismeSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
@@ -40,3 +46,13 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         if isinstance(data, int):
             return dict({"id_role": data})
         return data
+
+    def dump_with_token(self, obj):
+        user_dict = self.dump(obj)
+        token_exp = datetime.datetime.now(datetime.timezone.utc)
+        token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
+        return {
+            "user": user_dict,
+            "token": encode_token(user_dict).decode(),
+            "expires": token_exp.isoformat(),
+        }

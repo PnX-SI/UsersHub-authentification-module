@@ -1,8 +1,13 @@
 import logging
-from typing import Any, Union
+from typing import Any, Union, List
 
+import sqlalchemy as sa
+
+from flask import current_app
 from marshmallow import Schema, ValidationError, fields, validates_schema
 from pypnusershub.db import models
+from pypnusershub.db import db, models
+
 
 log = logging.getLogger(__name__)
 
@@ -165,3 +170,89 @@ class Authentication:
         for field in ["label", "logo", "login_url", "logout_url", "group_mapping"]:
             if field in configuration:
                 setattr(self, field, configuration[field])
+
+    def insert_or_update_role(
+        self,
+        user_dict: dict,
+        reconciliate_attr="email",
+        source_groups: List[int] = [],
+    ) -> models.User:
+        """
+        Insert or update a role (also add groups if provided)
+
+        Parameters
+        ----------
+        user: models.User
+            User to insert or update
+        reconciliate_attr: str, default="email"
+            Attribute used to reconciliate existing users
+        source_groups: List[str], default=[]
+            List of group names to compare with existing groups defined in the group_mapping properties of the provider
+
+        Returns
+        -------
+        models.User
+            The updated or created user
+
+        Raises
+        ------
+        Exception
+            If no group mapping indicated for the provider and DEFAULT_RECONCILIATION_GROUP_ID
+            is not set
+        KeyError
+            If Group {group_name} was not found in the mapping
+        """
+
+        assert reconciliate_attr in user_dict
+
+        user_exists = db.session.execute(
+            sa.select(models.User).where(
+                getattr(models.User, reconciliate_attr) == user_dict[reconciliate_attr],
+            )
+        ).scalar_one_or_none()
+
+        provider = db.session.execute(
+            sa.select(models.Provider).where(models.Provider.name == self.id_provider)
+        ).scalar_one_or_none()
+        if not provider:
+            provider = models.Provider(name=self.id_provider, url=self.login_url)
+            db.session.add()
+            db.session.commit()
+
+        if user_exists:
+            if not provider in user_exists.providers:
+                user_exists.providers.append(provider)
+
+            for attr_key, attr_value in user_dict.items():
+                setattr(user_exists, attr_key, attr_value)
+            db.session.commit()
+            return user_exists
+        else:
+            user_ = models.User(**user_dict)
+            group_id = ""
+            # No group mapping indicated
+            if not (self.group_mapping and source_groups):
+
+                if "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
+                    "AUTHENTICATION", {}
+                ):
+
+                    group_id = current_app.config["AUTHENTICATION"][
+                        "DEFAULT_RECONCILIATION_GROUP_ID"
+                    ]
+                    group = db.session.get(models.User, group_id)
+                    if group:
+                        user_.groups.append(group)
+            # Group Mapping indicated
+            else:
+                for group_source_name in source_groups:
+                    group_id = self.group_mapping.get(group_source_name, None)
+                    if group_id:
+                        group = db.session.get(models.User, group_id)
+                        if group and not group in user_.groups:
+                            user_.groups.append(group)
+
+            user_.providers.append(provider)
+            db.session.add(user_)
+            db.session.commit()
+            return user_

@@ -8,7 +8,7 @@ URL_APPLICATION = "/"
 AUTHENTICATION = {
     "PROVIDERS": [
         {
-            "module": "pypnusershub.auth.providers.default.DefaultConfiguration",
+            "module": "pypnusershub.auth.providers.default.LocalProvider",
             "id_provider": "local_provider",
         },
         {
@@ -32,6 +32,8 @@ AUTHENTICATION = {
             "ISSUER": "bidule",
             "CLIENT_ID": "bidule",
             "CLIENT_SECRET": "bidule",
+            "group_claim_name": "provided_groups",
+            "group_mapping": {"group1": 1, "group2": 2},
         },
         {
             "module": "pypnusershub.auth.providers.usershub_provider.ExternalUsersHubAuthProvider",
