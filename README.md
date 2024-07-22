@@ -86,6 +86,8 @@ Pour manipuler la base de données, nous utilisons l'extension `flask-sqlalchemy
 
 ````python
 os.environ["FLASK_SQLALCHEMY_DB"] = "unmodule.unsousmodule.nomvariable"
+```
+
 #### Configuration de Flask-login
 
 Paramètres à rajouter dans la configuration ( attribut `config` de l'objet `Flask`) de votre application.
