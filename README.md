@@ -84,7 +84,7 @@ Indiquer la route de la _homepage_ de votre application dans la variable `URL_AP
 
 Pour manipuler la base de données, nous utilisons l'extension `flask-sqlalchemy`. Si votre application déclare déjà un objet `flask_sqlalchemy.SQLAlchemy`, déclarer le chemin python vers celui-ci dans la variable de configuration `FLASK_SQLALCHEMY_DB`.
 
-````python
+```python
 os.environ["FLASK_SQLALCHEMY_DB"] = "unmodule.unsousmodule.nomvariable"
 ```
 
