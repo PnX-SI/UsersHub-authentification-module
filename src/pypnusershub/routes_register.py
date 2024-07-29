@@ -26,8 +26,8 @@ from flask import (
 
 from functools import wraps
 
-from .db.models import Application, UserApplicationRight, AppUser, db
-from .env import REGISTER_POST_ACTION_FCT
+from pypnusershub.db.models import Application, UserApplicationRight, AppUser, db
+from pypnusershub.env import REGISTER_POST_ACTION_FCT
 
 from flask import current_app
 from sqlalchemy import select
