@@ -25,7 +25,7 @@ providers_config = # Declare identity providers used to log into your app
     [
       # Default identity provider (comes with UH-AM)
       {
-        "module" : "pypnusershub.auth.providers.default.DefaultConfiguration",
+        "module" : "pypnusershub.auth.providers.default.LocalProvider",
         "id_provider":"local_provider"
       },
       # you can add other identity providers that works with OpenID protocol (and many others !)

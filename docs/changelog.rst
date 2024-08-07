@@ -1,6 +1,31 @@
 CHANGELOG
 *********
 
+3.0.0 (2024-08-07)
+------------------
+
+**🚀 Nouveautés**
+  
+  - Enrichissement des modes de connexions avec l'implémentation de `AuthManager` (#93). Plusieurs protocoles
+  de connexions sont disponibles : par défaut, OpenID, OpenIDConnect, UsersHub-authentification-module externe.
+
+**⚠️ Notes de version**
+
+ - Remplacer l'initialisation du `login_manager` par celle du `auth_manager` lors de l'initialisation de votre 
+ application Flask comme dans l'exemple ci-dessous :
+ ```python
+ from pypnusershub.auth import auth_manager
+ providers_config = [
+      {
+        "module" : "pypnusershub.auth.providers.default.LocalProvider",
+        "id_provider":"local_provider"
+      },
+    ]
+auth_manager.init_app(app,providers_declaration=providers_config)
+ ```
+
+
+
 2.1.5 (2024-05-23)
 ------------------
 
