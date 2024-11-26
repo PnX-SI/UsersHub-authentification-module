@@ -182,18 +182,11 @@ def public_login():
         .where(models.User.filter_by_app(code_app="GN"))
     ).scalar_one()
 
-    user_dict = user.as_dict()
     login_user(user)
-    # Génération d'un token
-    token = encode_token(user_dict)
-    token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(
-        seconds=current_app.config["REMEMBER_COOKIE_DURATION"]
-    )
 
-    return jsonify(
-        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
-    )
+    return UserSchema(
+        exclude=["remarques"], only=["+max_level_profil", "+providers"]
+    ).dump_with_token(user)
 
 
 @routes.route("/logout", methods=["GET", "POST"])
