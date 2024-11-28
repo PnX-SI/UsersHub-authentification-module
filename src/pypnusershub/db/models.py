@@ -484,6 +484,7 @@ class UserList(db.Model):
     users = db.relationship(User, secondary=cor_role_liste)
 
 
+@serializable
 class Provider(db.Model):
     __tablename__ = "t_providers"
     __table_args__ = {"schema": "utilisateurs"}
