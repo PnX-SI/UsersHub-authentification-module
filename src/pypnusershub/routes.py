@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime
 import logging
 from typing import List
+from urllib.parse import urljoin
 
 import sqlalchemy as sa
 from flask import (
@@ -201,7 +202,10 @@ def logout():
 
     params = request.args
     if "redirect" in params:
-        resp = redirect(params["redirect"], code=302)
+        resp = redirect(
+            urljoin(current_app.config["URL_APPLICATION"], params["redirect"]),
+            code=302,
+        )
     else:
         resp = redirect(current_app.config["URL_APPLICATION"])
 
