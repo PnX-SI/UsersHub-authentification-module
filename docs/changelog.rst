@@ -1,6 +1,14 @@
 CHANGELOG
 *********
 
+3.0.1 (2024-11-29)
+------------------
+
+**🐛 Corrections**
+
+- Correction d'un problème de redirection lors de la déconnexion
+- Utilisation du schema marshmallow pour le retour de la route `/auth/public_login`
+
 3.0.0 (2024-08-07)
 ------------------
 
