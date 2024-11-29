@@ -19,18 +19,19 @@ CHANGELOG
 
 **⚠️ Notes de version**
 
- - Remplacer l'initialisation du `login_manager` par celle du `auth_manager` lors de l'initialisation de votre 
- application Flask comme dans l'exemple ci-dessous :
- ```python
- from pypnusershub.auth import auth_manager
- providers_config = [
-      {
-        "module" : "pypnusershub.auth.providers.default.LocalProvider",
-        "id_provider":"local_provider"
-      },
-    ]
+- Remplacer l'initialisation du `login_manager` par celle du `auth_manager` lors de l'initialisation de votre 
+application Flask comme dans l'exemple ci-dessous :
+
+```python
+from pypnusershub.auth import auth_manager
+providers_config = [
+  {
+    "module" : "pypnusershub.auth.providers.default.LocalProvider",
+    "id_provider":"local_provider"
+  },
+]
 auth_manager.init_app(app,providers_declaration=providers_config)
- ```
+```
 
 
 
