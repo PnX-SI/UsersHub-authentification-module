@@ -7,7 +7,8 @@ CHANGELOG
 **🐛 Corrections**
 
 - Correction d'un problème de redirection lors de la déconnexion
-- Utilisation du schema marshmallow pour le retour de la route `/auth/public_login`
+- Utilisation du schéma marshmallow pour le retour de la route `/auth/public_login`
+- Ajout du décorateur `@serializable` sur la classe `Provider` 
 
 3.0.0 (2024-08-07)
 ------------------
