@@ -1,40 +1,34 @@
 # coding: utf8
-
-from __future__ import unicode_literals, print_function, absolute_import, division
-
-
 """
 routes relatives aux application, utilisateurs et à l'authentification
 """
 
-import json
-import logging
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime
-from flask_login import login_required, login_user, logout_user, current_user
+import logging
+from typing import List
+from urllib.parse import urljoin
+
+import sqlalchemy as sa
 from flask import (
     Blueprint,
-    request,
     Response,
     current_app,
-    redirect,
     g,
-    make_response,
     jsonify,
+    redirect,
+    request,
+    session,
 )
+from flask_login import current_user, login_required, login_user, logout_user
 from markupsafe import escape
-
-from sqlalchemy.orm import exc
-import sqlalchemy as sa
-from werkzeug.exceptions import BadRequest, Forbidden
-
-from pypnusershub.utils import get_current_app_id
-from pypnusershub.db import models, db
-from pypnusershub.db.tools import (
-    encode_token,
-)
+from pypnusershub.auth import oauth
+from pypnusershub.db import db, models
+from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import OrganismeSchema, UserSchema
-
+from pypnusershub.auth.authentication import Authentication
+from werkzeug.exceptions import Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -77,6 +71,7 @@ class ConfigurableBlueprint(Blueprint):
         )
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
+        oauth.init_app(app)
 
         @app.before_request
         def load_current_user():
@@ -89,78 +84,91 @@ routes = ConfigurableBlueprint("auth", __name__)
 from pypnusershub.decorators import check_auth
 
 
+@routes.route("/providers", methods=["GET"])
+def get_providers():
+    from itertools import chain
+
+    property_name = [
+        "is_external",
+        "logo",
+        "label",
+        "login_url",
+        "logout_url",
+    ]
+    return jsonify(
+        [
+            dict(
+                chain.from_iterable(
+                    d.items()
+                    for d in (
+                        {
+                            _property: getattr(provider, _property)
+                            for _property in property_name
+                        },
+                        {"id_provider": id_provider},
+                    )
+                )
+            )
+            for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
+        ]
+    )
+
+
 @routes.route("/get_current_user")
 @login_required
 def get_user_data():
-    user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-        g.current_user
-    )
+    """
+    Retrieves the data of the currently authenticated user.
 
-    token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(
-        seconds=current_app.config.get("COOKIE_EXPIRATION", 3600)
-    )
-    data = {
-        "user": user_dict,
-        "token": encode_token(g.current_user.as_dict()).decode(),
-        "expires": token_exp.isoformat(),
-    }
+    This route is protected and requires the user to be logged in. It retrieves the user data
+    from the `g.current_user` object and serializes it using the `UserSchema` class. The serialized user data
+    is then added to the response JSON along with a JWT token and the expiration time of the token.
 
-    return jsonify(data)
+    Returns
+    -------
+    dict
+        A dictionary containing the user data, token, and expiration time.
+    """
+    user_dict_with_token = UserSchema(
+        exclude=["remarques"], only=["+max_level_profil", "+providers"]
+    ).dump_with_token(g.current_user)
+
+    return jsonify(user_dict_with_token)
 
 
-@routes.route("/login", methods=["POST"])
-def login():
-    user_data = request.json
-    try:
-        login = user_data.get("login")
-        password = user_data.get("password")
-        id_app = user_data.get("id_application", get_current_app_id())
-        if id_app is None or login is None or password is None:
-            msg = json.dumps(
-                "One of the following parameter is required ['id_application', 'login', 'password']"
-            )
-            return Response(msg, status=400)
-        app = db.session.get(models.Application, id_app)
-        if not app:
-            raise BadRequest(f"No app for id {id_app}")
-        user = db.session.execute(
-            sa.select(models.User)
-            .where(models.User.identifiant == login)
-            .where(models.User.filter_by_app())
-        ).scalar_one()
-        user_dict = UserSchema(exclude=["remarques"], only=["+max_level_profil"]).dump(
-            user
-        )
-    except exc.NoResultFound as e:
-        msg = json.dumps(
-            {
-                "type": "login",
-                "msg": (
-                    'No user found with the username "{login}" for '
-                    'the application with id "{id_app}"'
-                ).format(login=escape(login), id_app=id_app),
-            }
-        )
-        log.info(msg)
-        status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-        return Response(msg, status=status_code)
+@routes.route("/login/<provider>", methods=["POST", "GET"])
+@routes.route(
+    "/login", methods=["POST", "GET"], defaults={"provider": "local_provider"}
+)
+def login(provider):
+    """
+    Authenticates the user and returns their data and a JWT token.
 
-    if not user.check_password(user_data["password"]):
-        msg = json.dumps({"type": "password", "msg": "Mot de passe invalide"})
-        log.info(msg)
-        status_code = current_app.config.get("BAD_LOGIN_STATUS_CODE", 490)
-        return Response(msg, status=status_code)
-    login_user(user, remember=True)
-    # Génération d'un token
-    token = encode_token(user_dict)
-    token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(
-        seconds=current_app.config["REMEMBER_COOKIE_DURATION"]
-    )
-    return jsonify(
-        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
-    )
+    This route is called by the client to authenticate the user. It uses the
+    `authentification_class` configured in the Flask app to authenticate the user.
+    If the authentication is successful, it returns a JSON response containing
+    the serialized user data, a JWT token, and the expiration time of the token.
+    If the authentication fails, it returns the result of the authentication.
+
+    Returns
+    -------
+    - If the authentication is successful, it returns a JSON response containing:
+        - `user`: The serialized user data.
+        - `expires`: The expiration time of the token.
+        - `token`: The JWT token.
+    - If the authentication fails, it returns the result of the authentication.
+    """
+    auth_provider = current_app.auth_manager.get_provider(provider)
+    session["current_provider"] = provider
+    auth_result = auth_provider.authenticate()
+    if isinstance(auth_result, Response):
+        return auth_result
+    if isinstance(auth_result, models.User):
+        login_user(auth_result, remember=True)
+        user_dict_with_token = UserSchema(
+            exclude=["remarques"], only=["+max_level_profil", "+providers"]
+        ).dump_with_token(auth_result)
+        return jsonify(user_dict_with_token)
 
 
 @routes.route("/public_login", methods=["POST"])
@@ -175,29 +183,44 @@ def public_login():
         .where(models.User.filter_by_app(code_app="GN"))
     ).scalar_one()
 
-    user_dict = user.as_dict()
     login_user(user)
-    # Génération d'un token
-    token = encode_token(user_dict)
-    token_exp = datetime.datetime.now(datetime.timezone.utc)
-    token_exp += datetime.timedelta(
-        seconds=current_app.config["REMEMBER_COOKIE_DURATION"]
-    )
 
-    return jsonify(
-        {"user": user_dict, "expires": token_exp.isoformat(), "token": token.decode()}
-    )
+    return UserSchema(
+        exclude=["remarques"], only=["+max_level_profil", "+providers"]
+    ).dump_with_token(user)
 
 
 @routes.route("/logout", methods=["GET", "POST"])
 def logout():
+    if not "current_provider" in session:
+        raise Unauthorized("No provider in session")
+    auth_provider = current_app.auth_manager.get_provider(session["current_provider"])
+    logout_user()
+    resp = auth_provider.revoke()
+    if isinstance(resp, Response):
+        return resp
+
     params = request.args
     if "redirect" in params:
-        resp = redirect(params["redirect"], code=302)
+        resp = redirect(
+            urljoin(current_app.config["URL_APPLICATION"], params["redirect"]),
+            code=302,
+        )
     else:
-        resp = make_response()
-    logout_user()
+        resp = redirect(current_app.config["URL_APPLICATION"])
+
     return resp
+
+
+@routes.route("/authorize/<provider>", methods=["GET", "POST"])
+def authorize(provider="local_provider"):
+    auth_provider = current_app.auth_manager.get_provider(provider)
+    authorize_result = auth_provider.authorize()
+    if isinstance(authorize_result, models.User):
+        login_user(authorize_result, remember=True)
+
+    # if auth_provider.is_external:
+    return redirect(current_app.config["URL_APPLICATION"])
 
 
 def insert_or_update_organism(organism):
@@ -209,13 +232,3 @@ def insert_or_update_organism(organism):
     organism = organism_schema.load(organism)
     db.session.add(organism)
     return organism_schema.dump(organism)
-
-
-def insert_or_update_role(data):
-    """
-    Insert or update a role (also add groups if provided)
-    """
-    user_schema = UserSchema(only=["groups"])
-    user = user_schema.load(data)
-    db.session.add(user)
-    return user_schema.dump(user)

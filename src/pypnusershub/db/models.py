@@ -1,6 +1,6 @@
 # coding: utf8
 
-from __future__ import unicode_literals, print_function, absolute_import, division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from utils_flask_sqla.models import qfilter
 
@@ -9,36 +9,29 @@ mappings applications et utilisateurs
 """
 
 import hashlib
+
 import bcrypt
-from bcrypt import checkpw
-from os import environ
-from importlib import import_module
-from packaging import version
-
-from flask_sqlalchemy import SQLAlchemy
 import flask_sqlalchemy
-
+from bcrypt import checkpw
+from packaging import version
 
 if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
     from flask_sqlalchemy.query import Query
 else:
     from flask_sqlalchemy import BaseQuery as Query
 
-
 from flask import current_app
 from flask_login import UserMixin
-
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.orm.session import object_session
-from sqlalchemy import Sequence, func, ForeignKey, or_
-from sqlalchemy.sql import select, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB, array
-
-from pypnusershub.db.tools import NoPasswordError, DifferentPasswordError
+from pypnusershub.db.tools import DifferentPasswordError, NoPasswordError
 from pypnusershub.env import db
 from pypnusershub.utils import get_current_app_id
-
+from sqlalchemy import ForeignKey, func, or_
+from sqlalchemy.dialects.postgresql import JSONB, UUID, array
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm.session import object_session
+from sqlalchemy.schema import FetchedValue
+from sqlalchemy.sql import func, select
 from utils_flask_sqla.serializers import serializable
 
 
@@ -85,6 +78,23 @@ cor_roles = db.Table(
     extend_existing=True,
 )
 
+cor_role_provider = db.Table(
+    "cor_role_provider",
+    db.Column(
+        "id_role",
+        db.Integer,
+        ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+    ),
+    db.Column(
+        "id_provider",
+        db.Integer,
+        ForeignKey("utilisateurs.t_providers.id_provider"),
+        primary_key=True,
+    ),
+    schema="utilisateurs",
+)
+
 
 class UserQuery(Query):
     def filter_by_app(self, code_app=None):
@@ -113,6 +123,7 @@ class User(db.Model, UserMixin):
     __table_args__ = {"schema": "utilisateurs"}
     query_class = UserQuery
 
+    uuid_role = db.Column(UUID, server_default=FetchedValue())
     groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,
@@ -142,6 +153,7 @@ class User(db.Model, UserMixin):
         secondaryjoin="User.id_role == utilisateurs.cor_roles.c.id_role_groupe",
         backref=backref("members", cascade_backrefs=False),
     )
+    providers = db.relationship("Provider", secondary=cor_role_provider)
 
     @property
     def max_level_profil(self):
@@ -403,9 +415,6 @@ class AppUser(db.Model):
     _password = db.Column("pass", db.Unicode)
     _password_plus = db.Column("pass_plus", db.Unicode)
     id_droit_max = db.Column(db.Integer, primary_key=True)
-    # user = db.relationship('User', backref='relations', lazy='joined')
-    # application = db.relationship('Application',
-    #                               backref='relations', lazy='joined')
 
     @property
     def password(self):
@@ -475,3 +484,16 @@ class UserList(db.Model):
     desc_liste = db.Column(db.Unicode)
 
     users = db.relationship(User, secondary=cor_role_liste)
+
+
+@serializable
+class Provider(db.Model):
+    __tablename__ = "t_providers"
+    __table_args__ = {"schema": "utilisateurs"}
+    id_provider = db.Column(
+        db.Integer,
+        nullable=False,
+        primary_key=True,
+    )
+    name = db.Column(db.Unicode, nullable=False)
+    url = db.Column(db.Unicode, nullable=False)

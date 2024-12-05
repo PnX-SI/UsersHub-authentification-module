@@ -10,6 +10,40 @@ unreleased (2024-05-xx)
 - Ajout des champs `meta_create_date` et `meta_update_date` à la table `bib_organismes` (#96).
 
 
+3.0.1 (2024-11-29)
+------------------
+
+**🐛 Corrections**
+
+- Correction d'un problème de redirection lors de la déconnexion
+- Utilisation du schéma marshmallow pour le retour de la route `/auth/public_login`
+- Ajout du décorateur `@serializable` sur la classe `Provider` 
+
+3.0.0 (2024-08-07)
+------------------
+
+**🚀 Nouveautés**
+  
+  - Enrichissement des modes de connexions avec l'implémentation de `AuthManager` (#93). Plusieurs protocoles
+  de connexions sont disponibles : par défaut, OpenID, OpenIDConnect, UsersHub-authentification-module externe.
+
+**⚠️ Notes de version**
+
+- Remplacer l'initialisation du `login_manager` par celle du `auth_manager` lors de l'initialisation de votre 
+application Flask comme dans l'exemple ci-dessous :
+
+```python
+from pypnusershub.auth import auth_manager
+providers_config = [
+  {
+    "module" : "pypnusershub.auth.providers.default.LocalProvider",
+    "id_provider":"local_provider"
+  },
+]
+auth_manager.init_app(app,providers_declaration=providers_config)
+```
+
+
 2.1.5 (2024-05-23)
 ------------------
 
