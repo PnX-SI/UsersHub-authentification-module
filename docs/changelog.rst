@@ -7,7 +7,9 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-- Ajout des champs `meta_create_date` et `meta_update_date` à la table `bib_organismes` (#96).
+- Ajout des champs `meta_create_date` et `meta_update_date` à la table `bib_organismes` (#96 par @lpofredc).
+- Ajout de commandes `flask` pour ajouter/modifier des utilisateurs et changer leur mot de passe (#53 par @jacquesfize)
+
 
 
 3.0.1 (2024-11-29)
