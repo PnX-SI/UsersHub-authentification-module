@@ -35,6 +35,9 @@ setuptools.setup(
         "alembic": [
             "migrations = pypnusershub.migrations:versions",
         ],
+        "flask.commands": [
+            "user = pypnusershub.commands:user",
+        ],
     },
     classifiers=[
         "Development Status :: 1 - Planning",
