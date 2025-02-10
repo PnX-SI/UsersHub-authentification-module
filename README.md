@@ -110,7 +110,7 @@ app.config["URL_USERSHUB"]="http://usershub-url.ext"
 app.config["ADMIN_APPLICATION_LOGIN"]="admin-monapplication"
 app.config["ADMIN_APPLICATION_PASSWORD"]="monpassword"
 app.config["ADMIN_APPLICATION_MAIL"]="admin-monapplication@mail.ext"
-````
+```
 
 > [!TIP]
 > Si vous souhaitez une interface permettant de modifier les données utilisateurs décritent dans `UsersHub-authentification-module`, il est conseillé d'utiliser [UsersHub](https://github.com/PnX-SI/UsersHub).
@@ -548,3 +548,11 @@ cor_profil_for_app *-- t_applications
 | cor_role_provider   | Cette table permet d'associer des utilisateurs à des fournisseurs d'identités                |
 | cor_role_token      | Permet d'associer des utilisateurs à des tokens                                              |
 | cor_roles           | Permet d'associer des utilisateurs entre eux (groupes et utilisateurs)                       |
+
+## Commandes Flask
+
+Il est possible d'exécuter certaines opérations depuis la ligne de commande `flask user` :
+
+- `add [--group <nom_role du groupe>] <username> <password>` : ajout d'un utilisateur
+- `remove <username>`: suppression d'un utilisateur
+- `change_password <username>` : modification du mot de passe d'un utilisateur
