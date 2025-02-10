@@ -25,7 +25,7 @@ def add(identifiant, password, group):
     Parameters
     ----------
     identifiant : str
-        the identifiant of the user
+        the username of the user
     password : str
         the password of the user
     group : str, optional
@@ -63,18 +63,18 @@ def add(identifiant, password, group):
 
 
 @user.command()
-@click.argument("username")
+@click.argument("identifiant")
 @click.option(
     "--password", prompt="New password", confirmation_prompt=True, hide_input=True
 )
 @with_appcontext
-def change_password(username, password):
+def change_password(identifiant, password):
     """
     Change a user's password.
 
     Parameters
     ----------
-    username : str
+    identifiant : str
         the username (login) of the user whose password will be changed
     password : str
         the new password
@@ -84,36 +84,38 @@ def change_password(username, password):
     This command is meant to be used from the command line, not from python.
     """
     user = db.session.execute(
-        sa.select(User).filter_by(identifiant=username)
+        sa.select(User).filter_by(identifiant=identifiant)
     ).scalar_one_or_none()
     if user is None:
-        raise click.UsageError(f"User {username} does not exist")
+        raise click.UsageError(f"User {identifiant} does not exist")
     user.password = password
     db.session.commit()
 
 
 @user.command()
-@click.argument("username")
+@click.argument("identifiant")
 @click.option("-y", "--yes", is_flag=True, help="Do not ask for confirmation")
 @with_appcontext
-def remove(username, yes):
+def remove(identifiant, yes):
     """
     Remove a user.
 
     Parameters
     ----------
-    username : str
+    identifiant : str
         the username (login) of the user to remove
     -y, --yes : flag
         Do not ask for confirmation
 
     """
     if not yes:
-        click.confirm("Are you sure you want to remove user %s?" % username, abort=True)
+        click.confirm(
+            "Are you sure you want to remove user %s?" % identifiant, abort=True
+        )
     user = db.session.execute(
-        sa.select(User).filter_by(identifiant=username)
+        sa.select(User).filter_by(identifiant=identifiant)
     ).scalar_one_or_none()
     if user is None:
-        raise click.UsageError(f"User {username} does not exist")
+        raise click.UsageError(f"User {identifiant} does not exist")
     db.session.delete(user)
     db.session.commit()
