@@ -2,7 +2,7 @@ CHANGELOG
 *********
 
 
-unreleased (2024-05-xx)
+3.0.2 (unreleased)
 ------------------
 
 **🚀 Nouveautés**

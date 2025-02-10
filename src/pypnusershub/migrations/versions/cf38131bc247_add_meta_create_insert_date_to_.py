@@ -1,7 +1,7 @@
 """Add meta create/insert date to biborganismes
 
 Revision ID: cf38131bc247
-Revises: f9d3b95946cd
+Revises: b7c98935d9e8
 Create Date: 2024-05-20 10:45:25.067157
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "cf38131bc247"
-down_revision = "f9d3b95946cd"
+down_revision = "b7c98935d9e8"
 branch_labels = None
 depends_on = None
 
