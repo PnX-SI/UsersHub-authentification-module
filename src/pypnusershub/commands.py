@@ -17,8 +17,10 @@ def user():
 @click.argument("identifiant")
 @click.argument("password")
 @click.option("--group", help="Group of the user")
+@click.option("--prenom_role", help="Prenom of the user")
+@click.option("--nom_role", help="Nom of the user")
 @with_appcontext
-def add(identifiant, password, group):
+def add(identifiant, password, group, prenom_role, nom_role):
     """
     Add a new user
 
@@ -30,6 +32,10 @@ def add(identifiant, password, group):
         the password of the user
     group : str, optional
         the group of the user
+    prenom_role : str, optional
+        the prenom of the user
+    nom_role : str, optional
+        the nom of the user
 
     Raises
     ------
@@ -45,7 +51,19 @@ def add(identifiant, password, group):
     if existing_user:
         raise click.UsageError(f"User {identifiant} already exists")
 
-    user = User(identifiant=identifiant)
+    # If prenom_role or nom_role is not provided, build them from the identifiant
+    if not prenom_role or not nom_role:
+        parts = identifiant.split(".")
+        if len(parts) == 2:
+            prenom_role = prenom_role or parts[0].capitalize()
+            nom_role = nom_role or parts[1].capitalize()
+
+    user = User(
+        identifiant=identifiant,
+        prenom_role=prenom_role,
+        nom_role=nom_role,
+    )
+
     user.password = password
     if group:
         group_ = db.session.execute(
@@ -54,7 +72,6 @@ def add(identifiant, password, group):
         if group_:
             user.groups.append(group_)
     db.session.add(user)
-
     try:
         db.session.commit()
     except Exception as e:
