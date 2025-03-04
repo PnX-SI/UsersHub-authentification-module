@@ -1,7 +1,7 @@
 """utilisateurs sample data
 
 Revision ID: 72f227e37bdf
-Revises: 
+Revises:
 Create Date: 2021-08-24 15:39:57.784074
 
 """
