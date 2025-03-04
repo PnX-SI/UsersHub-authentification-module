@@ -20,17 +20,16 @@ depends_on = None
 def upgrade():
     op.execute(
         """
-ALTER TABLE utilisateurs.cor_role_provider DROP CONSTRAINT cor_role_provider_id_role_fkey;
-ALTER TABLE utilisateurs.cor_role_provider ADD CONSTRAINT cor_role_provider_id_role_fkey FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON DELETE CASCADE;
-
-    """
+        ALTER TABLE utilisateurs.cor_role_provider DROP CONSTRAINT cor_role_provider_id_role_fkey;
+        ALTER TABLE utilisateurs.cor_role_provider ADD CONSTRAINT cor_role_provider_id_role_fkey FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON DELETE CASCADE;
+        """
     )
 
 
 def downgrade():
     op.execute(
         """
-ALTER TABLE utilisateurs.cor_role_provider DROP CONSTRAINT cor_role_provider_id_role_fkey;
-ALTER TABLE utilisateurs.cor_role_provider ADD CONSTRAINT cor_role_provider_id_role_fkey FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role);
-    """
+        ALTER TABLE utilisateurs.cor_role_provider DROP CONSTRAINT cor_role_provider_id_role_fkey;
+        ALTER TABLE utilisateurs.cor_role_provider ADD CONSTRAINT cor_role_provider_id_role_fkey FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role);
+        """
     )
