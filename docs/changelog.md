@@ -5,6 +5,7 @@
 **🐛 Corrections**
 
 - [Commande Flask] Complétion de la commande `user add` permettant d'indiquer le nom et le prénom de l'utilisateur (par @jacquesfize)
+- [Commande Flask] Suppression d'un import qui faisait disfonctionner UsersHub 2.4.5.
 
 ## 3.0.2 (2025-02-10)
 
