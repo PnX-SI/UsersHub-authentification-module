@@ -1,7 +1,5 @@
 import click
 from flask.cli import with_appcontext
-from geonature.core.gn_commons.models.base import TModules
-from sqlalchemy import func, select
 import sqlalchemy as sa
 
 from pypnusershub.db.models import User
