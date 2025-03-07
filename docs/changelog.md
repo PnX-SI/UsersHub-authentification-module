@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.0.3 (unreleased)
+## 3.0.3 (2025-03-07)
 
 **🐛 Corrections**
 
