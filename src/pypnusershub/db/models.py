@@ -146,6 +146,7 @@ class User(db.Model, UserMixin):
     date_insert = db.Column(db.DateTime)
     date_update = db.Column(db.DateTime)
     active = db.Column(db.Boolean)
+    api_key = db.Column(db.Unicode)
     groups = db.relationship(
         "User",
         secondary=cor_roles,
