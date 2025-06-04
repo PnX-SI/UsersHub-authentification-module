@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import secrets
+
 from utils_flask_sqla.models import qfilter
 
 """
@@ -147,6 +149,7 @@ class User(db.Model, UserMixin):
     date_update = db.Column(db.DateTime)
     active = db.Column(db.Boolean)
     api_key = db.Column(db.Unicode)
+    api_secret = db.Column(db.Unicode)
     groups = db.relationship(
         "User",
         secondary=cor_roles,
@@ -209,6 +212,36 @@ class User(db.Model, UserMixin):
             self._password_plus = bcrypt.hashpw(pwd, bcrypt.gensalt()).decode("utf-8")
         else:
             raise Exception("Unknown pass method")
+
+    def generate_api_secret(self):
+        """
+        Generate a secure random API secret, hash it with bcrypt (auto-salted), and store the hash.
+        If Api secret already exists replace it.
+
+        return api key and api secret
+        """
+        raw_key = secrets.token_hex(128)
+        hashed_key = bcrypt.hashpw(
+            raw_key.encode("utf-8"), bcrypt.gensalt()
+        )  # salt is embedded
+        self.api_secret = hashed_key.decode("utf-8")
+        # TODO réfléchir à ce qu'on met là, on en a besoin ?
+        self.api_key = self.uuid_role
+        db.session.commit()
+        return self.api_key, raw_key
+
+    @staticmethod
+    def check_api_key(key, secret):
+        """
+        Check if the couple api_key and api_secret match.
+        """
+        statement = select(User).where(User.api_key == key)
+        user = db.session.execute(statement).scalars().one()
+        if not user or not user.api_secret:
+            return None
+        if bcrypt.checkpw(secret.encode(), user.api_secret.encode()):
+            return user
+        return None
 
     check_password = fn_check_password
 
