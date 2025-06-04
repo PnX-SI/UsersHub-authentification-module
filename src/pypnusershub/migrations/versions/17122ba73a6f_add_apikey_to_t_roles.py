@@ -19,7 +19,7 @@ depends_on = None
 
 def upgrade():
     op.add_column(
-        column=sa.Column("api_key", sa.UnicodeText(), server_default=None),
+        column=sa.Column("api_key", sa.UnicodeText(), server_default=None, unique=True),
         table_name="t_roles",
         schema="utilisateurs",
     )
