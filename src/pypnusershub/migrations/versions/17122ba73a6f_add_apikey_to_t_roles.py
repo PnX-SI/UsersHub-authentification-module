@@ -23,7 +23,15 @@ def upgrade():
         table_name="t_roles",
         schema="utilisateurs",
     )
+    op.add_column(
+        column=sa.Column("api_secret", sa.UnicodeText(), server_default=None),
+        table_name="t_roles",
+        schema="utilisateurs",
+    )
 
 
 def downgrade():
     op.drop_column(column_name="api_key", table_name="t_roles", schema="utilisateurs")
+    op.drop_column(
+        column_name="api_secret", table_name="t_roles", schema="utilisateurs"
+    )
