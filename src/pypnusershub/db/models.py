@@ -221,8 +221,10 @@ class User(db.Model, UserMixin):
         return api key and api secret
         """
         raw_key = secrets.token_hex(128)
-        hashed_key = bcrypt.hashpw(raw_key.encode('utf-8'), bcrypt.gensalt())  # salt is embedded
-        self.api_secret = hashed_key.decode('utf-8')
+        hashed_key = bcrypt.hashpw(
+            raw_key.encode("utf-8"), bcrypt.gensalt()
+        )  # salt is embedded
+        self.api_secret = hashed_key.decode("utf-8")
         # TODO réfléchir à ce qu'on met là, on en a besoin ?
         self.api_key = self.uuid_role
         db.session.commit()
@@ -231,9 +233,10 @@ class User(db.Model, UserMixin):
     @staticmethod
     def check_api_key(key, secret):
         """
-
+        Check if the couple api_key and api_secret match.
         """
-        user = User.query.filter_by(api_key=key).first()
+        statement = select(User).where(User.api_key == key)
+        user = db.session.execute(statement).scalars().one()
         if not user or not user.api_secret:
             return None
         if bcrypt.checkpw(secret.encode(), user.api_secret.encode()):
