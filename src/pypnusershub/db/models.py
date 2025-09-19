@@ -175,8 +175,8 @@ class User(db.Model, UserMixin):
     groups: Mapped[List["User"]] = relationship(
         "User",
         secondary=cor_roles,
-        primaryjoin="User.id_role==cor_roles.c.id_role_utilisateur",
-        secondaryjoin="User.id_role==cor_roles.c.id_role_groupe",
+        primaryjoin="User.id_role==utilisateurs.cor_roles.c.id_role_utilisateur",
+        secondaryjoin="User.id_role==utilisateurs.cor_roles.c.id_role_groupe",
         back_populates="members",
         viewonly=False,
     )
@@ -184,8 +184,8 @@ class User(db.Model, UserMixin):
     members: Mapped[List["User"]] = relationship(
         "User",
         secondary=cor_roles,
-        primaryjoin="User.id_role==cor_roles.c.id_role_groupe",
-        secondaryjoin="User.id_role==cor_roles.c.id_role_utilisateur",
+        primaryjoin="User.id_role==utilisateurs.cor_roles.c.id_role_groupe",
+        secondaryjoin="User.id_role==utilisateurs.cor_roles.c.id_role_utilisateur",
         back_populates="groups",
         viewonly=False,
     )
@@ -193,6 +193,10 @@ class User(db.Model, UserMixin):
     providers: Mapped[List["Provider"]] = relationship(
         "Provider", secondary=cor_role_provider, back_populates="users"
     )
+
+    # ---------------------
+    # Méthodes / propriétés
+    # ---------------------
 
     @property
     def max_level_profil(self):
@@ -298,7 +302,7 @@ class User(db.Model, UserMixin):
 
     # --- New SQLAlchemy 2.0 style utility: classmethod replacing old qfilter/UserQuery ---
     @classmethod
-    def filter_by_app(cls, session: Session, code_app: Optional[int] = None):
+    def filter_by_app(cls, code_app: Optional[int] = None,**kwargs):
         """
         Retourne un Select() pour les Users visibles par l'application `code_app`.
         Usage:
@@ -308,8 +312,11 @@ class User(db.Model, UserMixin):
         """
         if code_app is None:
             code_app = current_app.config.get("CODE_APPLICATION")
+        query = select(cls)
+        if "query" in kwargs:
+            query = kwargs["query"]
         stmt = (
-            select(cls)
+            query
             .outerjoin(cor_roles, cls.id_role == cor_roles.c.id_role_utilisateur)
             .outerjoin(
                 UserApplicationRight,
@@ -365,9 +372,9 @@ class Profils(db.Model):
     __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
 
     id_profil: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    code_profil: Mapped[Optional[str]] = mapped_column(db.Unicode)
-    nom_profil: Mapped[Optional[str]] = mapped_column(db.Unicode)
-    desc_profil: Mapped[Optional[str]] = mapped_column(db.Unicode)
+    code_profil: Mapped[Optional[int]] 
+    nom_profil: Mapped[Optional[str]]
+    desc_profil: Mapped[Optional[str]]
 
     applications: Mapped[List["Application"]] = relationship(
         "Application", secondary=profils_for_app, back_populates="profils"
@@ -380,7 +387,7 @@ class Application(db.Model):
     __table_args__ = {"schema": "utilisateurs"}
 
     id_application: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    code_application: Mapped[Optional[int]] = mapped_column(db.Integer)
+    code_application: Mapped[Optional[str]] = mapped_column(db.Unicode)
     nom_application: Mapped[Optional[str]] = mapped_column(db.Unicode)
     desc_application: Mapped[Optional[str]] = mapped_column(db.Unicode)
     id_parent: Mapped[Optional[int]] = mapped_column(db.Integer)

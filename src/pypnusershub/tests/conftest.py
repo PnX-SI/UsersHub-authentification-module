@@ -1,6 +1,6 @@
 import pytest
 
-from flask import Flask
+from flask import Flask, request
 
 from utils_flask_sqla.tests.utils import JSONClient
 
@@ -9,8 +9,8 @@ from pypnusershub.login_manager import login_manager
 from pypnusershub.auth.auth_manager import auth_manager
 
 
-@pytest.fixture(scope="session", autouse=True)
-def app():
+@pytest.fixture(scope="session")
+def _app():
     app = Flask("pypnusershub")
     from pypnusershub.routes import routes
 
@@ -25,12 +25,18 @@ def app():
     )
     login_manager.init_app(app)
 
+    @app.before_request
+    def get_endpoint():
+        pytest.endpoint = request.endpoint
+
     with app.app_context():
-        transaction = db.session.begin_nested()  # execute tests in a savepoint
         yield app
-        transaction.rollback()  # rollback all database changes
 
 
 @pytest.fixture(scope="session")
-def _session(app):
+def _session(_app):
     return db.session
+
+@pytest.fixture(scope="session", autouse=True)
+def app(_app, _session):
+    return _app
