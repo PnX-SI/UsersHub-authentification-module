@@ -10,6 +10,8 @@ mappings applications et utilisateurs
 
 import hashlib
 
+import re
+
 import bcrypt
 import flask_sqlalchemy
 from bcrypt import checkpw
@@ -530,56 +532,10 @@ class CorRoleToken(db.Model):
 
 
 @serializable
-class TListes(db.Model):
-    """
-    Model de la table t_listes
-    """
-
-    __tablename__ = "t_listes"
-    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
-    id_liste = db.Column(db.Integer, primary_key=True)
-    code_liste = db.Column(db.Unicode)
-    nom_liste = db.Column(db.Unicode)
-    desc_liste = db.Column(db.Unicode)
-
-
-@serializable
 class CorRoleListe(db.Model):
     """Classe de correspondance entre la table t_roles et la table t_listes"""
 
     __table__ = cor_role_liste
-
-
-@serializable
-class TApplications(db.Model):
-    """
-    Model de la table t_applications
-    """
-
-    __tablename__ = "t_applications"
-    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
-    id_application = db.Column(db.Integer, primary_key=True)
-    code_application = db.Column(db.Unicode)
-    nom_application = db.Column(db.Unicode)
-    desc_application = db.Column(db.Unicode)
-    id_parent = db.Column(db.Unicode)
-
-
-@serializable
-class TProfils(db.Model):
-    """
-    Model de la classe t_profils
-    """
-
-    __tablename__ = "t_profils"
-    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
-    id_profil = db.Column(db.Integer, primary_key=True)
-    code_profil = db.Column(db.Unicode)
-    nom_profil = db.Column(db.Unicode)
-    desc_profil = db.Column(db.Unicode)
-
-
-import re
 
 
 class TempUser(db.Model):
