@@ -78,6 +78,11 @@ cor_roles = db.Table(
     extend_existing=True,
 )
 
+
+class CorRoles(db.Model):
+    __table__ = cor_roles
+
+
 cor_role_provider = db.Table(
     "cor_role_provider",
     db.Column(
@@ -378,6 +383,7 @@ class UserApplicationRight(db.Model):
         ForeignKey("utilisateurs.t_applications.id_application"),
         primary_key=True,
     )
+    is_default_group_for_app = db.Column(db.Boolean, default=False)
 
     role = relationship("User")
     profil = relationship("Profils")
@@ -386,6 +392,15 @@ class UserApplicationRight(db.Model):
     def __repr__(self):
         return "<UserApplicationRight role='{}' profil='{}' app='{}'>".format(
             self.id_role, self.id_profil, self.id_application
+        )
+
+    @staticmethod
+    def get_default_for_app(id_application):
+        return (
+            db.session.query(UserApplicationRight)
+            .filter_by(id_application=id_application)
+            .filter_by(is_default_group_for_app=True)
+            .first()
         )
 
 
@@ -497,3 +512,182 @@ class Provider(db.Model):
     )
     name = db.Column(db.Unicode, nullable=False)
     url = db.Column(db.Unicode, nullable=False)
+
+
+class CorRoleToken(db.Model):
+    __tablename__ = "cor_role_token"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+
+    id_role = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.Unicode)
+
+    def as_dict(self, recursif=False, columns=(), depth=None):
+        """
+        The signature of the function must be the as same the as_dict func
+        from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        """
+        return {"id_role": self.id_role, "token": self.token}
+
+
+@serializable
+class TListes(db.Model):
+    """
+    Model de la table t_listes
+    """
+
+    __tablename__ = "t_listes"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+    id_liste = db.Column(db.Integer, primary_key=True)
+    code_liste = db.Column(db.Unicode)
+    nom_liste = db.Column(db.Unicode)
+    desc_liste = db.Column(db.Unicode)
+
+
+@serializable
+class CorRoleListe(db.Model):
+    """Classe de correspondance entre la table t_roles et la table t_listes"""
+
+    __table__ = cor_role_liste
+
+
+@serializable
+class TApplications(db.Model):
+    """
+    Model de la table t_applications
+    """
+
+    __tablename__ = "t_applications"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+    id_application = db.Column(db.Integer, primary_key=True)
+    code_application = db.Column(db.Unicode)
+    nom_application = db.Column(db.Unicode)
+    desc_application = db.Column(db.Unicode)
+    id_parent = db.Column(db.Unicode)
+
+
+@serializable
+class TProfils(db.Model):
+    """
+    Model de la classe t_profils
+    """
+
+    __tablename__ = "t_profils"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+    id_profil = db.Column(db.Integer, primary_key=True)
+    code_profil = db.Column(db.Unicode)
+    nom_profil = db.Column(db.Unicode)
+    desc_profil = db.Column(db.Unicode)
+
+
+import re
+
+
+class TempUser(db.Model):
+    __tablename__ = "temp_users"
+    __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
+
+    id_temp_user = db.Column(db.Integer, primary_key=True)
+    token_role = db.Column(db.Unicode)
+    organisme = db.Column(db.Unicode)
+    id_application = db.Column(db.Integer)
+    confirmation_url = db.Column(db.Unicode)
+    groupe = db.Column(db.Boolean)
+    identifiant = db.Column(db.Unicode)
+    nom_role = db.Column(db.Unicode)
+    prenom_role = db.Column(db.Unicode)
+    desc_role = db.Column(db.Unicode)
+    password = db.Column(db.Unicode)
+    pass_md5 = db.Column(db.Unicode)
+    email = db.Column(db.Unicode)
+    id_organisme = db.Column(db.Integer)
+    remarques = db.Column(db.Unicode)
+    champs_addi = db.Column(JSONB)
+    date_insert = db.Column(db.DateTime)
+    date_update = db.Column(db.DateTime)
+
+    def set_password(self, password, password_confirmation, md5):
+        self.password, self.pass_md5 = check_and_encrypt_password(
+            password, password_confirmation, md5
+        )
+
+    def is_valid(self):
+        is_valid = True
+        msg = ""
+
+        if not self.password:
+            is_valid = False
+            msg += "Password is required. "
+
+        re.compile(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
+        if not re.match(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$", self.email):
+            is_valid = False
+            msg += "E-mail is not valid. "
+        # check if user or temp user exist with an email or login given
+        role = db.session.scalars(
+            select(User).where(
+                or_(User.email == self.email, User.identifiant == self.identifiant)
+            )
+        ).first()
+        if role:
+            is_valid = False
+            if role.email == self.email:
+                msg += (
+                    f"Un compte avec l'email {self.email} existe déjà. "
+                    + "S'il s'agit de votre email, vous pouvez faire une demande de renouvellement "
+                    + "de mot de passe via la page de login de GeoNature."
+                )
+            else:
+                msg += (
+                    f"Un compte avec l'identifiant {self.identifiant} existe déjà. "
+                    + "Veuillez choisir un identifiant différent."
+                )
+
+        temp_role = db.session.scalars(
+            select(TempUser)
+            .where(
+                or_(
+                    TempUser.email == self.email,
+                    TempUser.identifiant == self.identifiant,
+                )
+            )
+            .limit(1)
+        ).first()
+        if temp_role:
+            is_valid = False
+            if temp_role.email == self.email:
+                msg += (
+                    f"Un compte en attente de validation avec l'email {self.email} existe déjà. "
+                    + "Merci de patienter le temps que votre demande soit traitée."
+                )
+            else:
+                msg += (
+                    "Un compte en attente de validation avec l'identifiant "
+                    + f"{self.identifiant} existe déjà. "
+                    + "Veuillez choisir un identifiant différent."
+                )
+
+        return (is_valid, msg)
+
+    def as_dict(self, recursif=False, columns=(), depth=None):
+        """
+        The signature of the function must be the as same the as_dict func
+        from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
+        """
+        return {
+            "id_temp_user": self.id_temp_user,
+            "token_role": self.token_role,
+            "organisme": self.organisme,
+            "id_application": self.id_application,
+            "confirmation_url": self.confirmation_url,
+            "groupe": self.groupe,
+            "identifiant": self.identifiant,
+            "nom_role": self.nom_role,
+            "prenom_role": self.prenom_role,
+            "desc_role": self.desc_role,
+            "password": self.password,
+            "pass_md5": self.pass_md5,
+            "email": self.email,
+            "id_organisme": self.id_organisme,
+            "remarques": self.remarques,
+            "champs_addi": self.champs_addi,
+        }
