@@ -223,8 +223,10 @@ def post_usershub(type_action):
                     ),
                     500,
                 )
-
-    return req_json_or_text(r_usershub)
+    if type_action in ["valid_temp_user"]:
+        return req_json_or_text(r_usershub)
+    else:
+        return json.dumps({}), r_usershub.status_code
 
 
 def after_request(type_action, data, *args, **kwargs):
