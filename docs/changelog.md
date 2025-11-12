@@ -4,7 +4,7 @@
 
 **🐛 Corrections**
 
-- Correction de la route d'interaction avec UsersHub (#124 par @christophe-ramet)
+- Renforcement de la sécurité de la route d'interaction avec UsersHub (#124 par @christophe-ramet)
 
 ## 3.0.3 (2025-03-07)
 
