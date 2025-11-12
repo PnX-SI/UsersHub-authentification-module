@@ -50,7 +50,7 @@ def create_cor_role_token(email):
     ).scalar_one_or_none()
 
     if not user:
-        raise KeyError("Aucun utilisateur trouvé pour l'email : " + email)
+        raise KeyError("No user was found with the following email address : " + email)
 
     token = generate_token()
     # Remove old token
@@ -196,7 +196,7 @@ def change_password(token: str, password: str, password_confirmation: str):
         raise ValueError("Token non défini dans paramètre POST")
 
     if not password_confirmation or not password:
-        raise ValueError("Password non defini dans paramètres POST")
+        raise ValueError("Password non défini dans paramètres POST")
 
     associated_id_role = db.session.scalar(
         sa.select(CorRoleToken.id_role).where(CorRoleToken.token == token)
