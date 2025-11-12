@@ -225,6 +225,11 @@ def post_usershub(type_action):
                 )
     if type_action in ["valid_temp_user"]:
         return req_json_or_text(r_usershub)
+    elif type_action == "create_cor_role_token":
+        return (
+            json.dumps({"token": r_usershub.json().get("token", None)}),
+            r_usershub.status_code,
+        )
     else:
         return json.dumps({}), r_usershub.status_code
 
