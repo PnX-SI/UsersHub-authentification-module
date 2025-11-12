@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.4 (2025-11-12)
+
+**🐛 Corrections**
+
+- Renforcement de la sécurité de la route d'interaction avec UsersHub (#124 par @christophe-ramet)
+
 ## 3.0.3 (2025-03-07)
 
 **🐛 Corrections**
