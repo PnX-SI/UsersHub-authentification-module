@@ -20,7 +20,6 @@ from pypnusershub.auth.subscribe import (
 from .fixtures import group_and_users, applications, profils
 
 
-
 def test_generate_token_random():
     """Token should be a random 128-bit string"""
     token1 = generate_token()
@@ -33,6 +32,7 @@ def test_generate_token_random():
 # ===============================================================
 # FIXTURES
 # ===============================================================
+
 
 @pytest.fixture(scope="function")
 def temp_user_fixture(applications):
@@ -56,6 +56,7 @@ def temp_user_fixture(applications):
 # create_cor_role_token
 # ===============================================================
 
+
 def test_create_cor_role_token_no_email():
     with pytest.raises(Exception, match="No email was found"):
         create_cor_role_token(None)
@@ -78,8 +79,8 @@ def test_create_cor_role_token_success(group_and_users):
 
     # Verify the token saved in DB
     cor_token = db.session.scalars(
-    sa.select(CorRoleToken).where(CorRoleToken.id_role == user.id_role)
-        ).first()
+        sa.select(CorRoleToken).where(CorRoleToken.id_role == user.id_role)
+    ).first()
     assert cor_token is not None
     assert cor_token.token == result["token"]
 
@@ -87,6 +88,7 @@ def test_create_cor_role_token_success(group_and_users):
 # ===============================================================
 # create_temp_user
 # ===============================================================
+
 
 def test_create_temp_user_password_mismatch(app):
     """Should raise when password != confirmation"""
@@ -118,9 +120,7 @@ def test_create_temp_user_success(app, applications):
     assert "token" in result
 
     # Ensure user is persisted
-    tu = db.session.scalar(
-        sa.select(TempUser).where(TempUser.identifiant == "temp2")
-    )
+    tu = db.session.scalar(sa.select(TempUser).where(TempUser.identifiant == "temp2"))
     assert tu is not None
     assert tu.token_role == result["token"]
 
@@ -128,6 +128,7 @@ def test_create_temp_user_success(app, applications):
 # ===============================================================
 # valid_temp_user
 # ===============================================================
+
 
 def test_valid_temp_user_no_user(app):
     """Should raise when token doesn't match any TempUser"""
@@ -183,6 +184,7 @@ def test_valid_temp_user_success(app, temp_user_fixture, applications):
 # change_password
 # ===============================================================
 
+
 def test_change_password_missing_token(app):
     with pytest.raises(ValueError, match="Token non défini"):
         change_password(None, "a", "a")
@@ -215,6 +217,6 @@ def test_change_password_success(app, group_and_users):
 
     # Ensure CorRoleToken deleted
     cors = db.session.scalars(
-    sa.select(CorRoleToken).where(CorRoleToken.token == token)
+        sa.select(CorRoleToken).where(CorRoleToken.token == token)
     ).first()
     assert cors is None

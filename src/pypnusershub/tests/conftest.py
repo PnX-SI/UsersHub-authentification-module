@@ -37,4 +37,3 @@ def _session(_app):
 @pytest.fixture(scope="session", autouse=True)
 def app(_app, _session):
     return _app
-

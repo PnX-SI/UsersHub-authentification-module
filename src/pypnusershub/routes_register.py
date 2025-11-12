@@ -160,10 +160,9 @@ def test():
 @connect_admin()
 def post_usershub(type_action):
     """
-    @deprecated: This method was bad in term of security. As of
-    today, methods in UsersHub-authentification-module are available in `pypnusershub.auth.subscribe`.
-    If necessary, these methods are still available directly through UsersHub API
-    but not by this route !
+    @deprecated(
+        reason="This method was bad in term of security. As of today, methods in UsersHub-authentification-module are available in `pypnusershub.auth.subscribe`. If necessary, these methods are still available directly through UsersHub API but not by this route !"
+    )
 
     route generique pour appeler les routes UsersHub en tant qu'administrateur de l'appli en cours
     ex : post_usershub/test_connexion appelle la route URL_USERSHUB/api_register/test_connexion

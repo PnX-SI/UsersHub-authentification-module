@@ -46,7 +46,9 @@ class TestUtilisateurs:
         assert created_user_as_dict["id_role"] == 99999
         assert len(created_user_as_dict["groups"]) == 1
 
-        app.config["AUTHENTICATION"]["DEFAULT_RECONCILIATION_GROUP_ID"] = group_and_users['group2'].id_role
+        app.config["AUTHENTICATION"]["DEFAULT_RECONCILIATION_GROUP_ID"] = (
+            group_and_users["group2"].id_role
+        )
         user_dict["id_role"] = 99998
         user_dict["email"] = "test@test2.fr"
         user_ = provider_instance.insert_or_update_role(user_dict)
