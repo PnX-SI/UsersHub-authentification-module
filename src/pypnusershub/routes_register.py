@@ -160,19 +160,18 @@ def test():
 @connect_admin()
 def post_usershub(type_action):
     """
+    @deprecated: This method was bad in term of security. As of
+    today, methods in UsersHub-authentification-module are available in `pypnusershub.auth.subscribe`.
+    If necessary, these methods are still available directly through UsersHub API
+    but not by this route !
+
     route generique pour appeler les routes UsersHub en tant qu'administrateur de l'appli en cours
     ex : post_usershub/test_connexion appelle la route URL_USERSHUB/api_register/test_connexion
     """
     # attribution des droits pour les actions
     dict_type_action_droit = {
         "test_connexion": 0,
-        "valid_temp_user": 0,
-        "create_temp_user": 0,
-        "change_password": 0,
-        "create_cor_role_token": 0,
         "add_application_right_to_role": 0,
-        "login_recovery": 0,
-        "password_recovery": 0,
         "update_user": 1,
         "change_application_right": 4,
     }
