@@ -10,7 +10,7 @@ from pypnusershub.auth.auth_manager import auth_manager
 
 
 @pytest.fixture(scope="session", autouse=True)
-def app():
+def _app():
     app = Flask("pypnusershub")
     from pypnusershub.routes import routes
 
@@ -26,11 +26,15 @@ def app():
     login_manager.init_app(app)
 
     with app.app_context():
-        transaction = db.session.begin_nested()  # execute tests in a savepoint
         yield app
-        transaction.rollback()  # rollback all database changes
 
 
 @pytest.fixture(scope="session")
-def _session(app):
+def _session(_app):
     return db.session
+
+
+@pytest.fixture(scope="session", autouse=True)
+def app(_app, _session):
+    return _app
+
