@@ -245,17 +245,6 @@ Les routes suivantes sont implémentés dans `UsersHub-authentification-module`:
 | `/logout`           | Déconnecte l'utilisateur courant                                                                                                               | NA                         | redirect                         |
 | `/authorize`        | Connecte un utilisateur à l'aide des infos retournées par le fournisseurs d'identités (Si redirection vers un portail de connexion par /login) | {data}                     | redirect                         |
 
-> [!TIP]
-> Certaines routes utilisées accessibles depuis `UsersHub-authentification-module` proviennent du module `UsersHub`. Les routes sont les suivantes :
->
-> | Route URI                   | Action                                                                                                           | Paramètres                               | Retourne                                   |
-> | --------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------ |
-> | `/create_tmp_user`          | Création d'un utilisateur temporaire en base                                                                     | {données sur l'utilisateur}              | {token}                                    |
-> | `/valid_temp_user`          | Création utilisateur en base dans la table t_role et ajout d'un profil avec code 1 pour une l’application donnée | {token, application_id}                  | {role}                                     |
-> | `/create_cor_role_token`    | Génère un token pour utilisateur ayant l’email indiqué et stoque le token dans cor_role_token                    | {email}                                  | {role}                                     |
-> | `/change_password`          | Mise à jour du mot de passe de l’utilisateur et suppression du token en base                                     | {token, password, password_confirmation} | {role}                                     |
-> | `/change_application_right` | Modifie le profil de l’utilisateur pour l’application                                                            | {id_application, id_profil, id_role}     | {id_role, id_profil, id_application, role} |
-> | `/update_user`              | Mise à jour d'un rôle                                                                                            | {id_role, données utilisateur}           | {role}                                     |
 
 ### Méthodes définies dans le module
 
