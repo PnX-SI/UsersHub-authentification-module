@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 3.0.4 (2025-11-12)
+## 3.0.4 (2025-11-14)
+
+**🚨 Breaking Changes**
+
+- Pour des raisons de sécurité, la route `/post_usershub` a été supprimée. Pour utiliser l'API de UsersHub utiliser les routes directement accessible depuis cette dernière (#125 par @jacquesfize)
 
 **🐛 Corrections**
 
