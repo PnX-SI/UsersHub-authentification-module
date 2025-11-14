@@ -65,6 +65,8 @@ def group_and_users(app, applications, profils):
     with db.session.begin_nested():
         group1 = User(groupe=True, identifiant="group1")
         db.session.add(group1)
+        group2 = User(groupe=True, identifiant="group2")
+        db.session.add(group2)
         user1 = User(groupe=False, identifiant="user_of_group1")
         user1.password = "admin"
         user_no_group = User(groupe=False, identifiant="user2")
@@ -92,6 +94,7 @@ def group_and_users(app, applications, profils):
         db.session.add(user_no_group_app)
         return {
             "group1": group1,
+            "group2": group2,
             "user1": user1,
             "user_no_group": user_no_group,
         }

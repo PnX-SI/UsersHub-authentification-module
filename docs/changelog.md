@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 3.1.0 (2025-11-14)
+
+**🚨 Breaking Changes**
+
+- La route `/post_usershub` a été supprimée. Pour utiliser l'API de UsersHub, il est maintenant nécessaire d'utiliser les routes directement accessibles depuis cette dernière (#125 par @jacquesfize)
+
+**🚀 Nouveautés**
+
+- Ajout de méthodes dédiées à la création utilisateur et la modification du mot de passe disponible dans `pypnusershub.auth.subscribe` (#125 par @jacquesfize) 
+- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateurs` (#125 par @jacquesfize) 
+
 ## 3.0.4 (2025-11-12)
 
 **🐛 Corrections**
