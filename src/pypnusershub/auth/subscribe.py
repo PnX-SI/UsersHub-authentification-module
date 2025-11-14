@@ -135,10 +135,8 @@ def valid_temp_user(data: dict):
     Route pour valider un compte temporaire et en faire un utilisateur
     (requete a usershub).
     """
-
     token = data["token"]
     id_application = data["id_application"]
-
     # recherche de l'utilisateur temporaire correspondant au token
     temp_user = db.session.execute(
         sa.select(TempUser).where(TempUser.token_role == token)
@@ -154,7 +152,7 @@ def valid_temp_user(data: dict):
     req_data = temp_user.as_dict()
 
     # Récupération du groupe par défaut
-    id_grp = UserApplicationRight.get_default_for_app(id_application).id_role
+    id_grp = UserApplicationRight.get_default_for_app(id_application)
     if not id_grp:
         raise ValueError("Pas de groupe par défaut pour l'application")
 
@@ -177,12 +175,11 @@ def valid_temp_user(data: dict):
     db.session.commit()
 
     # Ajout du role au profil
-    cor = CorRoles(id_role_groupe=id_grp, id_role_utilisateur=role.id_role)
+    cor = CorRoles(id_role_groupe=id_grp.id_role, id_role_utilisateur=role.id_role)
     db.session.add(cor)
 
     db.session.delete(temp_user)
     db.session.commit()
-
     return role.as_dict()
 
 
