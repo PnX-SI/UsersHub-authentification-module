@@ -1,7 +1,6 @@
 # CHANGELOG
 
-## 3.0.5 (2025-11-14)
-
+## 3.1.0 (2025-11-14)
 
 **🚨 Breaking Changes**
 
@@ -10,7 +9,7 @@
 **🚀 Nouveautés**
 
 - Ajout de méthodes dédiées à la création utilisateur et la modification du mot de passe disponible dans `pypnusershub.auth.subscribe` (#125 par @jacquesfize) 
-- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateur` (#125 par @jacquesfize) 
+- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateurs` (#125 par @jacquesfize) 
 
 ## 3.0.4 (2025-11-12)
 
