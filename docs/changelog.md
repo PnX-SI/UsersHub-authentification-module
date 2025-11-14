@@ -5,7 +5,7 @@
 
 **🚨 Breaking Changes**
 
-- Pour des raisons de sécurité, la route `/post_usershub` a été supprimée. Pour utiliser l'API de UsersHub, il est maintenant nécessaire d'utiliser les routes directement accessibles depuis cette dernière (#125 par @jacquesfize)
+- La route `/post_usershub` a été supprimée. Pour utiliser l'API de UsersHub, il est maintenant nécessaire d'utiliser les routes directement accessibles depuis cette dernière (#125 par @jacquesfize)
 
 **🚀 Nouveautés**
 
