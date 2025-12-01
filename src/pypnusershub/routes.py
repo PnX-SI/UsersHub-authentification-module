@@ -231,4 +231,5 @@ def insert_or_update_organism(organism):
     organism_schema = OrganismeSchema()
     organism = organism_schema.load(organism)
     db.session.add(organism)
+    db.session.commit()
     return organism_schema.dump(organism)
