@@ -223,10 +223,21 @@ def authorize(provider="local_provider"):
     return redirect(current_app.config["URL_APPLICATION"])
 
 
-def insert_or_update_organism(organism):
+def insert_or_update_organism(organism) -> dict:
     """
-    Insert a organism
+    Insert an organism.
 
+    The organism may eventually be updated rather than inserted.
+
+    Parameters
+    ----------
+    organism : dict
+        A dictionary containing the organism data.
+
+    Returns
+    -------
+    dict
+        The inserted or updated organism.
     """
     organism_schema = OrganismeSchema()
     organism = organism_schema.load(organism)
