@@ -5,7 +5,7 @@ import pytest
 
 from pypnusershub.db.models import Organisme, User
 
-from pypnusershub.routes import insert_or_update_organism
+from pypnusershub.organisms_manager import insert_or_update_organism
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 from pypnusershub.tests.fixtures import *
 from pypnusershub.tests.utils import set_logged_user

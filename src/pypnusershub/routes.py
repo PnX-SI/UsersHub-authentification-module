@@ -26,7 +26,7 @@ from markupsafe import escape
 from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
-from pypnusershub.schemas import OrganismeSchema, UserSchema
+from pypnusershub.schemas import UserSchema
 from pypnusershub.auth.authentication import Authentication
 from werkzeug.exceptions import Forbidden, Unauthorized
 

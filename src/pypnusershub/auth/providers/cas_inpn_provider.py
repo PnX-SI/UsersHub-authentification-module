@@ -8,7 +8,7 @@ from marshmallow import EXCLUDE, ValidationError, fields
 from marshmallow import fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
-from pypnusershub.routes import insert_or_update_organism
+from pypnusershub.organisms_manager import insert_or_update_organism
 from sqlalchemy import select
 from werkzeug.exceptions import InternalServerError
 
