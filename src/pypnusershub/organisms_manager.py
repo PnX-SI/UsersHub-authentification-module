@@ -1,5 +1,7 @@
 from pypnusershub.schemas import OrganismeSchema
 from pypnusershub.db import db
+from pypnusershub.db.models import Organisme
+
 
 def insert_or_update_organism(organism) -> dict:
     """
@@ -22,3 +24,24 @@ def insert_or_update_organism(organism) -> dict:
     db.session.add(organism)
     db.session.commit()
     return organism_schema.dump(organism)
+
+
+def delete_organism(id_organisme: int) -> None:
+    """
+    Delete an organism.
+
+    Parameters
+    ----------
+    id_organisme : int
+        The ID of the organism to delete.
+
+    Raises
+    ------
+    ValueError
+        If the organism with the given ID does not exist.
+    """
+    organism = db.session.get(Organisme, id_organisme)
+    if organism is None:
+        raise ValueError(f"Organism with id {id_organisme} does not exist")
+    db.session.delete(organism)
+    db.session.commit()
