@@ -26,7 +26,7 @@ from markupsafe import escape
 from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
-from pypnusershub.schemas import OrganismeSchema, UserSchema
+from pypnusershub.schemas import UserSchema
 from pypnusershub.auth.authentication import Authentication
 from werkzeug.exceptions import Forbidden, Unauthorized
 
@@ -221,14 +221,3 @@ def authorize(provider="local_provider"):
 
     # if auth_provider.is_external:
     return redirect(current_app.config["URL_APPLICATION"])
-
-
-def insert_or_update_organism(organism):
-    """
-    Insert a organism
-
-    """
-    organism_schema = OrganismeSchema()
-    organism = organism_schema.load(organism)
-    db.session.add(organism)
-    return organism_schema.dump(organism)

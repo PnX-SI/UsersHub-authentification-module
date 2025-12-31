@@ -5,7 +5,7 @@ import pytest
 
 from pypnusershub.db.models import Organisme, User
 
-from pypnusershub.routes import insert_or_update_organism
+from pypnusershub.organisms_manager import insert_or_update_organism, delete_organism
 from pypnusershub.schemas import OrganismeSchema, UserSchema
 from pypnusershub.tests.fixtures import *
 from pypnusershub.tests.utils import set_logged_user
@@ -101,6 +101,23 @@ class TestUtilisateurs:
         organism_schema = OrganismeSchema()
         organism_as_dict = organism_schema.dump(create_organism)
         assert organism_as_dict["nom_organisme"] == "update"
+
+    def test_delete_user(self):
+        organism = {
+            "nom_organisme": "test",
+            "id_organisme": 99999,
+            "adresse_organisme": "66 rue du truc",
+            "ville_organisme": "Gap",
+            "tel_organisme": "00000000",
+            "email_organisme": "test@test.com",
+            "url_organisme": "http://lala.com",
+            "url_logo": "http://lala.com",
+            "url_logo": "http://lala.com",
+        }
+        insert_or_update_organism(organism)
+        assert db.session.get(Organisme, 99999)
+        delete_organism(99999)
+        assert db.session.get(Organisme, 99999) is None
 
     def test_filter_by_app(self, group_and_users):
         roles = db.session.scalars(
