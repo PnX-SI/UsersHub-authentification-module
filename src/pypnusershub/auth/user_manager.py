@@ -318,5 +318,11 @@ class UserManager:
 
         return role.as_dict()
 
+    @staticmethod
+    def change_mail(user_id: int, new_mail: str) -> None:
+        user = db.session.get(User, user_id)
+        user.email = new_mail
+        db.session.commit()
+
 
 user_manager = UserManager()
