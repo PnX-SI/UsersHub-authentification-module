@@ -22,6 +22,10 @@ class UserManager:
     class PrintableValueError(PrintableException, ValueError):
         pass
 
+    class UserNotFoundError(PrintableValueError):
+        def __init__(self, message="Pas d'utilisateur correspondant à cet id_role"):
+            super().__init__(message)
+
     def __init__(self):
         """
         Manager to handle user (user creation, password forgotten, changing password, ...)
@@ -304,7 +308,7 @@ class UserManager:
         role = db.session.get(User, associated_id_role)
 
         if not role:
-            raise self.PrintableValueError("Pas d'utilisateur correspondant à id_role")
+            raise self.UserNotFoundError()
         if not password == password_confirmation:
             raise self.PrintableValueError(
                 "Les deux mots de passes ne correspondent pas"
@@ -321,6 +325,8 @@ class UserManager:
     @staticmethod
     def change_mail(user_id: int, new_mail: str) -> None:
         user = db.session.get(User, user_id)
+        if not User:
+            raise self.UserNotFoundError()
         user.email = new_mail
         db.session.commit()
 
