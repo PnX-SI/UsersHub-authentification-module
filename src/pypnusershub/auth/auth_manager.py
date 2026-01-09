@@ -107,6 +107,7 @@ class AuthManager:
             with app.app_context():
                 instance_provider: Authentication = class_()
                 instance_provider.configure(configuration=provider_config)
+
                 self.add_provider(instance_provider.id_provider, instance_provider)
         login_manager.init_app(app)
 
