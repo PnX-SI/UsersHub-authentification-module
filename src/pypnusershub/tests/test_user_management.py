@@ -366,3 +366,15 @@ class TestRaiseOnPasswordNotMatchingCriterium:
             match="Le mot de passe ne respècte pas les critères",
         ):
             user_manager._raise_on_password_not_matching_criteria(invalid_password)
+
+
+class TestChangeMail:
+    def test_change_mail(self, app, group_and_users):
+        user = group_and_users["user1"]
+        user_manager.init_user_manager(8, True, True, True)
+        new_mail = "new_mail@example.com"
+        user_manager.change_mail(user.id_role, new_mail)
+        new_user = db.session.scalars(
+            sa.select(User).where(User.id_role == user.id_role)
+        ).first()
+        assert new_mail == new_user.email
