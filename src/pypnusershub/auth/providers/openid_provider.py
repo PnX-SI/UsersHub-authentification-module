@@ -66,8 +66,25 @@ class OpenIDProvider(Authentication):
         session.pop("openid_token_resp")
 
     def configure(self, configuration: Union[dict, Any]) -> None:
+        class OpenIDProviderConfiguration(ProviderConfigurationSchema):
+            ISSUER = fields.String(required=True)
+            CLIENT_ID = fields.String(required=True)
+            CLIENT_SECRET = fields.String(required=True)
+            group_claim_name = fields.String(load_default="groups")
+            CODE_CHALLENGE_METHOD = fields.String(
+                load_default="S256",
+                validate=fields.validate.OneOf(["plain", "S256"]),
+            )
 
         super().configure(configuration)
+        try:
+            configuration = OpenIDProviderConfiguration().load(
+                configuration, unknown=EXCLUDE
+            )
+        except ValidationError as e:
+            raise ValidationError(
+                f"Error while loading OpenID provider configuration: {e}"
+            )
 
         oauth.register(
             name=configuration["id_provider"],
@@ -77,23 +94,9 @@ class OpenIDProvider(Authentication):
             client_kwargs={
                 "scope": "openid email profile",
                 "issuer": configuration["ISSUER"],
+                "code_challenge_method": configuration["CODE_CHALLENGE_METHOD"],
             },
         )
-
-        class OpenIDProviderConfiguration(ProviderConfigurationSchema):
-            ISSUER = fields.String(required=True)
-            CLIENT_ID = fields.String(required=True)
-            CLIENT_SECRET = fields.String(required=True)
-            group_claim_name = fields.String(load_default="groups")
-
-        try:
-            configuration = OpenIDProviderConfiguration().load(
-                configuration, unknown=EXCLUDE
-            )
-        except ValidationError as e:
-            raise ValidationError(
-                f"Error while loading OpenID provider configuration: {e}"
-            )
         self.group_claim_name = configuration["group_claim_name"]
 
 
