@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 3.1.0 (2026-01-15)
+
+**🚀 Nouveautés**
+
+- Ajout de la gestion de règles pour la création mots de mots de passe (#126 par @christophe-ramet)
+- Refactorisation de la gestion des organismes (#130 par VincentCauchois)
+- Ajout de la compatibilité avec Debian 13 (#131 par @Pierre-Narcisi)
+- Ajout d'une fonction pour le changement d'email (#132 par @christophe-ramet)
+- Ajout d'un nouveau parmètre pour la connexion openid `CODE_CHALLENGE_METHOD` (#132 par @christophe-ramet)
+
 ## 3.1.0 (2025-11-14)
 
 **🚨 Breaking Changes**
@@ -8,8 +18,8 @@
 
 **🚀 Nouveautés**
 
-- Ajout de méthodes dédiées à la création utilisateur et la modification du mot de passe disponible dans `pypnusershub.auth.subscribe` (#125 par @jacquesfize) 
-- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateurs` (#125 par @jacquesfize) 
+- Ajout de méthodes dédiées à la création utilisateur et la modification du mot de passe disponible dans `pypnusershub.auth.subscribe` (#125 par @jacquesfize)
+- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateurs` (#125 par @jacquesfize)
 
 ## 3.0.4 (2025-11-12)
 
