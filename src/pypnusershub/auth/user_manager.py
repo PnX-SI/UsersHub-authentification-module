@@ -325,8 +325,8 @@ class UserManager:
     @staticmethod
     def change_mail(user_id: int, new_mail: str) -> None:
         user = db.session.get(User, user_id)
-        if not User:
-            raise self.UserNotFoundError()
+        if not user:
+            raise UserManager.UserNotFoundError()
         user.email = new_mail
         db.session.commit()
 
