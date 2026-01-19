@@ -4,11 +4,11 @@
 
 **🚀 Nouveautés**
 
-- Ajout de la gestion de règles pour la création mots de mots de passe (#126 par @christophe-ramet)
-- Refactorisation de la gestion des organismes (#130 par VincentCauchois)
+- Ajout de règles paramétrables (nombre de caractères, caractères spéciaux, caractères numériques, majuscules) pour la création de mot de passe (#126 par @christophe-ramet)
+- Refactorisation des fonctions de gestion des organismes (#130 par VincentCauchois)
 - Ajout de la compatibilité avec Debian 13 (#131 par @Pierre-Narcisi)
 - Ajout d'une fonction pour le changement d'email (#132 par @christophe-ramet)
-- Ajout d'un nouveau parmètre pour la connexion openid `CODE_CHALLENGE_METHOD` (#132 par @christophe-ramet)
+- Ajout du paramètre `CODE_CHALLENGE_METHOD` pour la connexion OpenID (#133 par @christophe-ramet)
 
 ## 3.1.0 (2025-11-14)
 
