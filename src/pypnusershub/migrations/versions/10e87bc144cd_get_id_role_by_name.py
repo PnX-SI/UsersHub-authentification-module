@@ -9,7 +9,6 @@ Create Date: 2021-10-07 17:20:59.521063
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "10e87bc144cd"
 down_revision = "951b8270a1cf"
@@ -18,8 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
     CREATE FUNCTION utilisateurs.get_id_role_by_name(roleName character varying)
         RETURNS integer
         LANGUAGE plpgsql
@@ -33,8 +31,7 @@ def upgrade():
             );
         END;
     $BODY$ ;
-    """
-    )
+    """)
 
 
 def downgrade():

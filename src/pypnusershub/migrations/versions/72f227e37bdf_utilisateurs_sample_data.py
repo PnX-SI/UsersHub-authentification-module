@@ -12,7 +12,6 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import table, column
 
-
 # revision identifiers, used by Alembic.
 revision = "72f227e37bdf"
 down_revision = None
@@ -29,24 +28,18 @@ def upgrade():
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
     DELETE FROM utilisateurs.t_roles
     WHERE identifiant
     IN ('admin', 'agent', 'partenaire', 'pierre.paul', 'validateur')
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
     DELETE FROM utilisateurs.t_roles
     WHERE nom_role
     IN ('Grp_en_poste', 'Grp_admin')
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
     DELETE FROM utilisateurs.bib_organismes
     WHERE nom_organisme
     IN ('Autre', 'ma structure test')
-    """
-    )
+    """)

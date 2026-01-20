@@ -11,7 +11,6 @@ import sqlalchemy as sa
 
 from pypnusershub.db.models import Provider
 
-
 # revision identifiers, used by Alembic.
 revision = "b7c98935d9e8"
 down_revision = "f9d3b95946cd"
