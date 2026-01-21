@@ -9,7 +9,6 @@ Create Date: 2024-05-20 10:45:25.067157
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "cf38131bc247"
 down_revision = "b7c98935d9e8"
@@ -28,8 +27,7 @@ def upgrade():
         sa.Column("meta_update_date", sa.TIMESTAMP, server_default=sa.func.now()),
         schema="utilisateurs",
     )
-    op.execute(
-        """
+    op.execute("""
 CREATE FUNCTION utilisateurs.fct_trg_meta_dates_change() RETURNS trigger
     LANGUAGE plpgsql
 AS
@@ -52,8 +50,7 @@ CREATE TRIGGER tri_meta_dates_change_organisms
     ON utilisateurs.bib_organismes
     FOR EACH ROW
 EXECUTE PROCEDURE utilisateurs.fct_trg_meta_dates_change();
-               """
-    )
+               """)
 
 
 def downgrade():
@@ -67,9 +64,7 @@ def downgrade():
         column_name="meta_update_date",
         schema="utilisateurs",
     )
-    op.execute(
-        """
+    op.execute("""
 DROP TRIGGER tri_meta_dates_change_organisms ON utilisateurs.bib_organismes;
 DROP FUNCTION utilisateurs.fct_trg_meta_dates_change();
-               """
-    )
+               """)
