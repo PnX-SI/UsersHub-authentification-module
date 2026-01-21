@@ -72,17 +72,25 @@ class OpenIDProvider(Authentication):
             else []
         )
 
-        # Existing user
-        existing_user = db.session.execute(
+        # Auto-validation: create/update user and allow login immediately
+        if self.auto_validate_new_user:
+            user = self.insert_or_update_role(
+                new_user,
+                source_groups=source_groups,
+                reconciliate_attr=self.reconciliate_attr,
+            )
+            db.session.commit()
+            return user
+
+        # Manual validation: existing users can still log in
+        user = db.session.execute(
             sa.select(models.User).where(
                 getattr(models.User, self.reconciliate_attr)
                 == new_user[self.reconciliate_attr]
             )
         ).scalar_one_or_none()
 
-        # Manual validation: existing users can still log in
-        # Auto-validation: create/update user and allow login immediately
-        if existing_user or self.auto_validate_new_user:
+        if user:
             user = self.insert_or_update_role(
                 new_user,
                 source_groups=source_groups,
