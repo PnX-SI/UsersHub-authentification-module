@@ -132,14 +132,13 @@ class User(db.Model, UserMixin):
     __table_args__ = {"schema": "utilisateurs"}
     query_class = UserQuery
 
-    uuid_role = db.Column(UUID, server_default=FetchedValue())
+    uuid_role = db.Column(UUID, unique=True, server_default=FetchedValue())
     groupe = db.Column(db.Boolean, default=False)
     id_role = db.Column(
         db.Integer,
         primary_key=True,
     )
 
-    # TODO: make that unique ?
     identifiant = db.Column(db.Unicode, unique=True)
     nom_role = db.Column(db.Unicode)
     prenom_role = db.Column(db.Unicode)
