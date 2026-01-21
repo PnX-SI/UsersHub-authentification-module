@@ -8,7 +8,6 @@ from marshmallow import Schema, ValidationError, fields, validates_schema
 from pypnusershub.db import models
 from pypnusershub.db import db, models
 
-
 log = logging.getLogger(__name__)
 
 

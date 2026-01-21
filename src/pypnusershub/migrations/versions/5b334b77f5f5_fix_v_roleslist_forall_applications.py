@@ -9,7 +9,6 @@ Create Date: 2021-09-21 13:22:45.003976
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "5b334b77f5f5"
 down_revision = "830cc8f4daef"
@@ -18,8 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
 DROP VIEW utilisateurs.v_userslist_forall_applications;
 
 DROP VIEW utilisateurs.v_roleslist_forall_applications;
@@ -112,13 +110,11 @@ AS SELECT d.groupe,
     d.id_application
    FROM utilisateurs.v_roleslist_forall_applications d
   WHERE d.groupe = false;
-    """
-    )
+    """)
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
 DROP VIEW utilisateurs.v_userslist_forall_applications;
 
 DROP VIEW utilisateurs.v_roleslist_forall_applications;
@@ -211,5 +207,4 @@ AS SELECT d.groupe,
     d.id_application
    FROM utilisateurs.v_roleslist_forall_applications d
   WHERE d.groupe = false;
-    """
-    )
+    """)

@@ -203,7 +203,7 @@ class UserManager:
             )
 
         # Check sended parameters (password, login and exiting email)
-        (is_temp_user_valid, pwd_validity_msg) = temp_user.is_valid()
+        is_temp_user_valid, pwd_validity_msg = temp_user.is_valid()
 
         if not is_temp_user_valid:
             raise Exception(pwd_validity_msg)
@@ -242,12 +242,10 @@ class UserManager:
             sa.select(TempUser).where(TempUser.token_role == token)
         ).scalar_one_or_none()
         if not temp_user:
-            raise UserManager.PrintableValueError(
-                f"""
+            raise UserManager.PrintableValueError(f"""
                 Il n'y a pas d'utilisateur temporaire correspondant au token fourni {token}.<br>
                 Il se peut que la requête de création de compte ai déjà été validée, ou bien que l'adresse de validation soit erronée.<br>
-                """
-            )
+                """)
 
         req_data = temp_user.as_dict()
 
