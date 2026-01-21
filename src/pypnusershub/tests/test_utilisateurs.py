@@ -51,6 +51,7 @@ class TestUtilisateurs:
         )
         user_dict["id_role"] = 99998
         user_dict["email"] = "test@test2.fr"
+        user_dict["identifiant"] = "test2.user"
         user_ = provider_instance.insert_or_update_role(user_dict)
         assert len(db.session.get(User, 99998).groups) == 2
 
