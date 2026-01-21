@@ -22,6 +22,8 @@ class OpenIDProvider(Authentication):
     Name of the fields in the OpenID token that contains the groups info
     """
     group_claim_name = "groups"
+    identifier_field = "preferred_username"
+    reconciliate_attr = "email"
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         redirect_uri = url_for(
@@ -36,7 +38,7 @@ class OpenIDProvider(Authentication):
         session["openid_token_resp"] = token
         user_info = token["userinfo"]
         new_user = {
-            "identifiant": f"{user_info['given_name'].lower()}.{user_info['family_name'].lower()}",
+            "identifiant": user_info[self.identifier_field],
             "email": user_info["email"],
             "prenom_role": user_info["given_name"],
             "nom_role": user_info["family_name"],
@@ -47,7 +49,9 @@ class OpenIDProvider(Authentication):
             if self.group_claim_name in user_info
             else []
         )
-        user = self.insert_or_update_role(new_user, source_groups=source_groups)
+        user = self.insert_or_update_role(
+            new_user, source_groups=source_groups, reconciliate_attr="identifiant"
+        )
         db.session.commit()
         return user
 
@@ -71,6 +75,10 @@ class OpenIDProvider(Authentication):
             CLIENT_ID = fields.String(required=True)
             CLIENT_SECRET = fields.String(required=True)
             group_claim_name = fields.String(load_default="groups")
+            IDENTIFIER_FIELD = fields.String(
+                load_default="preferred_username"
+            )  # Claim d’identification du token OpenID/OIDC
+            RECONCILIATE_ATTR = fields.String(load_default="email")
             CODE_CHALLENGE_METHOD = fields.String(
                 load_default="S256",
                 validate=fields.validate.OneOf(["plain", "S256"]),
@@ -98,6 +106,8 @@ class OpenIDProvider(Authentication):
             },
         )
         self.group_claim_name = configuration["group_claim_name"]
+        self.identifier_field = configuration["IDENTIFIER_FIELD"]
+        self.reconciliate_attr = configuration["RECONCILIATE_ATTR"]
 
 
 class OpenIDConnectProvider(OpenIDProvider):
