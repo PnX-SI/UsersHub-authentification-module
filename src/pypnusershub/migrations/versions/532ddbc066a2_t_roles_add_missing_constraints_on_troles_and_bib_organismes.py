@@ -18,13 +18,11 @@ depends_on = None
 
 def upgrade():
     try:
-        op.execute(
-            """
+        op.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS uq_t_roles_identifiant
             ON utilisateurs.t_roles (identifiant)
             WHERE identifiant != '' AND identifiant IS NOT NULL;
-            """
-        )
+            """)
     except sa.exc.IntegrityError as e:
         print(
             "Impossible de créer la contrainte d'unicité 'uq_t_roles_identifiant' sur la table 't_roles'. "
@@ -32,13 +30,11 @@ def upgrade():
         )
         raise e
     try:
-        op.execute(
-            """
+        op.execute("""
             ALTER TABLE utilisateurs.bib_organismes
             ADD CONSTRAINT uq_bib_organismes_nom_organisme
             UNIQUE (nom_organisme);
-            """
-        )
+            """)
     except sa.exc.IntegrityError as e:
         print(
             "Impossible de créer la contrainte d'unicité 'uq_bib_organismes_nom_organisme' sur la table 'bib_organismes'. "
@@ -47,13 +43,11 @@ def upgrade():
         raise e
 
     try:
-        op.execute(
-            """
+        op.execute("""
             ALTER TABLE utilisateurs.t_roles
             ADD CONSTRAINT uq_t_roles_uuid_role
             UNIQUE (uuid_role);
-            """
-        )
+            """)
     except sa.exc.IntegrityError as e:
         print(
             "Impossible de créer la contrainte d'unicité 'uq_t_roles_uuid_role' sur la table 't_roles'. "
