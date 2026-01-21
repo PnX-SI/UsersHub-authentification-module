@@ -140,7 +140,7 @@ class User(db.Model, UserMixin):
     )
 
     # TODO: make that unique ?
-    identifiant = db.Column(db.Unicode)
+    identifiant = db.Column(db.Unicode, unique=True)
     nom_role = db.Column(db.Unicode)
     prenom_role = db.Column(db.Unicode)
     desc_role = db.Column(db.Unicode)
@@ -296,7 +296,7 @@ class Organisme(db.Model):
     uuid_organisme = db.Column(
         UUID(as_uuid=True), default=select(func.uuid_generate_v4())
     )
-    nom_organisme = db.Column(db.Unicode)
+    nom_organisme = db.Column(db.Unicode, unique=True)
     adresse_organisme = db.Column(db.Unicode)
     cp_organisme = db.Column(db.Unicode)
     ville_organisme = db.Column(db.Unicode)

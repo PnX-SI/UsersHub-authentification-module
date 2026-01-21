@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import url_for, session
+import sqlalchemy as sa
 
 import pytest
 
@@ -55,6 +56,54 @@ class TestUtilisateurs:
         user_ = provider_instance.insert_or_update_role(user_dict)
         assert len(db.session.get(User, 99998).groups) == 2
 
+    def test_insert_or_update_role_duplicate_identifiant(self, provider_instance):
+        """Test that inserting a user with an existing identifier raises an IntegrityError"""
+        # Arrange
+        user_dict = {
+            "id_role": 99999,
+            "identifiant": "test.user",
+            "nom_role": "test",
+            "prenom_role": "test",
+            "email": "test@test.fr",
+        }
+        provider_instance.insert_or_update_role(user_dict)
+
+        # Act & Assert
+        with pytest.raises(sa.exc.IntegrityError):
+            user = User(
+                identifiant="test.user",
+                id_role=99988,
+                nom_role="dup",
+                prenom_role="dup",
+                email="ddd",
+            )
+            db.session.add(user)
+            db.session.commit()
+
+    def test_insert_or_update_role_duplicate_uuid(self, provider_instance):
+        """Test that inserting a user with an existing UUID raises an IntegrityError"""
+        # Arrange
+        user_dict = {
+            "id_role": 99999,
+            "identifiant": "test.user",
+            "nom_role": "test",
+            "prenom_role": "test",
+            "email": "test@test.fr",
+        }
+        user_1 = provider_instance.insert_or_update_role(user_dict)
+
+        # Act & Assert
+        with pytest.raises(sa.exc.IntegrityError):
+            user_2 = User(
+                uuid_role=user_1.uuid_role,
+                id_role=99987,
+                nom_role="dup",
+                prenom_role="dup",
+                email="ddd",
+            )
+            db.session.add(user_2)
+            db.session.commit()
+
     def test_insert_or_update_role_grp_reconcialiation(
         self, provider_instance, group_and_users
     ):
@@ -102,6 +151,33 @@ class TestUtilisateurs:
         organism_schema = OrganismeSchema()
         organism_as_dict = organism_schema.dump(create_organism)
         assert organism_as_dict["nom_organisme"] == "update"
+
+    def test_create_organisme_unique(self):
+        organism1 = {
+            "nom_organisme": "test",
+            "id_organisme": 999999,
+            "adresse_organisme": "66 rue du truc",
+            "ville_organisme": "Gap",
+            "tel_organisme": "00000000",
+            "email_organisme": "test@test.com",
+            "url_organisme": "http://lala.com",
+            "url_logo": "http://lala.com",
+            "url_logo": "http://lala.com",
+        }
+        insert_or_update_organism(organism1)
+        organism2 = {
+            "nom_organisme": "test",
+            "id_organisme": 999998,
+            "adresse_organisme": "66 rue du truc",
+            "ville_organisme": "Gap",
+            "tel_organisme": "00000000",
+            "email_organisme": "test@test.com",
+            "url_organisme": "http://lala.com",
+            "url_logo": "http://lala.com",
+            "url_logo": "http://lala.com",
+        }
+        with pytest.raises(sa.exc.IntegrityError):
+            insert_or_update_organism(organism2)
 
     def test_delete_user(self):
         organism = {
