@@ -194,12 +194,12 @@ class UserManager:
             temp_user.set_password(
                 user_data["password"],
                 user_data["password_confirmation"],
-                current_app.config["PASS_METHOD"]
-                or current_app.config["FILL_MD5_PASS"],
+                current_app.config["PASS_METHOD"] == "md5"
+                or current_app.config.get("FILL_MD5_PASS", False),
             )
         except DifferentPasswordError:
             raise self.PrintableValueError(
-                "Password and password_confirmation are differents"
+                "Password and password_confirmation are different"
             )
 
         # Check sended parameters (password, login and exiting email)
@@ -242,10 +242,12 @@ class UserManager:
             sa.select(TempUser).where(TempUser.token_role == token)
         ).scalar_one_or_none()
         if not temp_user:
-            raise UserManager.PrintableValueError(f"""
+            raise UserManager.PrintableValueError(
+                f"""
                 Il n'y a pas d'utilisateur temporaire correspondant au token fourni {token}.<br>
                 Il se peut que la requête de création de compte ai déjà été validée, ou bien que l'adresse de validation soit erronée.<br>
-                """)
+                """
+            )
 
         req_data = temp_user.as_dict()
 
