@@ -11,8 +11,6 @@ from pypnusershub.db.models import (
 )
 from pypnusershub.auth import user_manager
 
-from .fixtures import group_and_users, applications, profils
-
 
 def test_generate_token_random():
     """Token should be a random 128-bit string"""
@@ -76,6 +74,47 @@ class TestCreateTempUser:
     @staticmethod
     def setup_method(self):
         user_manager.init_user_manager(0, False, False, False)
+
+    @pytest.mark.parametrize(
+        "pass_method,fill_md5",
+        [
+            ("md5", False),
+            ("md5", True),
+            ("hash", False),
+            ("hash", True),
+        ],
+        ids=["md5_no_fill", "md5_with_fill", "hash_no_fill", "hash_with_fill"],
+    )
+    def test_create_temp_user_password_encoding(
+        self,
+        app,
+        applications,  # Cette fixture crée les applications
+        pass_method,
+        fill_md5,
+    ):
+        """Should handle different password cypher methods"""
+        data = {
+            "identifiant": "temp2",
+            "password": "mypw",
+            "password_confirmation": "mypw",
+            "email": "temp2@test.com",
+            "id_application": applications["app1"].id_application,
+            "groupe": False,
+        }
+        app.config["PASS_METHOD"] = pass_method
+        app.config["FILL_MD5_PASS"] = fill_md5
+        result = user_manager.create_temp_user(data)
+        assert "token" in result
+
+        temp_user = db.session.scalar(
+            sa.select(TempUser).where(TempUser.identifiant == data["identifiant"])
+        )
+        assert temp_user is not None
+        # Password should be encrypted
+        if pass_method == "md5" or fill_md5:
+            assert temp_user.pass_md5 is not None
+        elif pass_method == "hash":
+            assert temp_user.pass_md5 is None
 
     def test_create_temp_user_password_mismatch(self, app):
         """Should raise when password != confirmation"""
