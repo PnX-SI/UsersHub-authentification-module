@@ -194,12 +194,12 @@ class UserManager:
             temp_user.set_password(
                 user_data["password"],
                 user_data["password_confirmation"],
-                current_app.config["PASS_METHOD"]
-                or current_app.config["FILL_MD5_PASS"],
+                current_app.config["PASS_METHOD"] == "md5"
+                or current_app.config.get("FILL_MD5_PASS", False),
             )
         except DifferentPasswordError:
             raise self.PrintableValueError(
-                "Password and password_confirmation are differents"
+                "Password and password_confirmation are different"
             )
 
         # Check sended parameters (password, login and exiting email)

@@ -7,6 +7,7 @@ from utils_flask_sqla.tests.utils import JSONClient
 from pypnusershub.env import db, ma
 from pypnusershub.login_manager import login_manager
 from pypnusershub.auth.auth_manager import auth_manager
+from .fixtures import *
 
 
 @pytest.fixture(scope="session", autouse=True)
