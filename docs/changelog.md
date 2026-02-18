@@ -5,12 +5,12 @@
 **🚀 Nouveautés**
 
 - Compatibilité avec Debian 13 (#131 par @Pierre-Narcisi)
-- Ajout d'une contrainte d'unicité sur les colonnes `t_roles.identifiant`, `t_roles.uuid_role`, `bib_organismes.nom_organisme` (#141 par @jacquesfize)
-- Création de la classe `UserManager` qui reprend les méthodes déclarées dans `subscribe.py` et intégre de nouvelles méthodes pour vérifier la validité d'un mot de passe (nombre min. de caractère, présence de majuscule, etc.) (#126 par @christophe-ramet)
-- Ajout de méthode dédiée à l'ajout, la modification et la suppression des organismes (#130 par @VincentCauchois)
-- Ajout d'un paramètre `CODE_CHALLENG_METHOD` dans le _provider_ OpenIDConnect (#133 par @christophe-ramet)
-- Ajout d'un méthode permettant de changer le mot de passe d'un utilisateur (#132 par @christophe-ramet)
-- Ajout des colonnes `api_key` et `api_secret` dans la table `t_roles` ( par @christophe-ramet et @jacquesfize)
+- Ajout de contraintes d'unicités sur les colonnes `t_roles.identifiant`, `t_roles.uuid_role` et `bib_organismes.nom_organisme` (#141 par @jacquesfize)
+- Création de la classe `UserManager` qui reprend les méthodes déclarées dans `subscribe.py` et intègre de nouvelles méthodes pour vérifier la validité d'un mot de passe (nombre min. de caractère, présence de majuscule, etc.) (#126 par @christophe-ramet)
+- Ajout de méthodes dédiées à l'ajout, la modification et la suppression d'organismes (#130 par @VincentCauchois)
+- Ajout d'un paramètre `CODE_CHALLENGE_METHOD` dans le _provider_ OpenIDConnect (#133 par @christophe-ramet)
+- Ajout d'une méthode permettant de changer le mot de passe d'un utilisateur (#132 par @christophe-ramet)
+- Ajout des colonnes `api_key` et `api_secret` dans la table `t_roles` (par @christophe-ramet et @jacquesfize)
 
 
 **🐛 Corrections**
