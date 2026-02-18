@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 3.2.0 (2026-02-18)
+
+**🚀 Nouveautés**
+
+- Compatibilité avec Debian 13 (#131 par @Pierre-Narcisi)
+- Ajout de contraintes d'unicités sur les colonnes `t_roles.identifiant`, `t_roles.uuid_role` et `bib_organismes.nom_organisme` (#141 par @jacquesfize)
+- Création de la classe `UserManager` qui reprend les méthodes déclarées dans `subscribe.py` et intègre de nouvelles méthodes pour vérifier la validité d'un mot de passe (nombre min. de caractère, présence de majuscule, etc.) (#126 par @christophe-ramet)
+- Ajout de méthodes dédiées à l'ajout, la modification et la suppression d'organismes (#130 par @VincentCauchois)
+- Ajout d'un paramètre `CODE_CHALLENGE_METHOD` dans le _provider_ OpenIDConnect (#133 par @christophe-ramet)
+- Ajout d'une méthode permettant de changer le mot de passe d'un utilisateur (#132 par @christophe-ramet)
+- Ajout des colonnes `api_key` et `api_secret` dans la table `t_roles` (par @christophe-ramet et @jacquesfize)
+
+
+**🐛 Corrections**
+- Correction de la prise en compte du paramètre `PASS_METHOD` et `FILL_MD5_PASS` permettant de désactiver l'utilisation du MD5 (#145 par @jacquesfize)
+- Dans le _provider_ pour OpenID, l'identifiant s'appuie sur une variable de configuration (par défaut, `preferred_username`) (#138 @edelclaux)
+
+
 ## 3.1.0 (2025-11-14)
 
 **🚨 Breaking Changes**
