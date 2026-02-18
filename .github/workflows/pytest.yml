@@ -2,10 +2,14 @@ name: pytest
 
 on:
   push:
+    paths:
+      - "src/**"
     branches:
       - master
       - develop
   pull_request:
+    paths:
+      - "src/**"
     branches:
       - master
       - develop
