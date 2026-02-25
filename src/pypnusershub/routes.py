@@ -94,6 +94,7 @@ def get_providers():
         "label",
         "login_url",
         "logout_url",
+        "is_secondary",
     ]
     return jsonify(
         [

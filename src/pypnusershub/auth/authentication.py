@@ -17,6 +17,7 @@ class ProviderConfigurationSchema(Schema):
     group_mapping = fields.Dict(keys=fields.Str(), values=fields.Integer())
     logo = fields.String()
     label = fields.String()
+    is_secondary = fields.Boolean()
 
     @validates_schema
     def check_if_module_exists(self, data, **kwargs):
@@ -81,6 +82,12 @@ class Authentication:
     URL or html of the logo image
     """
     logo = ""
+
+    """
+    Is the authentication provider secondary?  (boolean)
+    Will affect login page presentation
+    """
+    is_secondary = False
 
     @property
     def is_external(self) -> bool:
@@ -166,7 +173,14 @@ class Authentication:
 
         """
         self.id_provider = configuration["id_provider"]
-        for field in ["label", "logo", "login_url", "logout_url", "group_mapping"]:
+        for field in [
+            "label",
+            "logo",
+            "login_url",
+            "logout_url",
+            "group_mapping",
+            "is_secondary",
+        ]:
             if field in configuration:
                 setattr(self, field, configuration[field])
 
