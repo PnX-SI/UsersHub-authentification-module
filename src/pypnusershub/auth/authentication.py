@@ -189,6 +189,7 @@ class Authentication:
         user_dict: dict,
         reconciliate_attr="email",
         source_groups: List[int] = [],
+        fields_to_update: List[str] = [],
     ) -> models.User:
         """
         Insert or update a role (also add groups if provided)
@@ -201,6 +202,8 @@ class Authentication:
             Attribute used to reconciliate existing users
         source_groups: List[str], default=[]
             List of group names to compare with existing groups defined in the group_mapping properties of the provider
+        fields_to_update: List[str]
+            List of fields that should be updated if user already exists. If left empty, all fields will be updated.
 
         Returns
         -------
@@ -237,6 +240,8 @@ class Authentication:
                 user_exists.providers.append(provider)
 
             for attr_key, attr_value in user_dict.items():
+                if fields_to_update and attr_key not in fields_to_update:
+                    continue
                 setattr(user_exists, attr_key, attr_value)
             db.session.commit()
             return user_exists

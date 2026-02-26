@@ -131,6 +131,34 @@ class TestUtilisateurs:
         user_group_id = map(lambda g: g.id_role, user.groups)
         assert set(user_group_id) == {group_and_users["group1"].id_role}
 
+    def test_insert_or_update_with_fields_to_update(
+        self, provider_instance, group_and_users
+    ):
+        """
+        Test that the fields_to_update parameter works as expected and, if filled it only updates the fields specified in the parameter.
+
+        """
+        user = group_and_users["user1"]
+        user_to_reconcialite = {
+            "email": user.email,
+            "nom_role": "new nom",
+            "prenom_role": "new prénom",
+        }
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_to_reconcialite,
+            reconciliate_attr="email",
+            fields_to_update=["nom_role"],
+        )
+
+        assert user.prenom_role == "prenom"
+        assert user.nom_role == "new nom"
+
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_to_reconcialite, reconciliate_attr="email"
+        )
+        assert user.prenom_role == "new prénom"
+        assert user.nom_role == "new nom"
+
     def test_insert_organisme(self):
         organism = {
             "nom_organisme": "test",

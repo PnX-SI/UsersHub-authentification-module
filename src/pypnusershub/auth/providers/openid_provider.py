@@ -6,6 +6,20 @@ from marshmallow import EXCLUDE, ValidationError, fields
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema, oauth
 from pypnusershub.db import db, models
 from werkzeug.exceptions import Unauthorized
+from enum import Enum
+
+
+class UserColumns(str, Enum):
+    """
+    Enum listing the columns from the User model that can be modified.
+    """
+
+    ID_ROLE = "id_role"
+    IDENTIFIANT = "identifiant"
+    NOM_ROLE = "nom_role"
+    PRENOM_ROLE = "prenom_role"
+    EMAIL = "email"
+    ACTIVE = "active"
 
 
 class OpenIDProvider(Authentication):
@@ -38,14 +52,14 @@ class OpenIDProvider(Authentication):
         session["openid_token_resp"] = token
         user_info = token["userinfo"]
         new_user = {
-            "identifiant": user_info.get(
+            UserColumns.IDENTIFIANT: user_info.get(
                 self.identifier_field,
                 f"{user_info['given_name'].lower()}.{user_info['family_name'].lower()}",
             ),
-            "email": user_info["email"],
-            "prenom_role": user_info["given_name"],
-            "nom_role": user_info["family_name"],
-            "active": True,
+            UserColumns.EMAIL: user_info["email"],
+            UserColumns.PRENOM_ROLE: user_info["given_name"],
+            UserColumns.NOM_ROLE: user_info["family_name"],
+            UserColumns.ACTIVE: True,
         }
         source_groups = (
             user_info[self.group_claim_name]
@@ -56,6 +70,7 @@ class OpenIDProvider(Authentication):
             new_user,
             source_groups=source_groups,
             reconciliate_attr=self.reconciliate_attr,
+            fields_to_update=self.fields_to_override,
         )
         db.session.commit()
         return user
@@ -88,6 +103,14 @@ class OpenIDProvider(Authentication):
                 load_default="S256",
                 validate=fields.validate.OneOf(["plain", "S256"]),
             )
+            FIELDS_TO_OVERRIDE = fields.List(
+                fields.Enum(UserColumns, by_value=True),
+                load_default=[
+                    UserColumns.NOM_ROLE,
+                    UserColumns.PRENOM_ROLE,
+                    UserColumns.EMAIL,
+                ],
+            )
 
         super().configure(configuration)
         try:
@@ -113,6 +136,7 @@ class OpenIDProvider(Authentication):
         self.group_claim_name = configuration["group_claim_name"]
         self.identifier_field = configuration["IDENTIFIER_FIELD"]
         self.reconciliate_attr = configuration["RECONCILIATE_ATTR"]
+        self.fields_to_override = configuration["FIELDS_TO_OVERRIDE"]
 
 
 class OpenIDConnectProvider(OpenIDProvider):
