@@ -37,11 +37,12 @@ def binary_resource_stream(resource, locations):
     for location in locations:
         # Assume location is a module and try to load it using pkg_resource
         try:
-            import pkg_resources
+            from importlib.resources import files
 
             module_name = getattr(location, "__name__", location)
-            return pkg_resources.resource_stream(module_name, resource)
-        except (ImportError, EnvironmentError) as e:
+            resource_file = files(module_name) / resource
+            return resource_file.open("rb")
+        except (ImportError, FileNotFoundError, TypeError, AttributeError) as e:
             errors.append(e)
 
             # Falling back to load it from path.
