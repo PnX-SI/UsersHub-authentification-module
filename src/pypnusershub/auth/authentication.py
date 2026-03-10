@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Union, List
+from typing import Any, Union, List, Optional
 
 import sqlalchemy as sa
 
@@ -7,6 +7,7 @@ from flask import current_app
 from marshmallow import Schema, ValidationError, fields, validates_schema
 from pypnusershub.db import models
 from pypnusershub.db import db, models
+from werkzeug.exceptions import Unauthorized
 
 log = logging.getLogger(__name__)
 
@@ -88,6 +89,36 @@ class Authentication:
     Will affect login page presentation
     """
     is_secondary = False
+
+    class ApiUnauthorized(Unauthorized):
+        default_message = "Unauthorized"
+
+        def __init__(self, error_code: str, message: Optional[str]):
+            if not message:
+                message = self.default_message
+            self.error_code = error_code
+            super().__init__(message)
+
+    class IncorrectLoginError(ApiUnauthorized):
+        error_code = "INCORRECT_LOGIN"
+        default_message = "Incorrect login, check username or password."
+
+        def __init__(self, message: Optional[str] = None):
+            super().__init__(self.error_code, message)
+
+    class PendingValidationAlreadyExistsError(ApiUnauthorized):
+        error_code = "PENDING_VALIDATION_ALREADY_EXISTS"
+        default_message = "This account already has a pending validation request."
+
+        def __init__(self, message: Optional[str] = None):
+            super().__init__(self.error_code, message)
+
+    class PendingValidationError(ApiUnauthorized):
+        error_code = "PENDING_VALIDATION"
+        default_message = "Account creation request submitted and awaiting validation."
+
+        def __init__(self, message: Optional[str] = None):
+            super().__init__(self.error_code, message)
 
     @property
     def is_external(self) -> bool:
