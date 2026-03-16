@@ -8,7 +8,7 @@ alembic==1.16.5
     # via
     #   -r requirements-common.in
     #   flask-migrate
-authlib==1.6.8
+authlib==1.6.9
     # via -r requirements-common.in
 backports-datetime-fromisoformat==2.0.3
     # via marshmallow
