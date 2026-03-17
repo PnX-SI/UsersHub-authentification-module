@@ -40,7 +40,7 @@ class OpenIDProvider(Authentication):
         new_user = {
             "identifiant": user_info.get(
                 self.identifier_field,
-                f"{user_info['given_name']}.{user_info['family_name']}",
+                f"{user_info['given_name'].lower()}.{user_info['family_name'].lower()}",
             ),
             "email": user_info["email"],
             "prenom_role": user_info["given_name"],
