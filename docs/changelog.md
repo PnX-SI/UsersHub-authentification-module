@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.2.1 (2026-03-XX)
+
+**🐛 Corrections**
+
+- Correction de la réconciliation dans le connecteur OpenID (#152 par @jacquesfize)
+
 ## 3.2.0 (2026-02-18)
 
 **🚀 Nouveautés**
@@ -12,11 +18,10 @@
 - Ajout d'une méthode permettant de changer le mot de passe d'un utilisateur (#132 par @christophe-ramet)
 - Ajout des colonnes `api_key` et `api_secret` dans la table `t_roles` (par @christophe-ramet et @jacquesfize)
 
-
 **🐛 Corrections**
+
 - Correction de la prise en compte du paramètre `PASS_METHOD` et `FILL_MD5_PASS` permettant de désactiver l'utilisation du MD5 (#145 par @jacquesfize)
 - Dans le _provider_ pour OpenID, l'identifiant s'appuie sur une variable de configuration (par défaut, `preferred_username`) (#138 @edelclaux)
-
 
 ## 3.1.0 (2025-11-14)
 
@@ -26,8 +31,8 @@
 
 **🚀 Nouveautés**
 
-- Ajout de méthodes dédiées à la création utilisateur et la modification du mot de passe disponible dans `pypnusershub.auth.subscribe` (#125 par @jacquesfize) 
-- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateurs` (#125 par @jacquesfize) 
+- Ajout de méthodes dédiées à la création utilisateur et la modification du mot de passe disponible dans `pypnusershub.auth.subscribe` (#125 par @jacquesfize)
+- Ajout des derniers modèles SQLAlchemy manquant des tables dans schéma `utilisateurs` (#125 par @jacquesfize)
 
 ## 3.0.4 (2025-11-12)
 
@@ -231,11 +236,9 @@ Le décorateur `@check_auth` change de signature, les paramètres suivants sont 
 - Ajout d’une contrainte d’unicité sur la colonn `uuid_role` de la table `t_roles`.
 - Ajout des modèles `UserList` et `cor_role_liste` correspondants aux tables existantes.
 - Compatibilité Flask 2
-
   - Génération du cookie d’authentification avec `authlib` à la place de `itsdangerous`
 
 - Mise à jour des dépendances
-
   - Utils-Flask-SQLAlchemy 0.3.0
 
 **🐛 Corrections**
@@ -479,7 +482,6 @@ Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre 
 - Répercussion du changement du modèle de UsersHub. Le sous-module permet maintenant l'authentification en utilisant une des deux méthode de cryptage de mot de passe (MD5 et HASH). Ajout du paramètre `PASS_METHOD` (valeur possible : 'hash' ou 'md5') qui contrôle ce comportement.
 - Prise en compte des évolutions de la version 1.3.1 de UsersHub intégrant la gestion des droits utilisateurs via des 'tags'.
 - Ajout de fonctionnalités nécessaires à GeoNature v2 (gestion des droits avec le CRUVED) :
-
   - Ajout du décorateur `@check_auth_cruved` pour protéger les routes en passant paramètre une action du CRUVED et une application ou un module.
   - Fonction `cruved_for_user_in_app` permettant de récupérer le CRUVED d'un utilisateur
 
@@ -496,7 +498,6 @@ Cette release n'est compatible avec UsersHub 1.3.1 minimum, qui inclut d'importa
 Intégration des pull request de @ksamuel
 
 - Ajout des paramètres :
-
   - redirect_on_invalid_token
   - redirect_on_expiration
 
