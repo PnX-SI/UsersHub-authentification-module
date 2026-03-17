@@ -53,7 +53,9 @@ class OpenIDProvider(Authentication):
             else []
         )
         user = self.insert_or_update_role(
-            new_user, source_groups=source_groups, reconciliate_attr="identifiant"
+            new_user,
+            source_groups=source_groups,
+            reconciliate_attr=self.reconciliate_attr,
         )
         db.session.commit()
         return user
