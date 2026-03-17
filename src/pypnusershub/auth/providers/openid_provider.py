@@ -38,7 +38,10 @@ class OpenIDProvider(Authentication):
         session["openid_token_resp"] = token
         user_info = token["userinfo"]
         new_user = {
-            "identifiant": user_info[self.identifier_field],
+            "identifiant": user_info.get(
+                self.identifier_field,
+                f"{user_info['given_name']}.{user_info['family_name']}",
+            ),
             "email": user_info["email"],
             "prenom_role": user_info["given_name"],
             "nom_role": user_info["family_name"],
