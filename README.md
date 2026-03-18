@@ -236,14 +236,16 @@ Les routes déclarées par le _blueprint_ de `UsersHub-authentification-module` 
 
 Les routes suivantes sont implémentés dans `UsersHub-authentification-module`:
 
-| Route URI           | Action                                                                                                                                       | Paramètres                 | Retourne                         |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------- |
-| `/providers`        | Retourne l'ensemble des fournisseurs d'identité activés                                                                                      | NA                         |                                  |
-| `/get_current_user` | Retourne les informations de l'utilisateur connecté                                                                                          | NA                         | {user,expires,token}             |
-| `/login/<provider>` | Connecte un utilisateur avec le provider <provider>                                                                                          | Optionnel({user,password}) | {user,expires,token} ou redirect |
-| `/public_login`     | Connecte l'utilisateur permettant l'accès public à votre application                                                                         | NA                         | {user,expires,token}             |
-| `/logout`           | Déconnecte l'utilisateur courant                                                                                                             | NA                         | redirect                         |
-| `/authorize`        | Connecte un utilisateur à l'aide des infos retournées par le fournisseur d'identité (Si redirection vers un portail de connexion par /login) | {data}                     | redirect                         |
+| Route URI           | Action                                                                                                                                         | Paramètres                 | Retourne                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------- |
+| `/providers`        | Retourne l'ensemble des fournisseurs d'identités activés                                                                                       | NA                         |                                  |
+| `/get_current_user` | Retourne les informations de l'utilisateur connecté                                                                                            | NA                         | {user,expires,token}             |
+| `/login/<provider>` | Connecte un utilisateur avec le provider <provider>                                                                                            | Optionnel({user,password}) | {user,expires,token} ou redirect |
+| `/public_login`     | Connecte l'utilisateur permettant l'accès public à votre application                                                                           | NA                         | {user,expires,token}             |
+| `/logout`           | Déconnecte l'utilisateur courant                                                                                                               | NA                         | redirect                         |
+| `/authorize`        | Connecte un utilisateur à l'aide des infos retournées par le fournisseurs d'identités (Si redirection vers un portail de connexion par /login) | {data}                     | redirect                         |
+
+En cas d'erreur d'autorisation, la route `/authorize` redirige vers la page de login avec un paramètre `login_error` (message destiné au frontend).
 
 ### Méthodes définies dans le module
 

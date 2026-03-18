@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime
 import logging
 from typing import List
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 
 import sqlalchemy as sa
 from flask import (
@@ -216,7 +216,17 @@ def logout():
 @routes.route("/authorize/<provider>", methods=["GET", "POST"])
 def authorize(provider="local_provider"):
     auth_provider = current_app.auth_manager.get_provider(provider)
-    authorize_result = auth_provider.authorize()
+    try:
+        authorize_result = auth_provider.authorize()
+    except (Unauthorized, Forbidden) as exc:
+        log.exception("Authorization error for provider %s", provider)
+        error_description = exc.description or "Unauthorized"
+        login_url = f"{current_app.config['URL_APPLICATION']}/#/login"
+        query_params = {
+            "login_error": error_description,
+        }
+        return redirect(f"{login_url}?{urlencode(query_params)}", code=302)
+
     if isinstance(authorize_result, models.User):
         login_user(authorize_result, remember=True)
 
