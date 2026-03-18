@@ -4,7 +4,8 @@
 
 **🚀 Nouveautés**
 
-- Ajout d'un paramètre is_secondary aux fournisseurs d'identité (#144 par @IdrissaD)
+- Ajout d'un paramètre `is_secondary` dans la classe `Authentication` (#144 par @IdrissaD)
+- Ajout du paramètre `FIELDS_TO_OVERRIDE` au connecteur OpenID (#148 par @christophe-ramet)
 
 
 **🐛 Corrections**
