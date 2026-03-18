@@ -2,9 +2,11 @@
 
 ## 3.2.1 (2026-03-XX)
 
+
 **🐛 Corrections**
 
 - Correction de la réconciliation dans le connecteur OpenID (#152 par @jacquesfize)
+- Arrêt de l'utilisation de `pkg_resources` (#149 par @christophe-ramet)
 
 ## 3.2.0 (2026-02-18)
 
