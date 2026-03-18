@@ -314,8 +314,8 @@ Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la 
 - `CLIENT_ID` (string) : Identifiant publique de l'application auprès du fournisseur d'identités.
 - `CLIENT_SECRET` (string) : Clé secrete connue uniquement par l'application et le fournisseur d'identités.
 - `IDENTIFIER_FIELD` (string): Nom du champs contenant l'identifiant de l'utilisateur.
-- `RECONCILIATE_ATTR` (string): Nom du champs qui servira à la réconcilitation des utilisateurs existant (par défaut: "email").
-- `FIELDS_TO_OVERRIDE` (List(string)): Nom des champs qui seront écrasés lors d'une connexion. Ces champs prendront la valeur existante dans le provider (par défaut, nom, prénom et email).
+- `RECONCILIATE_ATTR` (string): Nom du champs qui servira à la réconciliation des utilisateurs existant (par défaut: "email").
+- `FIELDS_TO_OVERRIDE` (List(string)): Nom des champs qui seront écrasés lors d'une connexion. Ces champs prendront la valeur existante dans le provider (par défaut, nom, prénom et email). Les valeurs possibles sont les suivantes : "id_role", "identifiant", "nom_role", "prenom_role", "email","active"
 - `CODE_CHALLENGE_METHOD` (string): Ne devrait pas être modifié. Permet de configurer le type de challenge (par défaut: "S256" mais peut valoir plain si contraintes legacy).
 
 **UsersHub-authentification-module**
