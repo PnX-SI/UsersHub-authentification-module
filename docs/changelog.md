@@ -2,6 +2,10 @@
 
 ## 3.2.1 (2026-03-XX)
 
+**🚀 Nouveautés**
+
+- Ajout d'un paramètre is_secondary aux fournisseurs d'identité (#144 par @IdrissaD)
+
 
 **🐛 Corrections**
 
