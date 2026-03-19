@@ -36,13 +36,11 @@ class LocalProvider(Authentication):
                 .where(models.User.filter_by_app())
             ).scalar_one()
 
-        except exc.NoResultFound as e:
-            raise Unauthorized(
-                'No user found with the username "{login}" for the application with id "{id_app}"'
-            )
+        except exc.NoResultFound:
+            raise self.IncorrectLoginError()
 
         if not user.check_password(user_data["password"]):
-            raise Unauthorized("Invalid password")
+            raise self.IncorrectLoginError()
 
         provider = db.session.execute(
             sa.select(models.Provider).where(models.Provider.name == self.id_provider)

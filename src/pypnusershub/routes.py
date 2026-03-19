@@ -220,7 +220,9 @@ def authorize(provider="local_provider"):
         authorize_result = auth_provider.authorize()
     except (Unauthorized, Forbidden) as exc:
         log.exception("Authorization error for provider %s", provider)
-        error_description = exc.description or "Unauthorized"
+        error_description = (
+            getattr(exc, "error_code") or exc.description or "Unauthorized"
+        )
         login_url = f"{current_app.config['URL_APPLICATION']}/#/login"
         query_params = {
             "login_error": error_description,

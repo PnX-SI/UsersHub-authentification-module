@@ -102,9 +102,7 @@ class OpenIDProvider(Authentication):
         ).scalar_one_or_none()
 
         if temp_user_exists:
-            raise Unauthorized(
-                "Demande de creation de compte en attente de validation."
-            )
+            raise self.PendingValidationAlreadyExistsError()
 
         # - create pending request
         temp_user = models.TempUser(
@@ -118,9 +116,7 @@ class OpenIDProvider(Authentication):
         )
         db.session.add(temp_user)
         db.session.commit()
-        raise Unauthorized(
-            "Demande de creation de compte créée et en attente de validation."
-        )
+        raise self.PendingValidationError()
 
     def revoke(self):
         if not "openid_token_resp" in session:
