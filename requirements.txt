@@ -24,7 +24,7 @@ charset-normalizer==3.4.4
     # via requests
 click==8.1.8
     # via flask
-cryptography==43.0.3
+cryptography==46.0.6
     # via authlib
 flask==3.1.2
     # via
@@ -92,6 +92,7 @@ tomli==2.4.0
 typing-extensions==4.15.0
     # via
     #   alembic
+    #   cryptography
     #   marshmallow
     #   marshmallow-sqlalchemy
 urllib3==2.6.3
