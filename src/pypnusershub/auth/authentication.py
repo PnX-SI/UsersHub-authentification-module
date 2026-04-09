@@ -218,39 +218,54 @@ class Authentication:
             db.session.add(provider)
             db.session.commit()
 
+        def apply_groups_mapping(user_obj):
+            group_id = ""
+            # No group mapping indicated: fallback to default reconciliation group.
+            if not self.group_mapping:
+                if "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
+                    "AUTHENTICATION", {}
+                ):
+                    group_id = current_app.config["AUTHENTICATION"][
+                        "DEFAULT_RECONCILIATION_GROUP_ID"
+                    ]
+                    group = db.session.get(models.User, group_id)
+                    if group and not group in user_obj.groups:
+                        user_obj.groups.append(group)
+            # Group mapping indicated: strict mirror for managed groups.
+            else:
+                managed_group_ids = set(self.group_mapping.values())
+                target_group_ids = {
+                    self.group_mapping[group_source_name]
+                    for group_source_name in source_groups
+                    if group_source_name in self.group_mapping
+                }
+
+                for current_group in list(user_obj.groups):
+                    if (
+                        current_group.id_role in managed_group_ids
+                        and current_group.id_role not in target_group_ids
+                    ):
+                        user_obj.groups.remove(current_group)
+
+                for group_source_name in source_groups:
+                    group_id = self.group_mapping.get(group_source_name, None)
+                    if group_id:
+                        group = db.session.get(models.User, group_id)
+                        if group and not group in user_obj.groups:
+                            user_obj.groups.append(group)
+
         if user_exists:
             if not provider in user_exists.providers:
                 user_exists.providers.append(provider)
 
             for attr_key, attr_value in user_dict.items():
                 setattr(user_exists, attr_key, attr_value)
+            apply_groups_mapping(user_exists)
             db.session.commit()
             return user_exists
         else:
             user_ = models.User(**user_dict)
-            group_id = ""
-            # No group mapping indicated
-            if not (self.group_mapping and source_groups):
-
-                if "DEFAULT_RECONCILIATION_GROUP_ID" in current_app.config.get(
-                    "AUTHENTICATION", {}
-                ):
-
-                    group_id = current_app.config["AUTHENTICATION"][
-                        "DEFAULT_RECONCILIATION_GROUP_ID"
-                    ]
-                    group = db.session.get(models.User, group_id)
-                    if group:
-                        user_.groups.append(group)
-            # Group Mapping indicated
-            else:
-                for group_source_name in source_groups:
-                    group_id = self.group_mapping.get(group_source_name, None)
-                    if group_id:
-                        group = db.session.get(models.User, group_id)
-                        if group and not group in user_.groups:
-                            user_.groups.append(group)
-
+            apply_groups_mapping(user_)
             user_.providers.append(provider)
             db.session.add(user_)
             db.session.commit()
