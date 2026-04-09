@@ -142,7 +142,7 @@ class OpenIDProvider(Authentication):
                 load_default="preferred_username"
             )  # Claim d’identification du token OpenID/OIDC
             RECONCILIATE_ATTR = fields.String(load_default="email")
-            AUTO_VALIDATE_NEW_USER = fields.Boolean(load_default=False)
+            AUTO_VALIDATE_NEW_USER = fields.Boolean(load_default=True)
             CODE_CHALLENGE_METHOD = fields.String(
                 load_default="S256",
                 validate=fields.validate.OneOf(["plain", "S256"]),
