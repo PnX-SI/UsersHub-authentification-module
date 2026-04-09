@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Union, List
+from typing import Any, Union, List, Optional
 
 import sqlalchemy as sa
 
@@ -7,6 +7,7 @@ from flask import current_app
 from marshmallow import Schema, ValidationError, fields, validates_schema
 from pypnusershub.db import models
 from pypnusershub.db import db, models
+from werkzeug.exceptions import Unauthorized
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class ProviderConfigurationSchema(Schema):
     group_mapping = fields.Dict(keys=fields.Str(), values=fields.Integer())
     logo = fields.String()
     label = fields.String()
+    is_secondary = fields.Boolean()
 
     @validates_schema
     def check_if_module_exists(self, data, **kwargs):
@@ -81,6 +83,42 @@ class Authentication:
     URL or html of the logo image
     """
     logo = ""
+
+    """
+    Is the authentication provider secondary?  (boolean)
+    Will affect login page presentation
+    """
+    is_secondary = False
+
+    class ApiUnauthorized(Unauthorized):
+        default_message = "Unauthorized"
+
+        def __init__(self, error_code: str, message: Optional[str]):
+            if not message:
+                message = self.default_message
+            self.error_code = error_code
+            super().__init__(message)
+
+    class IncorrectLoginError(ApiUnauthorized):
+        error_code = "INCORRECT_LOGIN"
+        default_message = "Incorrect login, check username or password."
+
+        def __init__(self, message: Optional[str] = None):
+            super().__init__(self.error_code, message)
+
+    class PendingValidationAlreadyExistsError(ApiUnauthorized):
+        error_code = "PENDING_VALIDATION_ALREADY_EXISTS"
+        default_message = "This account already has a pending validation request."
+
+        def __init__(self, message: Optional[str] = None):
+            super().__init__(self.error_code, message)
+
+    class PendingValidationError(ApiUnauthorized):
+        error_code = "PENDING_VALIDATION"
+        default_message = "Account creation request submitted and awaiting validation."
+
+        def __init__(self, message: Optional[str] = None):
+            super().__init__(self.error_code, message)
 
     @property
     def is_external(self) -> bool:
@@ -166,7 +204,14 @@ class Authentication:
 
         """
         self.id_provider = configuration["id_provider"]
-        for field in ["label", "logo", "login_url", "logout_url", "group_mapping"]:
+        for field in [
+            "label",
+            "logo",
+            "login_url",
+            "logout_url",
+            "group_mapping",
+            "is_secondary",
+        ]:
             if field in configuration:
                 setattr(self, field, configuration[field])
 
@@ -175,6 +220,7 @@ class Authentication:
         user_dict: dict,
         reconciliate_attr="email",
         source_groups: List[int] = [],
+        fields_to_update: List[str] = [],
     ) -> models.User:
         """
         Insert or update a role (also add groups if provided)
@@ -187,6 +233,8 @@ class Authentication:
             Attribute used to reconciliate existing users
         source_groups: List[str], default=[]
             List of group names to compare with existing groups defined in the group_mapping properties of the provider
+        fields_to_update: List[str]
+            List of fields that should be updated if user already exists. If left empty, all fields will be updated.
 
         Returns
         -------
@@ -259,6 +307,8 @@ class Authentication:
                 user_exists.providers.append(provider)
 
             for attr_key, attr_value in user_dict.items():
+                if fields_to_update and attr_key not in fields_to_update:
+                    continue
                 setattr(user_exists, attr_key, attr_value)
             apply_groups_mapping(user_exists)
             db.session.commit()

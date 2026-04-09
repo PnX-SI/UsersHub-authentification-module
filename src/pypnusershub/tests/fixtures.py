@@ -67,7 +67,13 @@ def group_and_users(app, applications, profils):
         db.session.add(group1)
         group2 = User(groupe=True, identifiant="group2")
         db.session.add(group2)
-        user1 = User(groupe=False, identifiant="user_of_group1")
+        user1 = User(
+            groupe=False,
+            identifiant="user_of_group1",
+            email="user1@email.fr",
+            prenom_role="prenom",
+            nom_role="nom",
+        )
         user1.password = "admin"
         user_no_group = User(groupe=False, identifiant="user2")
         user1.groups.append(group1)

@@ -18,6 +18,7 @@ ProviderType = TypedDict(
         "label": str,
         "group_mapping": dict,
         "logo": str,
+        "is_secondary": bool,
     },
 )
 
@@ -71,7 +72,7 @@ class AuthManager:
             raise AssertionError("Provider must be an instance of Authentication")
         if id_provider in self.provider_authentication_cls:
             raise Exception(
-                f"Id provider {id_provider} already exist, please check your authentication config"
+                f"Id provider {id_provider} already exists, please check your authentication config"
             )
         self.provider_authentication_cls[id_provider] = provider_authentification
 

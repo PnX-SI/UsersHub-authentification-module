@@ -245,6 +245,7 @@ Les routes suivantes sont implémentés dans `UsersHub-authentification-module`:
 | `/logout`           | Déconnecte l'utilisateur courant                                                                                                               | NA                         | redirect                         |
 | `/authorize`        | Connecte un utilisateur à l'aide des infos retournées par le fournisseurs d'identités (Si redirection vers un portail de connexion par /login) | {data}                     | redirect                         |
 
+En cas d'erreur d'autorisation, la route `/authorize` redirige vers la page de login avec un paramètre `login_error` (message destiné au frontend).
 
 ### Méthodes définies dans le module
 
@@ -260,13 +261,13 @@ Par défaut, les routes sont accessibles depuis le préfixe `/auth/`. Si vous vo
 auth_manager.init_app(app, prefix="/authentification", providers_declaration=providers_config)
 ```
 
-## Connexion à l'aide de fournisseurs d'identités extérieurs
+## Connexion à l'aide de fournisseurs d'identité extérieurs
 
-Depuis la version 3.0, il est possible d'ajouter la possibilité de se connecter à des fournisseurs d'identités externes utilisant d'autres protocoles de connexion : OpenID, OpenID Connect, CAS (INPN), etc. ...
+Depuis la version 3.0, il est possible d'ajouter la possibilité de se connecter à des fournisseurs d'identité externes utilisant d'autres protocoles de connexion : OpenID, OpenID Connect, CAS (INPN), etc. ...
 
 ### Utiliser les protocoles de connexions existant
 
-Lors de l'appel de `AuthManager.init_app`, il faut indiquer les configurations des différents fournisseurs d'identités sur lesquels on souhaite se connecter dans le paramètre `providers_declaration`.
+Lors de l'appel de `AuthManager.init_app`, il faut indiquer les configurations des différents fournisseurs d'identité sur lesquels on souhaite se connecter dans le paramètre `providers_declaration`.
 
 Pour chaque configuration, on doit déclarer :
 
@@ -314,6 +315,10 @@ Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la 
 - `ISSUER` (string) : URL du fournisseur d'identités
 - `CLIENT_ID` (string) : Identifiant publique de l'application auprès du fournisseur d'identités.
 - `CLIENT_SECRET` (string) : Clé secrete connue uniquement par l'application et le fournisseur d'identités.
+- `IDENTIFIER_FIELD` (string): Nom du champs contenant l'identifiant de l'utilisateur.
+- `RECONCILIATE_ATTR` (string): Nom du champs qui servira à la réconciliation des utilisateurs existant (par défaut: "email").
+- `FIELDS_TO_OVERRIDE` (List(string)): Nom des champs qui seront écrasés lors d'une connexion. Ces champs prendront la valeur existante dans le provider (par défaut, nom, prénom et email). Les valeurs possibles sont les suivantes : "id_role", "identifiant", "nom_role", "prenom_role", "email","active"
+- `CODE_CHALLENGE_METHOD` (string): Ne devrait pas être modifié. Permet de configurer le type de challenge (par défaut: "S256" mais peut valoir plain si contraintes legacy).
 
 **UsersHub-authentification-module**
 
@@ -355,7 +360,7 @@ class NEW_PROVIDER(Authentication):
         pass # if specific action have to be made when logout
 
     def configure(self, configuration: Union[dict, Any]):
-        pass # Indique la configuration d'un fournisseur d'identités
+        pass # Indique la configuration d'un fournisseur d'identité
 ```
 
 Un **protocole de connexion** est défini par 5 méthodes et plusieurs attributs.
@@ -365,13 +370,14 @@ Les attributs sont les suivants
 - L'attribut `id_provider` indique l'identifiant de l'instance du provider.
 - Les attributs `logo` et `label` sont destinés à l'interface utilisateur.
 - L'attribut `is_external` spécifie si le provider permet de se connecter à une autre application Flask utilisant `UsersHub-authentification-module` ou à un fournisseur d'identité qui requiert une redirection vers une page de login.
+- L'attribut `is_secondary` permet de définir des fournisseurs d'identité secondaires, qui seront placés sous le ou les fournisseurs principaux, derrière un composant `details` sur la page de connexion.
 - L'attribut `login_url` et `logout_url`, si le protocole de connexion nécessite une redirection
-- L'attribut `group_mapping` contient le mapping entre les groupes du fournisseurs d'identités et celui de votre instance de GeoNature.
+- L'attribut `group_mapping` contient le mapping entre les groupes du fournisseurs d'identité et celui de votre instance de GeoNature.
 
 Les méthodes sont les suivantes :
 
 - `authenticate`: Lancée sur la route `/auth/login`, elle récupère les informations du formulaire de login et retourne un objet `User`. Si le protocole de connexion doit rediriger l'utilisateur vers un portail, alors authenticate retourne une `flask.Response` qui redirige vers ce dernier.
-- `authorize`: Cette méthode est lancée par la route `/auth/authorize` qui récupère les informations renvoyés par le fournisseur d'identités après la connexions sur le portail.
+- `authorize`: Cette méthode est lancée par la route `/auth/authorize` qui récupère les informations renvoyés par le fournisseur d'identité après la connexions sur le portail.
 - `configure(self, configuration: Union[dict, Any])`: Permet de récupérer et d'utiliser les variables présentes dans le fichier de configuration. Il est possible aussi de valider les résultats à l'aide d'un schéma `marshmallow`
 - `revoke()`: Permet de spécifier un fonctionnement spécifique lors de la déconnexion d'un utilisateur.
 
@@ -382,7 +388,7 @@ Les méthodes sont les suivantes :
 > #### Concepts essentiels
 >
 > **Profil**: Concept associé à un nom et à un niveau de permission.
-> **Provider**: Concept associé à celui de fournisseurs d'identités. Service (Google, INPN, ORCID,...) qui permet de s’identifier et qui utilise un protocole de connexion (e.g. _OAuth_)
+> **Provider**: Concept associé à celui de fournisseurs d'identité. Service (Google, INPN, ORCID,...) qui permet de s’identifier et qui utilise un protocole de connexion (e.g. _OAuth_)
 > **Listes**: Groupe d'utilisateurs
 
 ### Structure de la base
@@ -528,13 +534,13 @@ cor_profil_for_app *-- t_applications
 | bib_organismes      | Contient les organismes                                                                      |
 | t_roles             | Contient les utilisateurs                                                                    |
 | t_profils           | Permet de définir les profils de permissions                                                 |
-| t_providers         | Contient les fournisseurs d'identités dans l'applications                                    |
+| t_providers         | Contient les fournisseurs d'identité dans l'applications                                     |
 | t_applications      | Liste les applications qui utilisent UsersHub-authentification-module                        |
 | temp_users          | Permet de créer des utilisateurs temporaires (en attente de validation par l'administrateur) |
 | cor_profil_for_app  | Permet d'attribuer et limiter les profils disponibles pour chacune des applications          |
 | cor_role_app_profil | Cette table permet d'associer des utilisateurs à des profils par application                 |
 | cor_role_list       | Cette table permet d'associer des utilisateurs à des listes d'utilisateurs                   |
-| cor_role_provider   | Cette table permet d'associer des utilisateurs à des fournisseurs d'identités                |
+| cor_role_provider   | Cette table permet d'associer des utilisateurs à des fournisseurs d'identité                 |
 | cor_role_token      | Permet d'associer des utilisateurs à des tokens                                              |
 | cor_roles           | Permet d'associer des utilisateurs entre eux (groupes et utilisateurs)                       |
 
