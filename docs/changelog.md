@@ -5,7 +5,7 @@
 **🚀 Nouveautés**
 
 - Ajout d'un paramètre `is_secondary` dans la classe `Authentication` (#144 par @IdrissaD)
-- Ajout du paramètre `FIELDS_TO_OVERRIDE` au connecteur OpenID. Ce paramètre permet de lister les champs dans `t_roles` qui seront mis à jour lors de la connexion avec le fournisseur d'identité. (#148 par @christophe-ramet)
+- Ajout du paramètre `FIELDS_TO_OVERRIDE` au connecteur OpenID. Ce paramètre permet de lister les champs dans `t_roles` qui seront mis à jour lors de la connexion avec le fournisseur d'identité. (#134 par @christophe-ramet)
 - Ajout du paramètre `AUTO_VALIDATE_NEW_USER` au connecteur OpenID pour piloter la validation manuelle de nouveaux comptes (#142, par @edelclaux)
 
 **🐛 Corrections**
