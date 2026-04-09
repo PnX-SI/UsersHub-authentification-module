@@ -1,17 +1,18 @@
 # CHANGELOG
 
-## 3.2.1 (2026-03-XX)
+## 3.2.1 (2026-03-19)
 
 **🚀 Nouveautés**
 
 - Ajout d'un paramètre `is_secondary` dans la classe `Authentication` (#144 par @IdrissaD)
-- Ajout du paramètre `FIELDS_TO_OVERRIDE` au connecteur OpenID (#148 par @christophe-ramet)
-
+- Ajout du paramètre `FIELDS_TO_OVERRIDE` au connecteur OpenID. Ce paramètre permet de lister les champs dans `t_roles` qui seront mis à jour lors de la connexion avec le fournisseur d'identité. (#148 par @christophe-ramet)
+- Ajout du paramètre `AUTO_VALIDATE_NEW_USER` au connecteur OpenID pour piloter la validation manuelle de nouveaux comptes (#142, par @edelclaux)
 
 **🐛 Corrections**
 
-- Correction de la réconciliation dans le connecteur OpenID (#152 par @jacquesfize)
+- Correction de la réconciliation dans le connecteur OpenID (prise en compte de `RECONCILIATE_ATTR` et fallback de l'identifiant) (PnX-SI/GeoNature#3993 par @jacquesfize)
 - Arrêt de l'utilisation de `pkg_resources` (#149 par @christophe-ramet)
+- Ajout d'exceptions d'authentification dédiées avec codes d'erreur normalisés (`INCORRECT_LOGIN`, `PENDING_VALIDATION`, etc.) (#153 par @christophe-ramet et @edelclaux)
 
 ## 3.2.0 (2026-02-18)
 
