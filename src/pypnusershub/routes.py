@@ -10,6 +10,7 @@ import logging
 from typing import List
 from urllib.parse import urlencode, urljoin
 
+import requests
 import sqlalchemy as sa
 from flask import (
     Blueprint,
@@ -28,6 +29,8 @@ from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import UserSchema
 from pypnusershub.auth.authentication import Authentication
+from pypnusershub.utils import get_current_app_id
+from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
@@ -234,3 +237,239 @@ def authorize(provider="local_provider"):
 
     # if auth_provider.is_external:
     return redirect(current_app.config["URL_APPLICATION"])
+
+
+@routes.route("/mobile/keycloak", methods=["POST"])
+def mobile_keycloak():
+    payload = request.get_json(silent=True) or {}
+    provider_id = payload.get("provider_id", "keycloak")
+    id_application = payload.get("id_application", get_current_app_id())
+    provider_config = next(
+        (
+            p
+            for p in current_app.config.get("AUTHENTICATION", {}).get("PROVIDERS", [])
+            if p.get("id_provider") == provider_id
+        ),
+        {},
+    )
+
+    for field in ("code", "code_verifier", "redirect_uri"):
+        if not payload.get(field):
+            return (
+                jsonify(
+                    {
+                        "type": "invalid_request",
+                        "message": f"Missing '{field}'",
+                    }
+                ),
+                400,
+            )
+
+    if id_application is None:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_request",
+                    "message": "Missing 'id_application'",
+                }
+            ),
+            400,
+        )
+
+    allowed_redirect_uris = (
+        provider_config.get("MOBILE_REDIRECT_URIS")
+        or provider_config.get("VALID_REDIRECT_URIS")
+        or []
+    )
+    if allowed_redirect_uris and payload["redirect_uri"] not in allowed_redirect_uris:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_request",
+                    "message": "Invalid 'redirect_uri'",
+                }
+            ),
+            400,
+        )
+
+    try:
+        auth_provider = current_app.auth_manager.get_provider(provider_id)
+    except KeyError:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_request",
+                    "message": f"Unknown provider '{provider_id}'",
+                }
+            ),
+            400,
+        )
+
+    oauth_provider = getattr(oauth, provider_id, None)
+    if oauth_provider is None:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_request",
+                    "message": f"OAuth provider '{provider_id}' is not configured",
+                }
+            ),
+            400,
+        )
+
+    metadata = oauth_provider.load_server_metadata()
+    token_endpoint = metadata.get("token_endpoint")
+    if not token_endpoint:
+        return (
+            jsonify(
+                {
+                    "type": "server_error",
+                    "message": "Missing token endpoint for provider configuration",
+                }
+            ),
+            500,
+        )
+
+    token_request = {
+        "grant_type": "authorization_code",
+        "code": payload["code"],
+        "code_verifier": payload["code_verifier"],
+        "redirect_uri": payload["redirect_uri"],
+        "client_id": oauth_provider.client_id,
+    }
+    if oauth_provider.client_secret:
+        token_request["client_secret"] = oauth_provider.client_secret
+
+    token_response = requests.post(token_endpoint, data=token_request, timeout=10)
+    if not token_response.ok:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_grant",
+                    "message": "Authorization code is invalid or expired",
+                }
+            ),
+            401,
+        )
+
+    token_data = token_response.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_grant",
+                    "message": "Authorization code is invalid or expired",
+                }
+            ),
+            401,
+        )
+
+    userinfo = {}
+    userinfo_endpoint = metadata.get("userinfo_endpoint")
+    if userinfo_endpoint:
+        userinfo_response = requests.get(
+            userinfo_endpoint,
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+        if not userinfo_response.ok:
+            return (
+                jsonify(
+                    {
+                        "type": "invalid_grant",
+                        "message": "Authorization code is invalid or expired",
+                    }
+                ),
+                401,
+            )
+        userinfo = userinfo_response.json()
+
+    if not userinfo:
+        return (
+            jsonify(
+                {
+                    "type": "invalid_grant",
+                    "message": "Unable to recover user claims",
+                }
+            ),
+            401,
+        )
+
+    source_groups = []
+    group_claim_name = getattr(auth_provider, "group_claim_name", "groups")
+    if group_claim_name in userinfo:
+        source_groups = userinfo[group_claim_name] or []
+
+    try:
+        organism = None
+        if hasattr(auth_provider, "_resolve_organism"):
+            organism = auth_provider._resolve_organism(userinfo, source_groups)
+
+        identifier_field = getattr(auth_provider, "identifier_field", "preferred_username")
+        identifier = userinfo.get(identifier_field) or userinfo.get("preferred_username")
+        if not identifier:
+            return (
+                jsonify(
+                    {
+                        "type": "invalid_grant",
+                        "message": f"Missing '{identifier_field}' in user claims",
+                    }
+                ),
+                401,
+            )
+
+        new_user = {
+            "identifiant": identifier,
+            "email": userinfo.get("email"),
+            "prenom_role": userinfo.get("given_name") or "",
+            "nom_role": userinfo.get("family_name") or "",
+            "active": True,
+        }
+
+        user_uuid_claim = getattr(auth_provider, "user_uuid_claim", "sub")
+        if userinfo.get(user_uuid_claim):
+            new_user["uuid_role"] = userinfo[user_uuid_claim]
+        if organism:
+            new_user["id_organisme"] = organism.id_organisme
+
+        user = auth_provider.insert_or_update_role(
+            new_user,
+            source_groups=source_groups,
+            reconciliate_attr="identifiant",
+        )
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return (
+            jsonify(
+                {
+                    "type": "reconciliation_error",
+                    "message": "Unable to reconcile user organism",
+                }
+            ),
+            409,
+        )
+
+    app_user = db.session.execute(
+        sa.select(models.AppUser)
+        .where(models.AppUser.id_role == user.id_role)
+        .where(models.AppUser.id_application == id_application)
+    ).scalar_one_or_none()
+    if app_user is None:
+        return (
+            jsonify(
+                {
+                    "type": "forbidden",
+                    "message": "User is not allowed for this application",
+                }
+            ),
+            403,
+        )
+
+    user_payload = UserSchema(
+        exclude=["remarques"], only=["+max_level_profil", "+providers"]
+    ).dump_with_token(user)
+    user_payload["user"]["id_application"] = int(id_application)
+    user_payload["token"] = encode_token(user_payload["user"]).decode()
+    return jsonify(user_payload)
