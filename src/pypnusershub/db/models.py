@@ -11,7 +11,6 @@ mappings applications et utilisateurs
 """
 
 import hashlib
-
 import re
 
 import bcrypt
@@ -23,6 +22,8 @@ if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
     from flask_sqlalchemy.query import Query
 else:
     from flask_sqlalchemy import BaseQuery as Query
+
+import logging
 
 from flask import current_app
 from flask_login import UserMixin
@@ -38,6 +39,9 @@ from sqlalchemy.schema import FetchedValue
 from sqlalchemy.sql import func, select
 from utils_flask_sqla.serializers import serializable
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 
 def check_and_encrypt_password(password, password_confirmation, md5=False):
     if not password:
@@ -49,19 +53,6 @@ def check_and_encrypt_password(password, password_confirmation, md5=False):
     if md5:
         pass_md5 = hashlib.md5(password.encode("utf-8")).hexdigest()
     return pass_plus.decode("utf-8"), pass_md5
-
-
-def fn_check_password(self, pwd):
-    if current_app.config["PASS_METHOD"] == "md5":
-        if not self._password:
-            raise ValueError("User %s has no password" % (self.identifiant))
-        return self._password == hashlib.md5(pwd.encode("utf8")).hexdigest()
-    elif current_app.config["PASS_METHOD"] == "hash":
-        if not self._password_plus:
-            raise ValueError("User %s has no password" % (self.identifiant))
-        return checkpw(pwd.encode("utf8"), self._password_plus.encode("utf8"))
-    else:
-        raise ValueError("Undefine crypt method (PASS_METHOD)")
 
 
 cor_roles = db.Table(
@@ -126,8 +117,21 @@ class UserQuery(Query):
         )
 
 
+class PasswordMixin:
+    def check_password(self, pwd):
+        if self._password_plus:
+            return checkpw(pwd.encode("utf8"), self._password_plus.encode("utf8"))
+        elif self._password:
+            log.warning(
+                f"MD5 password detected for user {self.identifiant}, consider updating it to a stronger hash."
+            )
+            return self._password == hashlib.md5(pwd.encode("utf8")).hexdigest()
+        else:
+            raise ValueError(f"User {self.identifiant} has no password")
+
+
 @serializable(exclude=["_password", "password", "_password_plus"])
-class User(db.Model, UserMixin):
+class User(db.Model, UserMixin, PasswordMixin):
     __tablename__ = "t_roles"
     __table_args__ = {"schema": "utilisateurs"}
     query_class = UserQuery
@@ -200,31 +204,32 @@ class User(db.Model, UserMixin):
 
     @property
     def password(self):
-        if current_app.config["PASS_METHOD"] == "md5":
-            return self._password
-        elif current_app.config["PASS_METHOD"] == "hash":
-            return self._password_plus
-        else:
-            raise Exception
+        return self._password_plus or self._password
 
-    # TODO: change password digest algorithm for something stronger such
-    # as bcrypt. This need to be done at usershub level first.
     @password.setter
-    def password(self, pwd):
-        pwd = pwd.encode("utf-8")
-        if current_app.config["PASS_METHOD"] == "md5":
-            self._password = hashlib.md5(pwd).hexdigest()
-        elif current_app.config["PASS_METHOD"] == "hash":
-            self._password_plus = bcrypt.hashpw(pwd, bcrypt.gensalt()).decode("utf-8")
-        else:
-            raise Exception("Unknown pass method")
+    def password(self, password):
+        """
+        Set the user's password, hashing it with bcrypt (auto-salted) and storing the hash.
+
+        Parameters
+        ----------
+        password : str
+            The plaintext password to set for the user.
+
+        """
+        self._password_plus = bcrypt.hashpw(
+            password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
 
     def generate_api_secret(self):
         """
         Generate a secure random API secret, hash it with bcrypt (auto-salted), and store the hash.
         If Api secret already exists replace it.
 
-        return api key and api secret
+        Returns
+        -------
+        tuple
+            The API key and the raw API secret.
         """
         raw_key = secrets.token_hex(128)
         hashed_key = bcrypt.hashpw(
@@ -237,9 +242,21 @@ class User(db.Model, UserMixin):
         return self.api_key, raw_key
 
     @staticmethod
-    def check_api_key(key, secret):
+    def check_api_key(key: str, secret: str):
         """
         Check if the couple api_key and api_secret match.
+
+        Parameters
+        ----------
+        key : str
+            The API key to check.
+        secret : str
+            The API secret to check.
+
+        Returns
+        -------
+        User or None
+            The user corresponding to the API key and secret if they match, None otherwise.
         """
         statement = select(User).where(User.api_key == key)
         user = db.session.execute(statement).scalars().one()
@@ -248,8 +265,6 @@ class User(db.Model, UserMixin):
         if bcrypt.checkpw(secret.encode(), user.api_secret.encode()):
             return user
         return None
-
-    check_password = fn_check_password
 
     @property
     def is_public(self):
@@ -440,7 +455,7 @@ class UserApplicationRight(db.Model):
 
 
 @serializable(exclude=["password", "_password_plus"])
-class AppUser(db.Model):
+class AppUser(db.Model, PasswordMixin):
     """
     Relations entre applications et utilisateurs
     """
@@ -469,8 +484,6 @@ class AppUser(db.Model):
     @property
     def password(self):
         return self._password
-
-    check_password = fn_check_password
 
     def __repr__(self):
         return "<AppUser role='{}' app='{}'>".format(self.id_role, self.id_application)
