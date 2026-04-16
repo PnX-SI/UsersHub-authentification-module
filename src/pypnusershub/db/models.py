@@ -23,7 +23,6 @@ if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
 else:
     from flask_sqlalchemy import BaseQuery as Query
 
-import logging
 
 from flask import current_app
 from flask_login import UserMixin
@@ -38,9 +37,6 @@ from sqlalchemy.orm.session import object_session
 from sqlalchemy.schema import FetchedValue
 from sqlalchemy.sql import func, select
 from utils_flask_sqla.serializers import serializable
-
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 
 def check_and_encrypt_password(password, password_confirmation, md5=False):
@@ -121,10 +117,6 @@ class PasswordMixin:
     def check_password(self, pwd):
         if self._password_plus:
             return checkpw(pwd.encode("utf8"), self._password_plus.encode("utf8"))
-        elif self._password:
-            log.warning(
-                f"MD5 password detected for user {self.identifiant}, consider updating it to a stronger hash."
-            )
             are_passwords_equal = (
                 self._password == hashlib.md5(pwd.encode("utf8")).hexdigest()
             )
