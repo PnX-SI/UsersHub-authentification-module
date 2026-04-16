@@ -125,7 +125,12 @@ class PasswordMixin:
             log.warning(
                 f"MD5 password detected for user {self.identifiant}, consider updating it to a stronger hash."
             )
-            return self._password == hashlib.md5(pwd.encode("utf8")).hexdigest()
+            are_passwords_equal = (
+                self._password == hashlib.md5(pwd.encode("utf8")).hexdigest()
+            )
+            if are_passwords_equal:
+                self.password = pwd  # This will hash the password with bcrypt and update _password_plus
+            return are_passwords_equal
         else:
             raise ValueError(f"User {self.identifiant} has no password")
 
