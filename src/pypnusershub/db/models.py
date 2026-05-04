@@ -128,7 +128,10 @@ class PasswordMixin:
         else:
             raise ValueError(f"User {self.identifiant} has no password")
 
-@serializable(exclude=["_password", "password", "_password_plus", "api_key", "api_secret"])
+
+@serializable(
+    exclude=["_password", "password", "_password_plus", "api_key", "api_secret"]
+)
 class User(db.Model, UserMixin, PasswordMixin):
     __tablename__ = "t_roles"
     __table_args__ = {"schema": "utilisateurs"}
