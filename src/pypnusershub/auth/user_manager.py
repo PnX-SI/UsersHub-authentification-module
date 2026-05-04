@@ -79,7 +79,7 @@ class UserManager:
         """
         if not self._check_password_criteria(password):
             raise self.PrintableValueError(
-                "Le mot de passe ne respècte pas les critères"
+                "Le mot de passe ne respecte pas les critères"
             )
 
     def _check_password_criteria(self, password: str) -> bool:
