@@ -141,7 +141,7 @@ class TestCreateTempUser:
         }
         with app.app_context():
             with pytest.raises(
-                ValueError, match="Le mot de passe ne respècte pas les critères"
+                ValueError, match="Le mot de passe ne respecte pas les critères"
             ):
                 user_manager.create_temp_user(data)
 
@@ -246,7 +246,7 @@ class TestChangePassword:
         )  # Enforce strong password rules
         with pytest.raises(
             user_manager.PrintableValueError,
-            match="Le mot de passe ne respècte pas les critères",
+            match="Le mot de passe ne respecte pas les critères",
         ):
             user_manager.change_password("valid_token", "weak", "weak")
 
@@ -402,7 +402,7 @@ class TestRaiseOnPasswordNotMatchingCriterium:
         invalid_password = "password"  # No special characters, uppercase, or digits
         with pytest.raises(
             user_manager.PrintableValueError,
-            match="Le mot de passe ne respècte pas les critères",
+            match="Le mot de passe ne respecte pas les critères",
         ):
             user_manager._raise_on_password_not_matching_criteria(invalid_password)
 
