@@ -117,17 +117,18 @@ class PasswordMixin:
     def check_password(self, pwd):
         if self._password_plus:
             return checkpw(pwd.encode("utf8"), self._password_plus.encode("utf8"))
+        elif self._password:
             are_passwords_equal = (
                 self._password == hashlib.md5(pwd.encode("utf8")).hexdigest()
             )
             if are_passwords_equal:
                 self.password = pwd  # This will hash the password with bcrypt and update _password_plus
+                db.session.commit()
             return are_passwords_equal
         else:
             raise ValueError(f"User {self.identifiant} has no password")
 
-
-@serializable(exclude=["_password", "password", "_password_plus"])
+@serializable(exclude=["_password", "password", "_password_plus", "api_key", "api_secret"])
 class User(db.Model, UserMixin, PasswordMixin):
     __tablename__ = "t_roles"
     __table_args__ = {"schema": "utilisateurs"}
@@ -451,7 +452,7 @@ class UserApplicationRight(db.Model):
         )
 
 
-@serializable(exclude=["password", "_password_plus"])
+@serializable(exclude=["password", "_password_plus", "_password"])
 class AppUser(db.Model, PasswordMixin):
     """
     Relations entre applications et utilisateurs
