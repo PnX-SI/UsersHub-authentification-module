@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.2.2 (2026-06-08)
+
+**🚀 Nouveautés**
+
+- Première étape de l'abandon du MD5 (#160 par @jacquesfize)
+- Ajout de l'organisme les données retournées par `/get_current_user` (#159 par @edelclaux)
+
+
 ## 3.2.1 (2026-03-19)
 
 **🚀 Nouveautés**
