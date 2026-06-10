@@ -64,7 +64,7 @@ def insertUpdate_bibtaxons(id_taxon=None):
 
 ### Pré-requis
 
-- Python 3.9 ou (ou version supérieure)
+- Python 3.10 ou version supérieure
 - PostgreSQL 11.x (ou version supérieure)
 - Paquets systèmes suivants: `python3-dev`,`build-essential`, `postgresql-server-dev`
 
