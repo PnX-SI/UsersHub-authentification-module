@@ -1,10 +1,12 @@
 import re
 import base64
+from typing import Optional
 
 from flask import current_app
 from pypnusershub.db.models import check_and_encrypt_password
 from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .models import User, db as DB
 
@@ -13,26 +15,26 @@ class TempUser(DB.Model):
     __tablename__ = "temp_users"
     __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
 
-    id_temp_user = DB.Column(DB.Integer, primary_key=True)
-    token_role = DB.Column(DB.Unicode)
-    organisme = DB.Column(DB.Unicode)
-    id_application = DB.Column(DB.Integer)
-    confirmation_url = DB.Column(DB.Unicode)
-    groupe = DB.Column(DB.Boolean)
-    identifiant = DB.Column(DB.Unicode)
-    nom_role = DB.Column(DB.Unicode)
-    prenom_role = DB.Column(DB.Unicode)
-    desc_role = DB.Column(DB.Unicode)
-    password = DB.Column(DB.Unicode)
-    pass_md5 = DB.Column(DB.Unicode)
-    email = DB.Column(DB.Unicode)
-    id_organisme = DB.Column(DB.Integer)
-    remarques = DB.Column(DB.Unicode)
-    champs_addi = DB.Column(JSONB)
-    date_insert = DB.Column(DB.DateTime)
-    date_update = DB.Column(DB.DateTime)
+    id_temp_user: Mapped[int] = mapped_column(primary_key=True)
+    token_role: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    organisme: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    id_application: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    confirmation_url: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    groupe: Mapped[Optional[bool]] = mapped_column(DB.Boolean)
+    identifiant: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    nom_role: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    prenom_role: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    desc_role: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    password: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    pass_md5: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    email: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    id_organisme: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    remarques: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    champs_addi: Mapped[Optional[dict]] = mapped_column(JSONB)
+    date_insert: Mapped[Optional[str]] = mapped_column(DB.DateTime)
+    date_update: Mapped[Optional[str]] = mapped_column(DB.DateTime)
 
-    def set_password(self, password, password_confirmation, md5):
+    def set_password(self, password: str, password_confirmation: str, md5: bool):
         self.password, self.pass_md5 = check_and_encrypt_password(
             password, password_confirmation, md5
         )
@@ -46,9 +48,10 @@ class TempUser(DB.Model):
             msg += "Password is required. "
 
         re.compile(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
-        if not re.match(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$", self.email):
+        if not re.match(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$", self.email or ""):
             is_valid = False
             msg += "E-mail is not valid. "
+
         # check if user or temp user exist with an email or login given
         role = DB.session.scalars(
             select(User).where(
@@ -70,14 +73,12 @@ class TempUser(DB.Model):
                 )
 
         temp_role = DB.session.scalars(
-            select(TempUser)
-            .where(
+            select(TempUser).where(
                 or_(
                     TempUser.email == self.email,
                     TempUser.identifiant == self.identifiant,
                 )
             )
-            .limit(1)
         ).first()
         if temp_role:
             is_valid = False
@@ -95,9 +96,9 @@ class TempUser(DB.Model):
 
         return (is_valid, msg)
 
-    def as_dict(self, recursif=False, columns=(), depth=None):
+    def as_dict(self, recursif: bool = False, columns=(), depth=None):
         """
-        The signature of the function must be the as same the as_dict func
+        The signature of the function must be the same as the as_dict func
         from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
         """
         return {
@@ -124,12 +125,12 @@ class CorRoleToken(DB.Model):
     __tablename__ = "cor_role_token"
     __table_args__ = {"schema": "utilisateurs", "extend_existing": True}
 
-    id_role = DB.Column(DB.Integer, primary_key=True)
-    token = DB.Column(DB.Unicode)
+    id_role: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[Optional[str]] = mapped_column(DB.Unicode)
 
-    def as_dict(self, recursif=False, columns=(), depth=None):
+    def as_dict(self, recursif: bool = False, columns=(), depth=None):
         """
-        The signature of the function must be the as same the as_dict func
+        The signature of the function must be the same as the as_dict func
         from https://github.com/PnX-SI/Utils-Flask-SQLAlchemy
         """
         return {"id_role": self.id_role, "token": self.token}
