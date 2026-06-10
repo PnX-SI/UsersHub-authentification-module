@@ -4,6 +4,7 @@ from flask import current_app
 from werkzeug.http import dump_cookie
 from werkzeug.datastructures import Headers
 
+
 from flask_login import login_user, logout_user
 from sqlalchemy import select
 
