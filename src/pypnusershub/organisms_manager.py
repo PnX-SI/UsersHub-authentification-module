@@ -21,7 +21,7 @@ def insert_or_update_organism(organism) -> dict:
     """
     organism_schema = OrganismeSchema()
     organism = organism_schema.load(organism)
-    db.session.add(organism)
+    organism = db.session.merge(organism)
     db.session.commit()
     return organism_schema.dump(organism)
 
