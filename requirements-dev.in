@@ -1,5 +1,4 @@
--r requirements-common.in
--r requirements-submodules.in
+-e file:dependencies/Utils-Flask-SQLAlchemy#egg=utils-flask-sqlalchemy
 flake8
 pytest
 pytest-flask
