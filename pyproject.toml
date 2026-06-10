@@ -1,14 +1,73 @@
-[tool.pytest.ini_options]
-minversion = "6.0"
-testpaths = [
-    "src",
+[build-system]
+requires = ["setuptools>=77.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pypnusershub"
+description = "Python lib to authenticate using PN's UsersHub"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Parcs nationaux des Écrins et des Cévennes", email = "geonature@ecrins-parcnational.fr" },
+]
+maintainers = [
+    { name = "Parcs nationaux des Écrins et des Cévennes", email = "geonature@ecrins-parcnational.fr" },
+]
+license = { text = "GNU Affero General Public License v3" }
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+]
+dynamic = ["version"]
+dependencies = [
+    "authlib",
+    "bcrypt",
+    "flask-sqlalchemy",
+    "flask>=3",
+    "flask-login",
+    "psycopg2",
+    "requests",
+    "sqlalchemy>=1.4,<2",
+    "flask-marshmallow",
+    "marshmallow-sqlalchemy",
+    "alembic",
+    "xmltodict",
+    "utils-flask-sqlalchemy>=0.4.5,<1.0",
 ]
 
+[project.optional-dependencies]
+tests = ["pytest", "pytest-flask", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://github.com/PnX-SI/UsersHub-authentification-module"
+
+[project.entry-points."alembic"]
+migrations = "pypnusershub.migrations:versions"
+
+[project.entry-points."flask.commands"]
+user = "pypnusershub.commands:user"
+
+[tool.setuptools]
+packages = ["pypnusershub"]
+package-dir = { "" = "src" }
+
+[tool.setuptools.package-data]
+pypnusershub = ["migrations/data/*.sql"]
+
+[tool.setuptools.dynamic]
+version = { file = "VERSION" }
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["src"]
+
 [tool.coverage.run]
-source = [
-    "pypnusershub",
-]
-omit = [
-    "*/tests/*",
-    "*/migrations/*",
-]
+source = ["pypnusershub"]
+omit = ["*/tests/*", "*/migrations/*"]
