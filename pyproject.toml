@@ -40,6 +40,7 @@ dependencies = [
     "alembic",
     "xmltodict",
     "utils-flask-sqlalchemy>=0.4.5,<1.0",
+    "joserfc"
 ]
 
 [project.optional-dependencies]

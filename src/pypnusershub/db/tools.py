@@ -12,8 +12,9 @@ from flask import current_app
 
 from sqlalchemy.orm.exc import NoResultFound
 import sqlalchemy as sa
-from authlib.jose import JsonWebToken
-from authlib.jose.errors import ExpiredTokenError, JoseError
+from joserfc import jwt, jwk
+from joserfc.jwk import OctKey
+from joserfc.errors import ExpiredTokenError, JoseError
 
 from pypnusershub.db import models
 from pypnusershub.utils import text_resource_stream, get_current_app_id
@@ -85,16 +86,17 @@ def encode_token(payload):
     expire = datetime.now() + timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
     header = {
         "alg": "HS256",
-        "exp": int(datetime.timestamp(expire)),
     }
-    jwt = JsonWebToken(["HS256"])
-    key = current_app.config["SECRET_KEY"].encode("UTF-8")
-    return jwt.encode(header, payload, key)
+    key_app = current_app.config["SECRET_KEY"].encode("UTF-8")
+    key = jwk.import_key(key_app, "oct")
+    return jwt.encode(
+        header, {**payload, **{"exp": int(datetime.timestamp(expire))}}, key
+    )
 
 
 def decode_token(payload):
-    jwt = JsonWebToken(["HS256"])
-    key = current_app.config["SECRET_KEY"].encode("UTF-8")
+    key_app = current_app.config["SECRET_KEY"].encode("UTF-8")
+    key = jwk.import_key(key_app, "oct")
     claims = jwt.decode(payload, key)
     claims.validate()
     return dict(claims)

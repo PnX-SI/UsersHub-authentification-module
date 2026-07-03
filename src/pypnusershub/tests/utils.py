@@ -20,7 +20,7 @@ def set_logged_user(client, user):
         )
     ).scalar_one()
     login_user(user)
-    client.environ_base["HTTP_AUTHORIZATION"] = "Bearer " + user_to_token(user).decode()
+    client.environ_base["HTTP_AUTHORIZATION"] = "Bearer " + user_to_token(user)
 
 
 # retro compatibility for cookie auth
@@ -56,7 +56,7 @@ def logged_user_headers(user, headers=None):
         )
     ).scalar_one()
     login_user(user)
-    token = user_to_token(user).decode("latin1")
+    token = user_to_token(user)
     if headers is None:
         headers = Headers()
     headers.extend(
