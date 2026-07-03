@@ -56,7 +56,7 @@ def logged_user_headers(user, headers=None):
         )
     ).scalar_one()
     login_user(user)
-    token = user_to_token(user).decode("latin1")
+    token = user_to_token(user)
     if headers is None:
         headers = Headers()
     headers.extend(
