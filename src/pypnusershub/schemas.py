@@ -69,6 +69,6 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         token_exp += datetime.timedelta(seconds=current_app.config["COOKIE_EXPIRATION"])
         return {
             "user": user_dict,
-            "token": encode_token(user_dict).decode(),
+            "token": encode_token(user_dict),
             "expires": token_exp.isoformat(),
         }

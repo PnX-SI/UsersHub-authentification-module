@@ -10,4 +10,5 @@ flask-marshmallow
 marshmallow-sqlalchemy
 alembic
 xmltodict
+joserfc
 # for flask login

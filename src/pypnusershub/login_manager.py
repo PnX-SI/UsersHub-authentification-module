@@ -2,7 +2,7 @@ from flask import current_app, g
 from flask.sessions import SecureCookieSessionInterface
 
 from flask_login import LoginManager
-from authlib.jose.errors import ExpiredTokenError, JoseError
+from joserfc.errors import ExpiredTokenError, JoseError
 
 from pypnusershub.db.models import User
 from pypnusershub.db.tools import decode_token
