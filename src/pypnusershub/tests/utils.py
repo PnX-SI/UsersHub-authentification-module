@@ -20,7 +20,7 @@ def set_logged_user(client, user):
         )
     ).scalar_one()
     login_user(user)
-    client.environ_base["HTTP_AUTHORIZATION"] = "Bearer " + user_to_token(user).decode()
+    client.environ_base["HTTP_AUTHORIZATION"] = "Bearer " + user_to_token(user)
 
 
 # retro compatibility for cookie auth
