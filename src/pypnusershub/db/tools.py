@@ -97,9 +97,10 @@ def encode_token(payload):
 def decode_token(payload):
     key_app = current_app.config["SECRET_KEY"].encode("UTF-8")
     key = jwk.import_key(key_app, "oct")
-    claims = jwt.decode(payload, key)
-    claims.validate()
-    return dict(claims)
+    token = jwt.decode(payload, key)
+    claims_registry = jwt.JWTClaimsRegistry(exp={"essential": True})
+    claims_registry.validate(token.claims)
+    return dict(token.claims)
 
 
 def user_to_token(user):
