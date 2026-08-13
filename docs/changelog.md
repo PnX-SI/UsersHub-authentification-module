@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 3.3.0 (unreleased)
+
+**🚀 Nouveautés**
+
+- Mise à jour de Utils-Flask-SQLAlchemy en 0.5.0 et ajout de la compitibilité avec SQLAlchemy 2.0.x (#123 par @jacquesfize)
+
+
 ## 3.2.2 (2026-06-08)
 
 **🚀 Nouveautés**
