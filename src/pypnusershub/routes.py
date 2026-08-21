@@ -240,7 +240,7 @@ def login_exists():
         sa.exists(models.User).where(models.User.identifiant == login).select()
     )
 
-    return jsonify(user is not None)
+    return jsonify(user)
 
 
 @routes.route("/authorize/<provider>", methods=["GET", "POST"])
