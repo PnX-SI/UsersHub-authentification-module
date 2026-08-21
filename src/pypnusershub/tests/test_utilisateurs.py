@@ -268,3 +268,25 @@ class TestUtilisateurs:
 
         assert "max_level_profil" in data["user"]
         assert "providers" in data["user"]
+
+    def test_login_exists_with_existing_user(self, group_and_users):
+        """Test login_exists endpoint with an existing login"""
+        response = self.client.get(url_for("auth.login_exists", login="user_of_group1"))
+        assert response.status_code == 200
+        assert response.json is True
+
+    def test_login_exists_with_nonexistent_user(self, group_and_users):
+        """Test login_exists endpoint with a non-existent login"""
+        response = self.client.get(
+            url_for("auth.login_exists", login="nonexistent_user")
+        )
+        assert response.status_code == 200
+        assert response.json is False
+
+    def test_login_exists_without_login_parameter(self):
+        """Test login_exists endpoint without the login parameter"""
+        response = self.client.get(url_for("auth.login_exists"))
+        assert response.status_code == 400
+        print(response.json)
+        print(dir(response))
+        assert "Missing 'login' parameter" in response.json["message"]
