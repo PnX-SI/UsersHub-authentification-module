@@ -28,7 +28,7 @@ from pypnusershub.db import db, models
 from pypnusershub.db.tools import encode_token
 from pypnusershub.schemas import UserSchema
 from pypnusershub.auth.authentication import Authentication
-from werkzeug.exceptions import Forbidden, Unauthorized
+from werkzeug.exceptions import Forbidden, Unauthorized, BadRequest
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -211,6 +211,36 @@ def logout():
         resp = redirect(current_app.config["URL_APPLICATION"])
 
     return resp
+
+
+@routes.route("/login_exists", methods=["GET"])
+def login_exists():
+    """
+    Check if a login exists in the database.
+
+    This route checks whether a given login (username) exists in the system.
+    It takes a login parameter as input and returns a JSON response with
+    a boolean indicating whether the login exists.
+
+    Query Parameters:
+    - login (str): The login/username to check
+
+    Returns:
+    -------
+    dict
+        A dictionary containing:
+        - true or false
+    """
+    login = request.args.get("login", type=str)
+
+    if not login:
+        return jsonify({"message": "Missing 'login' parameter"}), 400
+
+    user = db.session.scalar(
+        sa.exists(models.User).where(models.User.identifiant == login).select()
+    )
+
+    return jsonify(user)
 
 
 @routes.route("/authorize/<provider>", methods=["GET", "POST"])
