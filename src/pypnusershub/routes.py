@@ -236,9 +236,9 @@ def login_exists():
     if not login:
         return jsonify({"message": "Missing 'login' parameter"}), 400
 
-    user = db.session.execute(
-        sa.select(models.User).where(models.User.identifiant == login)
-    ).scalar_one_or_none()
+    user = db.session.scalar(
+        sa.exists(models.User).where(models.User.identifiant == login).select()
+    )
 
     return jsonify(user is not None)
 
