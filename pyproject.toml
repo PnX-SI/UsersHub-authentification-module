@@ -56,7 +56,11 @@ migrations = "pypnusershub.migrations:versions"
 user = "pypnusershub.commands:user"
 
 [tool.setuptools]
-packages = ["pypnusershub"]
+packages = [
+    "pypnusershub",
+    "pypnusershub.db",
+    "pypnusershub.auth"
+]
 package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
