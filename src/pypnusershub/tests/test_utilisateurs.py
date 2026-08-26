@@ -131,6 +131,80 @@ class TestUtilisateurs:
         user_group_id = map(lambda g: g.id_role, user.groups)
         assert set(user_group_id) == {group_and_users["group1"].id_role}
 
+    def test_insert_or_update_role_grp_reconcialiation_strict_mirror_existing_user(
+        self, provider_instance, group_and_users
+    ):
+        provider_instance.group_mapping = {
+            "group1": group_and_users["group1"].id_role,
+            "group2": group_and_users["group2"].id_role,
+        }
+
+        user_dict = {
+            "id_role": 999997,
+            "identifiant": "mirror.user",
+            "nom_role": "mirror",
+            "prenom_role": "user",
+            "email": "mirror@test.fr",
+        }
+
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_dict,
+            source_groups=["group1", "group2"],
+            reconciliate_attr="identifiant",
+        )
+        assert set(map(lambda g: g.id_role, user.groups)) == {
+            group_and_users["group1"].id_role,
+            group_and_users["group2"].id_role,
+        }
+
+        # Re-login with fewer source groups should remove obsolete mapped groups.
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_dict,
+            source_groups=["group2"],
+            reconciliate_attr="identifiant",
+        )
+        assert set(map(lambda g: g.id_role, user.groups)) == {
+            group_and_users["group2"].id_role
+        }
+
+    def test_insert_or_update_role_grp_reconcialiation_strict_mirror_keeps_unmanaged_groups(
+        self, provider_instance, group_and_users
+    ):
+        provider_instance.group_mapping = {
+            "group1": group_and_users["group1"].id_role,
+            "group2": group_and_users["group2"].id_role,
+        }
+
+        unmanaged_group = User(groupe=True, identifiant="group_unmanaged")
+        db.session.add(unmanaged_group)
+        db.session.flush()
+
+        user_dict = {
+            "id_role": 999996,
+            "identifiant": "mirror.user.unmanaged",
+            "nom_role": "mirror",
+            "prenom_role": "unmanaged",
+            "email": "mirror-unmanaged@test.fr",
+        }
+
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_dict,
+            source_groups=["group1", "group2"],
+            reconciliate_attr="identifiant",
+        )
+        user.groups.append(unmanaged_group)
+        db.session.commit()
+
+        user = provider_instance.insert_or_update_role(
+            user_dict=user_dict,
+            source_groups=["group2"],
+            reconciliate_attr="identifiant",
+        )
+        assert set(map(lambda g: g.id_role, user.groups)) == {
+            group_and_users["group2"].id_role,
+            unmanaged_group.id_role,
+        }
+
     def test_insert_or_update_with_fields_to_update(
         self, provider_instance, group_and_users
     ):
