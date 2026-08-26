@@ -1,0 +1,5 @@
+-e file:dependencies/Utils-Flask-SQLAlchemy#egg=utils-flask-sqlalchemy
+flake8
+pytest
+pytest-flask
+schema

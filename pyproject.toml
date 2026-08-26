@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-flask", "pytest-cov", "schema"]
+tests = ["pytest", "pytest-flask", "pytest-cov"]
 
 [project.urls]
 Homepage = "https://github.com/PnX-SI/UsersHub-authentification-module"
@@ -73,9 +73,3 @@ testpaths = ["src"]
 [tool.coverage.run]
 source = ["pypnusershub"]
 omit = ["*/tests/*", "*/migrations/*"]
-
-[tool.uv.workspace]
-members = ["dependencies/*"]
-
-[tool.uv.sources]
-utils-flask-sqlalchemy = { workspace = true }
