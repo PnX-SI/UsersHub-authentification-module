@@ -55,13 +55,10 @@ migrations = "pypnusershub.migrations:versions"
 [project.entry-points."flask.commands"]
 user = "pypnusershub.commands:user"
 
-[tool.setuptools]
-packages = [
-    "pypnusershub",
-    "pypnusershub.db",
-    "pypnusershub.auth"
-]
-package-dir = { "" = "src" }
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pypnusershub*"]
+exclude = ["pypnusershub.tests*"]
 
 [tool.setuptools.package-data]
 pypnusershub = ["migrations/data/*.sql"]
