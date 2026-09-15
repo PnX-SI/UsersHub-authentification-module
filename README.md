@@ -290,7 +290,7 @@ providers_config = # Declare identity providers used to log into your app
       },
       # Other identity provider
       {
-        "module": "pypnusershub.auth.providers.openid_provider.OpenIDProvider",
+        "module": "pypnusershub.auth.providers.openid_provider.OAuth2Provider",
         "id_provider":"open_id_1",
         "ISSUER":"http://<realmKeycloak>",
         "CLIENT_ID":"secret",
@@ -319,6 +319,8 @@ Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la 
 - `RECONCILIATE_ATTR` (string): Nom du champs qui servira à la réconciliation des utilisateurs existant (par défaut: "email").
 - `FIELDS_TO_OVERRIDE` (List(string)): Nom des champs qui seront écrasés lors d'une connexion. Ces champs prendront la valeur existante dans le provider (par défaut, nom, prénom et email). Les valeurs possibles sont les suivantes : "id_role", "identifiant", "nom_role", "prenom_role", "email","active"
 - `CODE_CHALLENGE_METHOD` (string): Ne devrait pas être modifié. Permet de configurer le type de challenge (par défaut: "S256" mais peut valoir plain si contraintes legacy).
+- `SSO_LOGOUT` (boolean, defaut = True), uniquement pour OpenIDConnect, permet de définir si le logout entraine une déconnexion totale du SSO (true), ou s'il déconnecte seulement de l'application en cours
+- `ROPC_FLOW` (boolean, défaut = False) : si true alors autorise l'authentication via flux OAuth 2.0 "Resource Owner Password Credentials" (ROPC): on peut se connecter programmatiquement via user/mdp sans redirection vers l'identidy provider (dans keycloak nécessite d'activer le "Direct Access Grant")
 
 **UsersHub-authentification-module**
 

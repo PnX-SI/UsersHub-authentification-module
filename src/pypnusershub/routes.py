@@ -95,6 +95,7 @@ def get_providers():
         "login_url",
         "logout_url",
         "is_secondary",
+        "ropc_flow",
     ]
     return jsonify(
         [
@@ -103,7 +104,7 @@ def get_providers():
                     d.items()
                     for d in (
                         {
-                            _property: getattr(provider, _property)
+                            _property: getattr(provider, _property, False)
                             for _property in property_name
                         },
                         {"id_provider": id_provider},
