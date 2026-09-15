@@ -290,3 +290,37 @@ class TestUtilisateurs:
         print(response.json)
         print(dir(response))
         assert "Missing 'login' parameter" in response.json["message"]
+
+    def test_get_providers(self):
+        response = self.client.get(url_for("auth.get_providers"))
+        assert response.status_code == 200
+
+        providers = {p["id_provider"]: p for p in response.json}
+        # matches AUTHENTICATION.PROVIDERS in test_settings.py
+        assert set(providers) == {
+            "local_provider",
+            "cas_inpn",
+            "keycloak",
+            "bis",
+            "ter",
+            "keycloak_ropc",
+        }
+
+        expected_properties = {
+            "id_provider",
+            "is_external",
+            "logo",
+            "label",
+            "login_url",
+            "logout_url",
+            "is_secondary",
+            "ropc_flow",
+        }
+        for provider in providers.values():
+            assert set(provider) == expected_properties
+
+        # ROPC is opt-in (ROPC_FLOW config) and disabled by default
+        assert providers["keycloak"]["ropc_flow"] is False
+        assert providers["bis"]["ropc_flow"] is False
+        # ... except for the provider that explicitly enables it in its config
+        assert providers["keycloak_ropc"]["ropc_flow"] is True
