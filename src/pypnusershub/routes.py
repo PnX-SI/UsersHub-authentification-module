@@ -106,25 +106,29 @@ def list_providers(**filters):
         "logout_url",
         "is_secondary",
         "is_hidden",
+        "ropc_flow",
     ]
-    return [
-        dict(
-            chain.from_iterable(
-                d.items()
-                for d in (
-                    {
-                        _property: getattr(provider, _property)
-                        for _property in property_name
-                    },
-                    {"id_provider": id_provider},
+    return jsonify(
+        [
+            dict(
+                chain.from_iterable(
+                    d.items()
+                    for d in (
+                        {
+                            _property: getattr(provider, _property, False)
+                            for _property in property_name
+                        },
+                        {"id_provider": id_provider},
+                    )
                 )
             )
-        )
-        for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
-        if all(
-            getattr(provider, attr, None) == value for attr, value in filters.items()
-        )
-    ]
+            for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
+            if all(
+                getattr(provider, attr, None) == value
+                for attr, value in filters.items()
+            )
+        ]
+    )
 
 
 @routes.route("/providers", methods=["GET"])
