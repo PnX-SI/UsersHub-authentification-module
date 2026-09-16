@@ -163,6 +163,10 @@ def login(provider):
     auth_provider = current_app.auth_manager.get_provider(provider)
     session["current_provider"] = provider
     auth_result = auth_provider.authenticate()
+    # if the client is a mobile app, store it in session to adapt the /authorize response (-> token in query string)
+    client = request.args.get("client")
+    if client:
+        session["auth_client"] = client
     if isinstance(auth_result, Response):
         return auth_result
     if isinstance(auth_result, models.User):
@@ -262,6 +266,11 @@ def authorize(provider="local_provider"):
 
     if isinstance(authorize_result, models.User):
         login_user(authorize_result, remember=True)
+        # if the client is 'mobile', adapt the redirect with the token in querystring
+        # the mobile can intercept the url "mobileapp://auth-callback" (hardcoded here) to catch the token
+        client = session.pop("auth_client", None)
+        if client and client == "mobile":
+            token = UserSchema().dump_with_token(authorize_result)["token"]
+            return redirect("mobileapp://auth-callback?token=" + token)
 
-    # if auth_provider.is_external:
     return redirect(current_app.config["URL_APPLICATION"])

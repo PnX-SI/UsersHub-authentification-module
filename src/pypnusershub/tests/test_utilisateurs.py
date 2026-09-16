@@ -1,10 +1,12 @@
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 from flask import url_for, session
 import sqlalchemy as sa
 
 import pytest
 
 from pypnusershub.db.models import Organisme, User
+from pypnusershub.db.tools import decode_token
 
 from pypnusershub.organisms_manager import insert_or_update_organism, delete_organism
 from pypnusershub.schemas import OrganismeSchema, UserSchema
@@ -324,3 +326,38 @@ class TestUtilisateurs:
         assert providers["bis"]["ropc_flow"] is False
         # ... except for the provider that explicitly enables it in its config
         assert providers["keycloak_ropc"]["ropc_flow"] is True
+
+    def test_authorize_web(self, monkeypatch, group_and_users):
+        """Default (no 'client' stored in session) redirects to the front-end app."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+
+        response = self.client.get(
+            url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+        )
+
+        assert response.status_code == 302
+        assert response.location == self.client.application.config["URL_APPLICATION"]
+
+    def test_authorize_mobile_client(self, monkeypatch, group_and_users):
+        """When the login was initiated with 'client=mobile', /authorize must redirect
+        to the mobile app custom scheme with a usable JWT in the querystring."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+
+        with self.client.session_transaction() as sess:
+            sess["auth_client"] = "mobile"
+
+        response = self.client.get(
+            url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+        )
+
+        assert response.status_code == 302
+        assert response.location.startswith("mobileapp://auth-callback?")
+
+        query = parse_qs(urlparse(response.location).query)
+        token = query["token"][0]
+        claims = decode_token(token)
+        assert claims["id_role"] == user.id_role
