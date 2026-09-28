@@ -41,7 +41,22 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
             "api_key",
         )
 
-    max_level_profil = fields.Integer()
+    # Personal / administrative fields hidden by default to avoid leaking them
+    # when a user is nested in another schema. Request them explicitly with
+    # only=["+email", ...] (or list them in `only`).
+    # NB: do not move them to Meta.exclude: fields excluded at Meta level are not
+    # generated at all and SmartRelationshipsMixin mutates opts.exclude.
+    email = ma.auto_field(metadata={"exclude": True})
+    identifiant = ma.auto_field(metadata={"exclude": True})
+    remarques = ma.auto_field(metadata={"exclude": True})
+    desc_role = ma.auto_field(metadata={"exclude": True})
+    date_insert = ma.auto_field(metadata={"exclude": True})
+    date_update = ma.auto_field(metadata={"exclude": True})
+    active = ma.auto_field(metadata={"exclude": True})
+    groupe = ma.auto_field(metadata={"exclude": True})
+
+    # hidden by default (computed with an extra query), request it with "+max_level_profil"
+    max_level_profil = fields.Integer(metadata={"exclude": True})
     nom_complet = fields.String()
     groups = fields.Nested(lambda: UserSchema, many=True)
     organisme = fields.Nested(OrganismeSchema)

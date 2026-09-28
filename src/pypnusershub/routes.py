@@ -131,7 +131,16 @@ def get_user_data():
         A dictionary containing the user data, token, and expiration time.
     """
     user_dict_with_token = UserSchema(
-        exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
+        exclude=["remarques"],
+        only=[
+            "+max_level_profil",
+            "+providers",
+            "organisme",
+            "+identifiant",
+            "+email",
+            "+active",
+            "+groupe",
+        ],
     ).dump_with_token(g.current_user)
 
     return jsonify(user_dict_with_token)
@@ -167,7 +176,16 @@ def login(provider):
     if isinstance(auth_result, models.User):
         login_user(auth_result, remember=True)
         user_dict_with_token = UserSchema(
-            exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
+            exclude=["remarques"],
+            only=[
+                "+max_level_profil",
+                "+providers",
+                "organisme",
+                "+identifiant",
+                "+email",
+                "+active",
+                "+groupe",
+            ],
         ).dump_with_token(auth_result)
         return jsonify(user_dict_with_token)
 
@@ -187,7 +205,16 @@ def public_login():
     login_user(user)
 
     return UserSchema(
-        exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
+        exclude=["remarques"],
+        only=[
+            "+max_level_profil",
+            "+providers",
+            "organisme",
+            "+identifiant",
+            "+email",
+            "+active",
+            "+groupe",
+        ],
     ).dump_with_token(user)
 
 

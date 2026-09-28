@@ -41,7 +41,7 @@ class TestUtilisateurs:
         user_dict["identifiant"] = "update"
         provider_instance.insert_or_update_role(user_dict)
         created_user = db.session.get(User, 99999)
-        user_schema = UserSchema(only=["groups"])
+        user_schema = UserSchema(only=["groups", "+identifiant"])
         created_user_as_dict = user_schema.dump(created_user)
         assert created_user_as_dict["identifiant"] == "update"
         assert created_user_as_dict["id_role"] == 99999
@@ -251,6 +251,10 @@ class TestUtilisateurs:
         assert "token" in resp.json
         assert session["current_provider"] == "local_provider"
 
+        for field in ("identifiant", "email", "active", "groupe"):
+            assert field in resp.json["user"]
+        assert "remarques" not in resp.json["user"]
+
         expires = resp.json["expires"]
         datetime_expires = datetime.fromisoformat(expires)
         # the token expiration must be tz aware to avoid issue in date comparison
@@ -268,6 +272,10 @@ class TestUtilisateurs:
 
         assert "max_level_profil" in data["user"]
         assert "providers" in data["user"]
+        # current user payload is explicitly widened with personal fields
+        for field in ("identifiant", "email", "active", "groupe"):
+            assert field in data["user"]
+        assert "remarques" not in data["user"]
 
     def test_login_exists_with_existing_user(self, group_and_users):
         """Test login_exists endpoint with an existing login"""
@@ -290,3 +298,53 @@ class TestUtilisateurs:
         print(response.json)
         print(dir(response))
         assert "Missing 'login' parameter" in response.json["message"]
+
+    def test_user_schema_hides_personal_fields_by_default(self, group_and_users):
+        user = group_and_users["user1"]
+        hidden_fields = {
+            "email",
+            "identifiant",
+            "remarques",
+            "desc_role",
+            "date_insert",
+            "date_update",
+            "active",
+            "groupe",
+        }
+        secret_fields = {
+            "_password",
+            "_password_plus",
+            "api_key",
+            "api_secret",
+            "champs_addi",
+        }
+
+        dumped = UserSchema().dump(user)
+        assert set(dumped) == {
+            "id_role",
+            "uuid_role",
+            "nom_role",
+            "prenom_role",
+            "nom_complet",
+            "id_organisme",
+        }
+        assert not hidden_fields & set(dumped)
+        assert not secret_fields & set(dumped)
+
+        # "+field" re-enables a hidden field in addition to default ones
+        dumped = UserSchema(only=["+email"]).dump(user)
+        assert "email" in dumped
+        assert "id_role" in dumped
+        assert not (hidden_fields - {"email"}) & set(dumped)
+
+        # plain "only" still restricts to the listed fields
+        dumped = UserSchema(only=["id_role", "identifiant"]).dump(user)
+        assert set(dumped) == {"id_role", "identifiant"}
+
+        # a nested relationship requested alone keeps personal fields hidden
+        dumped = UserSchema(only=["organisme"]).dump(user)
+        assert "organisme" in dumped
+        assert not hidden_fields & set(dumped)
+
+        # the default instance is not polluted by previous "+field" instances
+        assert "email" not in UserSchema().dump(user)
