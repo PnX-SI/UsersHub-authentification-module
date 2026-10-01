@@ -5,9 +5,7 @@ routes relatives aux application, utilisateurs et à l'authentification
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime
 import logging
-from typing import List
 from urllib.parse import urlencode, urljoin
 
 import sqlalchemy as sa
@@ -22,13 +20,10 @@ from flask import (
     session,
 )
 from flask_login import current_user, login_required, login_user, logout_user
-from markupsafe import escape
 from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
-from pypnusershub.db.tools import encode_token
-from pypnusershub.schemas import UserSchema
-from pypnusershub.auth.authentication import Authentication
-from werkzeug.exceptions import Forbidden, Unauthorized, BadRequest
+from pypnusershub.schemas import UserSchemaFull
+from werkzeug.exceptions import Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -130,8 +125,9 @@ def get_user_data():
     dict
         A dictionary containing the user data, token, and expiration time.
     """
-    user_dict_with_token = UserSchema(
-        exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
+    user_dict_with_token = UserSchemaFull(
+        exclude=["remarques"],
+        only=["+max_level_profil", "+providers", "organisme"],
     ).dump_with_token(g.current_user)
 
     return jsonify(user_dict_with_token)
@@ -166,9 +162,9 @@ def login(provider):
         return auth_result
     if isinstance(auth_result, models.User):
         login_user(auth_result, remember=True)
-        user_dict_with_token = UserSchema(
-            exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
-        ).dump_with_token(auth_result)
+        user_dict_with_token = UserSchemaFull(exclude=["remarques"]).dump_with_token(
+            auth_result
+        )
         return jsonify(user_dict_with_token)
 
 
@@ -186,9 +182,7 @@ def public_login():
 
     login_user(user)
 
-    return UserSchema(
-        exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
-    ).dump_with_token(user)
+    return UserSchemaFull(exclude=["remarques"]).dump_with_token(user)
 
 
 @routes.route("/logout", methods=["GET", "POST"])

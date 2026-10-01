@@ -17,6 +17,7 @@ class OrganismeSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         model = Organisme
         load_instance = True
         sqla_session = db.session
+        fields = ("id_organisme", "uuid_organisme", "nom_organisme")
 
 
 class ProviderSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
@@ -29,29 +30,43 @@ class ProviderSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
 class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
-        include_fk = True
         load_instance = True
         sqla_session = db.session
-        exclude = (
-            "_password",
-            "_password_plus",
-            "champs_addi",
+        fields = ("id_role", "nom_role", "prenom_role", "organisme", "nom_complet")
+
+    organisme = fields.Nested(OrganismeSchema)
+    nom_complet = fields.String()
+
+
+class UserSchemaFull(UserSchema):
+    class Meta(UserSchema.Meta):
+        include_fk = True
+        fields = UserSchema.Meta.fields + (
+            "uuid_role",
+            "groupe",
+            "identifiant",
+            "desc_role",
+            "email",
+            "id_organisme",
+            "remarques",
+            "date_insert",
+            "date_update",
+            "active",
             "max_level_profil",
-            "api_secret",
-            "api_key",
+            "organisme",
+            "groups",
+            "providers",
         )
 
-    max_level_profil = fields.Integer()
-    nom_complet = fields.String()
-    groups = fields.Nested(lambda: UserSchema, many=True)
     organisme = fields.Nested(OrganismeSchema)
+    groups = fields.Nested(UserSchema, many=True)
     providers = fields.Nested(ProviderSchema, many=True)
+    max_level_profil = fields.Integer()
 
-    # TODO: remove this and fix usage of the schema
     @pre_load
     def make_observer(self, data, **kwargs):
         if isinstance(data, int):
-            return dict({"id_role": data})
+            return {"id_role": data}
         return data
 
     def dump_with_token(self, obj):

@@ -1,7 +1,6 @@
 import random
 from datetime import datetime, timedelta
 
-from pypnusershub.schemas import UserSchema
 import sqlalchemy as sa
 from flask import current_app, request
 from pypnusershub.db import db

@@ -4,10 +4,8 @@ import sqlalchemy as sa
 
 import pytest
 
-from pypnusershub.db.models import Organisme, User
-
 from pypnusershub.organisms_manager import insert_or_update_organism, delete_organism
-from pypnusershub.schemas import OrganismeSchema, UserSchema
+from pypnusershub.schemas import OrganismeSchema, UserSchema, UserSchemaFull
 from pypnusershub.tests.fixtures import *
 from pypnusershub.tests.utils import set_logged_user
 
@@ -24,7 +22,6 @@ def provider_instance() -> Authentication:
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestUtilisateurs:
     def test_insert_user(self, app, organism, group_and_users, provider_instance):
-        user_schema = UserSchema(exclude=["nom_complet", "max_level_profil"])
         group = group_and_users["group1"]
 
         user_dict = {
@@ -41,7 +38,7 @@ class TestUtilisateurs:
         user_dict["identifiant"] = "update"
         provider_instance.insert_or_update_role(user_dict)
         created_user = db.session.get(User, 99999)
-        user_schema = UserSchema(only=["groups"])
+        user_schema = UserSchemaFull(only=["groups"])
         created_user_as_dict = user_schema.dump(created_user)
         assert created_user_as_dict["identifiant"] == "update"
         assert created_user_as_dict["id_role"] == 99999
