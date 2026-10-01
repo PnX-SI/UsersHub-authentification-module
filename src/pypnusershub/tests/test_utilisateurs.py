@@ -1,13 +1,8 @@
 from datetime import datetime
 from flask import url_for, session
 import sqlalchemy as sa
-
-import pytest
-
-from pypnusershub.db.models import Organisme, User
-
 from pypnusershub.organisms_manager import insert_or_update_organism, delete_organism
-from pypnusershub.schemas import OrganismeSchema, UserSchema, UserSafeSchema
+from pypnusershub.schemas import OrganismeSchema, UserSafeSchema, UserSensitiveSchema
 from pypnusershub.tests.fixtures import *
 from pypnusershub.tests.utils import set_logged_user
 
@@ -24,7 +19,6 @@ def provider_instance() -> Authentication:
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestUtilisateurs:
     def test_insert_user(self, app, organism, group_and_users, provider_instance):
-        user_schema = UserSchema(exclude=["nom_complet", "max_level_profil"])
         group = group_and_users["group1"]
 
         user_dict = {
@@ -41,7 +35,7 @@ class TestUtilisateurs:
         user_dict["identifiant"] = "update"
         provider_instance.insert_or_update_role(user_dict)
         created_user = db.session.get(User, 99999)
-        user_schema = UserSchema(only=["groups"])
+        user_schema = UserSensitiveSchema(only=["groups"])
         created_user_as_dict = user_schema.dump(created_user)
         assert created_user_as_dict["identifiant"] == "update"
         assert created_user_as_dict["id_role"] == 99999
@@ -287,8 +281,6 @@ class TestUtilisateurs:
         """Test login_exists endpoint without the login parameter"""
         response = self.client.get(url_for("auth.login_exists"))
         assert response.status_code == 400
-        print(response.json)
-        print(dir(response))
         assert "Missing 'login' parameter" in response.json["message"]
 
     def test_user_safe_schema(self, organism, group_and_users):
@@ -298,10 +290,10 @@ class TestUtilisateurs:
         db.session.flush()
 
         user_dict = UserSafeSchema().dump(user)
-        assert user_dict == {"id_role": user.id_role, "nom_complet": user.nom_complet}
+        assert user_dict["id_role"] == user.id_role
+        assert user_dict["nom_complet"] == user.nom_complet
+        assert not "organisme" in user_dict
+        assert not "email" in user_dict
 
-        # Fields of the parent schema cannot be requested
-        with pytest.raises(ValueError):
-            UserSafeSchema(only=["organisme"])
-        with pytest.raises(ValueError):
-            UserSafeSchema(only=["email"])
+        user_dict = UserSafeSchema(only=["+organisme"]).dump(user)
+        assert user_dict["organisme"]["nom_organisme"] == user.organisme.nom_organisme

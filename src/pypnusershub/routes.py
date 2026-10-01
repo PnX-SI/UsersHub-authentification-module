@@ -5,9 +5,7 @@ routes relatives aux application, utilisateurs et à l'authentification
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime
 import logging
-from typing import List
 from urllib.parse import urlencode, urljoin
 
 import sqlalchemy as sa
@@ -22,13 +20,10 @@ from flask import (
     session,
 )
 from flask_login import current_user, login_required, login_user, logout_user
-from markupsafe import escape
 from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
-from pypnusershub.db.tools import encode_token
-from pypnusershub.schemas import UserSchema
-from pypnusershub.auth.authentication import Authentication
-from werkzeug.exceptions import Forbidden, Unauthorized, BadRequest
+from pypnusershub.schemas import UserSensitiveSchema
+from werkzeug.exceptions import Forbidden, Unauthorized
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -122,7 +117,7 @@ def get_user_data():
     Retrieves the data of the currently authenticated user.
 
     This route is protected and requires the user to be logged in. It retrieves the user data
-    from the `g.current_user` object and serializes it using the `UserSchema` class. The serialized user data
+    from the `g.current_user` object and serializes it using the `UserSensitiveSchema` class. The serialized user data
     is then added to the response JSON along with a JWT token and the expiration time of the token.
 
     Returns
@@ -130,7 +125,7 @@ def get_user_data():
     dict
         A dictionary containing the user data, token, and expiration time.
     """
-    user_dict_with_token = UserSchema(
+    user_dict_with_token = UserSensitiveSchema(
         exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
     ).dump_with_token(g.current_user)
 
@@ -166,7 +161,7 @@ def login(provider):
         return auth_result
     if isinstance(auth_result, models.User):
         login_user(auth_result, remember=True)
-        user_dict_with_token = UserSchema(
+        user_dict_with_token = UserSensitiveSchema(
             exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
         ).dump_with_token(auth_result)
         return jsonify(user_dict_with_token)
@@ -186,7 +181,7 @@ def public_login():
 
     login_user(user)
 
-    return UserSchema(
+    return UserSensitiveSchema(
         exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
     ).dump_with_token(user)
 
