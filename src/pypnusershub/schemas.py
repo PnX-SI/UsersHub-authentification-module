@@ -79,3 +79,12 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
             "token": encode_token(user_dict),
             "expires": token_exp.isoformat(),
         }
+
+
+class UserSafeSchema(UserSchema):
+    """Minimal public representation of a user (no email, organism, groups, etc.)."""
+
+    class Meta(UserSchema.Meta):
+        fields = ("id_role", "nom_complet")
+        # parent's exclude would conflict with the restricted `fields`
+        exclude = ()

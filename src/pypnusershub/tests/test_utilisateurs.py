@@ -7,7 +7,7 @@ import pytest
 from pypnusershub.db.models import Organisme, User
 
 from pypnusershub.organisms_manager import insert_or_update_organism, delete_organism
-from pypnusershub.schemas import OrganismeSchema, UserSchema
+from pypnusershub.schemas import OrganismeSchema, UserSchema, UserSafeSchema
 from pypnusershub.tests.fixtures import *
 from pypnusershub.tests.utils import set_logged_user
 
@@ -290,3 +290,18 @@ class TestUtilisateurs:
         print(response.json)
         print(dir(response))
         assert "Missing 'login' parameter" in response.json["message"]
+
+    def test_user_safe_schema(self, organism, group_and_users):
+        """UserSafeSchema must only expose the id and full name of a user"""
+        user = group_and_users["user1"]
+        user.organisme = organism
+        db.session.flush()
+
+        user_dict = UserSafeSchema().dump(user)
+        assert user_dict == {"id_role": user.id_role, "nom_complet": user.nom_complet}
+
+        # Fields of the parent schema cannot be requested
+        with pytest.raises(ValueError):
+            UserSafeSchema(only=["organisme"])
+        with pytest.raises(ValueError):
+            UserSafeSchema(only=["email"])

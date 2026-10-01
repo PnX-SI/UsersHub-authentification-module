@@ -5,7 +5,7 @@
 **🚀 Nouveautés**
 
 - Mise à jour de Utils-Flask-SQLAlchemy en 0.5.0 et ajout de la compitibilité avec SQLAlchemy 2.0.x (#123 par @jacquesfize)
-
+- Ajout du schéma `UserSafeSchema` qui n'expose que l'identifiant et le nom complet d'un utilisateur (par @jacquesfize)
 
 ## 3.2.2 (2026-06-08)
 
@@ -13,7 +13,6 @@
 
 - Première étape de l'abandon du MD5 (#160 par @jacquesfize)
 - Ajout de l'organisme les données retournées par `/get_current_user` (#159 par @edelclaux)
-
 
 ## 3.2.1 (2026-03-19)
 
@@ -259,6 +258,7 @@ Le décorateur `@check_auth` change de signature, les paramètres suivants sont 
 - Ajout d’une contrainte d’unicité sur la colonn `uuid_role` de la table `t_roles`.
 - Ajout des modèles `UserList` et `cor_role_liste` correspondants aux tables existantes.
 - Compatibilité Flask 2
+
   - Génération du cookie d’authentification avec `authlib` à la place de `itsdangerous`
 
 - Mise à jour des dépendances
@@ -505,6 +505,7 @@ Note pour les développeurs : ce conflit est corrigé en ajoutant un paramètre 
 - Répercussion du changement du modèle de UsersHub. Le sous-module permet maintenant l'authentification en utilisant une des deux méthode de cryptage de mot de passe (MD5 et HASH). Ajout du paramètre `PASS_METHOD` (valeur possible : 'hash' ou 'md5') qui contrôle ce comportement.
 - Prise en compte des évolutions de la version 1.3.1 de UsersHub intégrant la gestion des droits utilisateurs via des 'tags'.
 - Ajout de fonctionnalités nécessaires à GeoNature v2 (gestion des droits avec le CRUVED) :
+
   - Ajout du décorateur `@check_auth_cruved` pour protéger les routes en passant paramètre une action du CRUVED et une application ou un module.
   - Fonction `cruved_for_user_in_app` permettant de récupérer le CRUVED d'un utilisateur
 
@@ -521,6 +522,7 @@ Cette release n'est compatible avec UsersHub 1.3.1 minimum, qui inclut d'importa
 Intégration des pull request de @ksamuel
 
 - Ajout des paramètres :
+
   - redirect_on_invalid_token
   - redirect_on_expiration
 
