@@ -34,11 +34,12 @@ class UserSafeSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         load_instance = True
         sqla_session = db.session
         fields = ("id_role", "nom_complet", "organisme")
-        # parent's exclude would conflict with the restricted `fields`
         exclude = ()
 
-    organisme = fields.Nested(OrganismeSchema)
     nom_complet = fields.String(dump_only=True)
+    organisme = fields.Nested(
+        "OrganismeSchema", only=("nom_organisme",), dump_only=True
+    )
 
 
 class UserSensitiveSchema(UserSafeSchema):
