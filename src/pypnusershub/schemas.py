@@ -26,24 +26,50 @@ class ProviderSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
 
-class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
+class UserSafeSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
+    """Minimal public representation of a user (no email, organism, groups, etc.)."""
+
     class Meta:
         model = User
-        include_fk = True
         load_instance = True
         sqla_session = db.session
-        exclude = (
-            "_password",
-            "_password_plus",
-            "champs_addi",
+        fields = ("id_role", "nom_complet", "organisme")
+        exclude = ()
+
+    nom_complet = fields.String(dump_only=True)
+    organisme = fields.Nested(
+        "OrganismeSchema", only=("nom_organisme",), dump_only=True
+    )
+
+
+class UserSensitiveSchema(UserSafeSchema):
+    """
+    Private representation of a user (includes email, organism, groups, etc.). Must only be used to show information
+    to current user.
+    """
+
+    class Meta(UserSafeSchema.Meta):
+        include_fk = True
+        fields = UserSafeSchema.Meta.fields + (
+            "nom_role",
+            "prenom_role",
+            "uuid_role",
+            "groupe",
+            "identifiant",
+            "desc_role",
+            "email",
+            "id_organisme",
+            "remarques",
+            "date_insert",
+            "date_update",
+            "active",
             "max_level_profil",
-            "api_secret",
-            "api_key",
+            "groups",
+            "providers",
         )
 
     max_level_profil = fields.Integer()
-    nom_complet = fields.String()
-    groups = fields.Nested(lambda: UserSchema, many=True)
+    groups = fields.Nested(lambda: UserSensitiveSchema, many=True)
     organisme = fields.Nested(OrganismeSchema)
     providers = fields.Nested(ProviderSchema, many=True)
 
@@ -51,7 +77,7 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
     @pre_load
     def make_observer(self, data, **kwargs):
         if isinstance(data, int):
-            return dict({"id_role": data})
+            return {"id_role": data}
         return data
 
     def dump_with_token(self, obj):
@@ -79,12 +105,3 @@ class UserSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
             "token": encode_token(user_dict),
             "expires": token_exp.isoformat(),
         }
-
-
-class UserSafeSchema(UserSchema):
-    """Minimal public representation of a user (no email, organism, groups, etc.)."""
-
-    class Meta(UserSchema.Meta):
-        fields = ("id_role", "nom_complet")
-        # parent's exclude would conflict with the restricted `fields`
-        exclude = ()

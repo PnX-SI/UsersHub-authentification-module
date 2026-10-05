@@ -1,9 +1,8 @@
 import random
 from datetime import datetime, timedelta
 
-from pypnusershub.schemas import UserSchema
 import sqlalchemy as sa
-from flask import current_app, request
+from flask import current_app
 from pypnusershub.db import db
 from pypnusershub.db.models import (
     CorRoleToken,
