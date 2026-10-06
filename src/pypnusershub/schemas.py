@@ -33,13 +33,18 @@ class UserSafeSchema(SmartRelationshipsMixin, ma.SQLAlchemyAutoSchema):
         model = User
         load_instance = True
         sqla_session = db.session
-        fields = ("id_role", "nom_complet", "organisme")
+        fields = ("id_role", "nom_complet", "organisme", "has_mail")
         exclude = ()
 
     nom_complet = fields.String(dump_only=True)
     organisme = fields.Nested(
         "OrganismeSchema", only=("nom_organisme",), dump_only=True
     )
+    has_mail = fields.Method("get_has_mail", dump_only=True)
+
+    def get_has_mail(self, obj):
+        """Check if the user has an email address."""
+        return bool(obj.email)
 
 
 class UserSensitiveSchema(UserSafeSchema):
