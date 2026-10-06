@@ -292,8 +292,14 @@ class TestUtilisateurs:
         user_dict = UserSafeSchema().dump(user)
         assert user_dict["id_role"] == user.id_role
         assert user_dict["nom_complet"] == user.nom_complet
+        assert user_dict["has_mail"] == True
         assert not "organisme" in user_dict
         assert not "email" in user_dict
 
         user_dict = UserSafeSchema(only=["+organisme"]).dump(user)
         assert user_dict["organisme"]["nom_organisme"] == user.organisme.nom_organisme
+        assert "email_organisme" not in user_dict["organisme"]
+
+        user.email = None
+        user_dict = UserSafeSchema().dump(user)
+        assert user_dict["has_mail"] == False
