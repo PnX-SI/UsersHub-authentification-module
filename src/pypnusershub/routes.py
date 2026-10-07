@@ -22,8 +22,8 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 from pypnusershub.auth import oauth
 from pypnusershub.db import db, models
-from pypnusershub.schemas import UserSensitiveSchema
-from werkzeug.exceptions import Forbidden, Unauthorized
+from pypnusershub.schemas import UserSafeSchema, UserSensitiveSchema
+from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
 log = logging.getLogger(__name__)
 # This module was originally designed as a submodule of designed
@@ -130,6 +130,31 @@ def get_user_data():
     ).dump_with_token(g.current_user)
 
     return jsonify(user_dict_with_token)
+
+
+@routes.route("/role/<int:id_role>", methods=["GET"])
+@login_required
+def get_safe_user(id_role):
+    """
+    Retrieve the public information of a user.
+
+    Only the data exposed by `UserSafeSchema` are returned (id, full name and
+    organism name): no email, groups or any other private field.
+
+    Parameters
+    ----------
+    id_role : int
+        The identifier of the user (utilisateurs.t_roles)
+
+    Returns
+    -------
+    dict
+        The user serialized with `UserSafeSchema`.
+    """
+    user = db.session.get(models.User, id_role)
+    if user is None or user.groupe:
+        raise NotFound("User not found")
+    return jsonify(UserSafeSchema().dump(user))
 
 
 @routes.route("/login/<provider>", methods=["POST", "GET"])

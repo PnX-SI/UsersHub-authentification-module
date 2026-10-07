@@ -283,6 +283,31 @@ class TestUtilisateurs:
         assert response.status_code == 400
         assert "Missing 'login' parameter" in response.json["message"]
 
+    def test_get_safe_user(self, organism, group_and_users):
+        user = group_and_users["user1"]
+        user.organisme = organism
+        db.session.flush()
+
+        response = self.client.get(url_for("auth.get_safe_user", id_role=user.id_role))
+        assert response.status_code == 401
+
+        set_logged_user(self.client, group_and_users["user2"])
+        response = self.client.get(url_for("auth.get_safe_user", id_role=user.id_role))
+        assert response.status_code == 200
+        assert response.json["id_role"] == user.id_role
+        assert response.json["nom_complet"] == user.nom_complet
+        assert "email" not in response.json
+        assert "identifiant" not in response.json
+
+    def test_get_safe_user_not_found(self, group_and_users):
+        set_logged_user(self.client, group_and_users["user1"])
+        response = self.client.get(url_for("auth.get_safe_user", id_role=999999))
+        assert response.status_code == 404
+
+        group = group_and_users["group1"]
+        response = self.client.get(url_for("auth.get_safe_user", id_role=group.id_role))
+        assert response.status_code == 404
+
     def test_user_safe_schema(self, organism, group_and_users):
         """UserSafeSchema must only expose the id and full name of a user"""
         user = group_and_users["user1"]

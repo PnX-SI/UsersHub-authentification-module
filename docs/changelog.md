@@ -6,6 +6,7 @@
 
 - Mise à jour de Utils-Flask-SQLAlchemy en 0.5.0 et ajout de la compitibilité avec SQLAlchemy 2.0.x (#123 par @jacquesfize)
 - Ajout du schéma `UserSafeSchema` qui n'expose que l'identifiant et le nom complet d'un utilisateur (par @jacquesfize)
+- Ajout de la route `GET /role/<id_role>` qui retourne les informations publiques d'un utilisateur (`UserSafeSchema`) (par @jacquesfize)
 
 ## 3.2.2 (2026-06-08)
 
