@@ -291,7 +291,7 @@ class TestUtilisateurs:
         response = self.client.get(url_for("auth.get_safe_user", id_role=user.id_role))
         assert response.status_code == 401
 
-        set_logged_user(self.client, group_and_users["user2"])
+        set_logged_user(self.client, group_and_users["user_no_group"])
         response = self.client.get(url_for("auth.get_safe_user", id_role=user.id_role))
         assert response.status_code == 200
         assert response.json["id_role"] == user.id_role
