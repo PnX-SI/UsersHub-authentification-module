@@ -126,7 +126,7 @@ def get_user_data():
         A dictionary containing the user data, token, and expiration time.
     """
     user_dict_with_token = UserSensitiveSchema(
-        exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
+        only=["+max_level_profil", "+providers", "organisme"]
     ).dump_with_token(g.current_user)
 
     return jsonify(user_dict_with_token)
