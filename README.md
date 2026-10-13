@@ -96,6 +96,8 @@ Les paramètre concernant la gestion du cookie sont gérés par flask-admin : ht
 
 `REDIRECT_ON_FORBIDDEN` : paramètre de redirection utilisé par le décorateur `check_auth` lorsque les droits d'accès à une ressource/page sont insuffisants (par défaut lève une erreur 403)
 
+`AUTH_TOKEN_HEADER` : header dans lequel chercher le token GeoNature (par défaut : `Authorization`). Si absent ou vide, repli sur `Authorization` — mais pas si le header personnalisé est présent avec un token invalide. Utile derrière une passerelle qui impose déjà son propre token dans `Authorization`.
+
 #### Lien avec UsersHub
 
 Pour utiliser les routes de UsersHub, ajouter les paramètres suivants dans la configuration de l'application :
@@ -319,6 +321,25 @@ Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la 
 - `RECONCILIATE_ATTR` (string): Nom du champs qui servira à la réconciliation des utilisateurs existant (par défaut: "email").
 - `FIELDS_TO_OVERRIDE` (List(string)): Nom des champs qui seront écrasés lors d'une connexion. Ces champs prendront la valeur existante dans le provider (par défaut, nom, prénom et email). Les valeurs possibles sont les suivantes : "id_role", "identifiant", "nom_role", "prenom_role", "email","active"
 - `CODE_CHALLENGE_METHOD` (string): Ne devrait pas être modifié. Permet de configurer le type de challenge (par défaut: "S256" mais peut valoir plain si contraintes legacy).
+
+**OpenIDTokenExchangeProvider**
+
+Échange en un appel (pas de redirection) un token déjà obtenu côté client contre un token GeoNature — pour tout client qui obtient son token autrement (SDK natif, mobile derrière une passerelle qui monopolise `Authorization`...).
+
+- `JWKS_URL` (string) : URL du JWKS du fournisseur d'identité, en `https`, sans redirection. Éviter d'y mettre des identifiants (visibles dans les logs en cas d'échec).
+- `TRUSTED_ISSUERS` (List(dict)) : paires `{"ISSUER": ..., "AUDIENCES": [...]}` ; un token est accepté si `iss` et `aud` correspondent à une même paire (ex. tokens Entra v1 et v2, qui utilisent des paires différentes).
+- `JWKS_TIMEOUT` (integer) : délai de récupération du JWKS en secondes (par défaut : 10, minimum 1). Taille de réponse plafonnée à 1 Mo.
+- `JWKS_DEBOUNCE` (integer) : délai minimum entre deux rafraîchissements du JWKS, en secondes (par défaut : 10, minimum 1).
+- `JWKS_MAX_AGE` (integer) : âge maximum des clés en cache avant rafraîchissement opportuniste, en secondes (par défaut : 3600, minimum 1) — pour qu'une révocation de clé finisse par être prise en compte.
+- `TOKEN_HEADER_NAME` (string) : header où lire le token du fournisseur d'identité pour cet échange, distinct d'`AUTH_TOKEN_HEADER` (par défaut : `Authorization`).
+- `ALGORITHMS` (List(string)) : algorithmes de signature acceptés, asymétriques uniquement (`RS*`/`ES*`/`PS*`/`Ed25519`/`Ed448`), par défaut : `["RS256"]`.
+- `IDENTIFIER_CLAIMS` (List(string)) : claims à essayer, dans l'ordre, pour l'identifiant utilisateur (par défaut : `["unique_name"]`). Attention côté Entra : Microsoft déconseille `unique_name`/`upn`/`preferred_username` pour l'autorisation ([Access token claims reference](https://learn.microsoft.com/fr-fr/entra/identity-platform/access-token-claims-reference)) ; `oid` est stable mais un GUID opaque, pas un login — à ne pas confondre avec `uuid_role` (généré par UsersHub, sans lien automatique).
+- `RECONCILIATE_ATTR` (string) : champ de réconciliation des utilisateurs existants (par défaut : `identifiant`), vérifié au démarrage. Ne crée pas de compte et n'authentifie pas un groupe.
+- `ALLOWED_CLIENTS` (List(string)) : liste blanche optionnelle d'identifiants d'application appelante (claim `azp`/`appid`), vide par défaut.
+- `REQUIRED_CLAIMS` (List(string)) : le token doit porter au moins un de ces claims, vide par défaut (aucune restriction). Pour Entra : `["scp"]`.
+- `UNKNOWN_USER_STATUS_CODE` (integer) : code HTTP si le token est valide mais sans utilisateur correspondant, distinct du 401 "token invalide" (par défaut : 401, entre 400 et 599).
+
+> Le client doit envoyer `Accept: application/json`, sans quoi GeoNature répond par une redirection 302 sur toute erreur d'authentification.
 
 **UsersHub-authentification-module**
 
