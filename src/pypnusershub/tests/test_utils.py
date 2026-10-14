@@ -1,8 +1,8 @@
 import datetime
+from http.cookies import SimpleCookie
 
 import pytest
 from flask import Response
-from werkzeug.http import parse_cookie
 
 from pypnusershub.utils import get_cookie_path, set_cookie, delete_cookie
 
@@ -34,18 +34,16 @@ class TestUtils:
             expires=cookie_exp,
         )
 
-        cookie = response.headers.getlist("Set-Cookie")[0]
-        cookie_attrs = parse_cookie(cookie)
-        assert cookie_attrs[key] == value
-        assert cookie_attrs["Path"] == "/geonature"
-        assert cookie_attrs["Expires"] != ""
+        cookie = SimpleCookie(response.headers.getlist("Set-Cookie")[0])[key]
+        assert cookie.value == value
+        assert cookie["path"] == "/geonature"
+        assert cookie["expires"] != ""
 
         logout_response = delete_cookie(
             response, key=key, application_url=application_url
         )
-        cookie = logout_response.headers.getlist("Set-Cookie")[1]
-        cookie_attrs = parse_cookie(cookie)
+        cookie = SimpleCookie(logout_response.headers.getlist("Set-Cookie")[1])[key]
 
-        assert cookie_attrs[key] == ""
-        assert cookie_attrs["Path"] == "/geonature"
+        assert cookie.value == ""
+        assert cookie["path"] == "/geonature"
         assert True
