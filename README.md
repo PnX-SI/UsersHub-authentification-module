@@ -334,7 +334,7 @@ Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la 
 - `TOKEN_HEADER_NAME` (string) : header où lire le token du fournisseur d'identité pour cet échange, distinct d'`AUTH_TOKEN_HEADER` (par défaut : `Authorization`).
 - `ALGORITHMS` (List(string)) : algorithmes de signature acceptés, asymétriques uniquement (`RS*`/`ES*`/`PS*`/`Ed25519`/`Ed448`), par défaut : `["RS256"]`.
 - `IDENTIFIER_CLAIMS` (List(string)) : claims à essayer, dans l'ordre, pour l'identifiant utilisateur (par défaut : `["unique_name"]`). Attention côté Entra : Microsoft déconseille `unique_name`/`upn`/`preferred_username` pour l'autorisation ([Access token claims reference](https://learn.microsoft.com/fr-fr/entra/identity-platform/access-token-claims-reference)) ; `oid` est stable mais un GUID opaque, pas un login — à ne pas confondre avec `uuid_role` (généré par UsersHub, sans lien automatique).
-- `RECONCILIATE_ATTR` (string) : champ de réconciliation des utilisateurs existants (par défaut : `identifiant`), vérifié au démarrage. Ne crée pas de compte et n'authentifie pas un groupe.
+- `RECONCILIATE_ATTR` (string) : champ de réconciliation des utilisateurs existants (par défaut : `email`), vérifié au démarrage. Ne crée pas de compte et n'authentifie pas un groupe.
 - `ALLOWED_CLIENTS` (List(string)) : liste blanche optionnelle d'identifiants d'application appelante (claim `azp`/`appid`), vide par défaut.
 - `REQUIRED_CLAIMS` (List(string)) : le token doit porter au moins un de ces claims, vide par défaut (aucune restriction). Pour Entra : `["scp"]`.
 - `UNKNOWN_USER_STATUS_CODE` (integer) : code HTTP si le token est valide mais sans utilisateur correspondant, distinct du 401 "token invalide" (par défaut : 401, entre 400 et 599).
