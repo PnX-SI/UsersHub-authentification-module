@@ -12,7 +12,7 @@ from joserfc.errors import BadSignatureError, InvalidKeyIdError, MissingKeyError
 from joserfc.jwk import KeySet
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, validate
 from sqlalchemy.exc import DataError, MultipleResultsFound
-from werkzeug.exceptions import InternalServerError, Unauthorized
+from werkzeug.exceptions import InternalServerError, NotFound, Unauthorized
 
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
@@ -72,7 +72,7 @@ class OpenIDTokenExchangeProvider(Authentication):
     logo = ""
     is_external = True
     is_secondary = True  # hidden behind a <details> on the web login page
-    reconciliate_attr = "identifiant"
+    reconciliate_attr = "email"
     identifier_claims = ["unique_name"]
 
     def __init__(self):
@@ -113,7 +113,7 @@ class OpenIDTokenExchangeProvider(Authentication):
                 validate=validate.Length(min=1),
             )
             RECONCILIATE_ATTR = fields.String(
-                load_default="identifiant", validate=_validate_user_attr
+                load_default="email", validate=_validate_user_attr
             )
             ALLOWED_CLIENTS = fields.List(
                 fields.String(validate=validate.Length(min=1)), load_default=[]
@@ -325,6 +325,10 @@ class OpenIDTokenExchangeProvider(Authentication):
             if isinstance(value, str) and value and "\x00" not in value:
                 return value
         raise Unauthorized("Invalid identity provider token")
+
+    def authorize(self) -> Any:
+        # No redirect round-trip to finish - /login already does everything.
+        raise NotFound(f"{self.id_provider} does not implement the /authorize flow")
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
         bearer = request.headers.get(self.token_header_name, "")

@@ -7,7 +7,7 @@ import pytest
 from joserfc import jwt
 from joserfc.jwk import KeySet, RSAKey, ECKey, OKPKey
 from marshmallow import ValidationError
-from werkzeug.exceptions import InternalServerError, Unauthorized
+from werkzeug.exceptions import InternalServerError, NotFound, Unauthorized
 
 from pypnusershub.auth.providers.openid_token_exchange_provider import (
     OpenIDTokenExchangeProvider,
@@ -255,6 +255,11 @@ def test_issuer_audience_cross_match(app, rsa_keypair):
     with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
         with pytest.raises(Unauthorized):
             provider.authenticate()
+
+
+def test_authorize_not_implemented(provider):
+    with pytest.raises(NotFound):
+        provider.authorize()
 
 
 # --- Token validation -------------------------------------------------------
