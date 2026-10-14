@@ -71,7 +71,7 @@ class OpenIDTokenExchangeProvider(Authentication):
 
     logo = ""
     is_external = True
-    is_secondary = True  # hidden behind a <details> on the web login page
+    is_hidden = True  # no browser flow at all
     reconciliate_attr = "email"
     identifier_claims = ["unique_name"]
 

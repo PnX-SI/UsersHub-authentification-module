@@ -19,6 +19,7 @@ class ProviderConfigurationSchema(Schema):
     logo = fields.String()
     label = fields.String()
     is_secondary = fields.Boolean()
+    is_hidden = fields.Boolean()
 
     @validates_schema
     def check_if_module_exists(self, data, **kwargs):
@@ -89,6 +90,12 @@ class Authentication:
     Will affect login page presentation
     """
     is_secondary = False
+
+    """
+    Should this provider be excluded from /providers?  (boolean)
+    For providers with no browser flow at all.
+    """
+    is_hidden = False
 
     class ApiUnauthorized(Unauthorized):
         default_message = "Unauthorized"
@@ -211,6 +218,7 @@ class Authentication:
             "logout_url",
             "group_mapping",
             "is_secondary",
+            "is_hidden",
         ]:
             if field in configuration:
                 setattr(self, field, configuration[field])
