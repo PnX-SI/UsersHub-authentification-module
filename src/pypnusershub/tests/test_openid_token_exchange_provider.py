@@ -4,6 +4,7 @@ import time
 from unittest.mock import patch, Mock
 
 import pytest
+from flask import current_app, url_for
 from joserfc import jwt
 from joserfc.jwk import KeySet, RSAKey, ECKey, OKPKey
 from marshmallow import ValidationError
@@ -260,6 +261,19 @@ def test_issuer_audience_cross_match(app, rsa_keypair):
 def test_authorize_not_implemented(provider):
     with pytest.raises(NotFound):
         provider.authorize()
+
+
+def test_hidden_from_providers_route(app, provider):
+    providers = current_app.auth_manager.provider_authentication_cls
+    providers["openid_token_exchange"] = provider
+    try:
+        with app.test_client() as client:
+            response = client.get(url_for("auth.get_providers"))
+    finally:
+        del providers["openid_token_exchange"]
+    ids = [p["id_provider"] for p in response.json]
+    assert "openid_token_exchange" not in ids
+    assert "local_provider" in ids
 
 
 # --- Token validation -------------------------------------------------------
