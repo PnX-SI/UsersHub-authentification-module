@@ -19,11 +19,19 @@ def load_user(user_id):
 
 @login_manager.request_loader
 def load_user_from_request(request):
-    bearer = request.headers.get("Authorization", default=None, type=str)
-    if bearer:
-        jwt = bearer.replace("Bearer ", "")
-    else:
+    header_name = current_app.config.get("AUTH_TOKEN_HEADER", "Authorization")
+    bearer = request.headers.get(header_name, default=None, type=str)
+    # Falls back to Authorization: serves both mobile (dedicated header) and
+    # web (always Authorization) from one instance. Blank counts as absent.
+    if (not bearer or not bearer.strip()) and header_name != "Authorization":
+        bearer = request.headers.get("Authorization", default=None, type=str)
+    if not bearer:
         return None
+    # Tolerates a missing/case-insensitive "Bearer" prefix.
+    parts = bearer.strip().split(None, 1)
+    if not parts:  # header was whitespace-only
+        return None
+    jwt = parts[1] if len(parts) == 2 and parts[0].lower() == "bearer" else parts[0]
     try:
         user_dict = decode_token(jwt)
         user = db.session.get(User, user_dict["id_role"])
