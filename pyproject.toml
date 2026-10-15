@@ -34,12 +34,12 @@ dependencies = [
     "flask-login",
     "psycopg2",
     "requests",
-    "sqlalchemy<3",
+    "sqlalchemy<2.1",
     "flask-marshmallow",
     "marshmallow-sqlalchemy",
     "alembic",
     "xmltodict",
-    "utils-flask-sqlalchemy>=0.4.5,<1.0",
+    "utils-flask-sqlalchemy>=0.5.0,<1.0",
     "joserfc"
 ]
 
