@@ -34,7 +34,7 @@ dependencies = [
     "flask-login",
     "psycopg2",
     "requests",
-    "sqlalchemy<3",
+    "sqlalchemy<2.1",
     "flask-marshmallow",
     "marshmallow-sqlalchemy",
     "alembic",
