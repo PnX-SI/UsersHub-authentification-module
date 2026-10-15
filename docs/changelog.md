@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.3.0 (unreleased)
+## 3.3.0 (2026-10-15)
 
 **🚨 Breaking Changes**
 
