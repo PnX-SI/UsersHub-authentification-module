@@ -79,13 +79,20 @@ routes = ConfigurableBlueprint("auth", __name__)
 from pypnusershub.decorators import check_auth
 
 
-def list_providers():
+def list_providers(**filters):
     """List the configured authentication providers.
+
+    Parameters
+    ----------
+    **filters
+        Only return providers whose attributes match, e.g.
+        ``mobile_support=True``. A provider without a given attribute
+        never matches a filter on it.
 
     Returns
     -------
     list of dict
-        One entry per configured provider, exposing the same properties
+        One entry per matching provider, exposing the same properties
         as the ``/providers`` route - reused as-is by callers outside
         this blueprint (e.g. GeoNature's ``t_mobile_apps`` route).
     """
@@ -113,6 +120,9 @@ def list_providers():
             )
         )
         for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
+        if all(
+            getattr(provider, attr, None) == value for attr, value in filters.items()
+        )
     ]
 
 
