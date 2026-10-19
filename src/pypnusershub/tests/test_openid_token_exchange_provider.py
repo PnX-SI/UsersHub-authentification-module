@@ -263,7 +263,9 @@ def test_authorize_not_implemented(provider):
         provider.authorize()
 
 
-def test_hidden_from_providers_route(app, provider):
+def test_web_mobile_support_in_providers_route(app, provider):
+    """Listed (not hidden), with metadata letting clients filter
+    themselves - no browser flow, so not for the web login page."""
     providers = current_app.auth_manager.provider_authentication_cls
     providers["openid_token_exchange"] = provider
     try:
@@ -271,9 +273,10 @@ def test_hidden_from_providers_route(app, provider):
             response = client.get(url_for("auth.get_providers"))
     finally:
         del providers["openid_token_exchange"]
-    ids = [p["id_provider"] for p in response.json]
-    assert "openid_token_exchange" not in ids
-    assert "local_provider" in ids
+    by_id = {p["id_provider"]: p for p in response.json}
+    assert by_id["openid_token_exchange"]["web_support"] is False
+    assert by_id["openid_token_exchange"]["mobile_support"] is True
+    assert "local_provider" in by_id
 
 
 # --- Token validation -------------------------------------------------------

@@ -90,6 +90,8 @@ def get_providers():
         "login_url",
         "logout_url",
         "is_secondary",
+        "web_support",
+        "mobile_support",
     ]
     return jsonify(
         [
@@ -106,7 +108,6 @@ def get_providers():
                 )
             )
             for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
-            if provider.is_web
         ]
     )
 
