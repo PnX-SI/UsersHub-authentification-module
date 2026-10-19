@@ -113,27 +113,24 @@ def list_providers(**filters):
         "is_hidden",
         "ropc_flow",
     ]
-    return jsonify(
-        [
-            dict(
-                chain.from_iterable(
-                    d.items()
-                    for d in (
-                        {
-                            _property: getattr(provider, _property, False)
-                            for _property in property_name
-                        },
-                        {"id_provider": id_provider},
-                    )
+    return [
+        dict(
+            chain.from_iterable(
+                d.items()
+                for d in (
+                    {
+                        _property: getattr(provider, _property, False)
+                        for _property in property_name
+                    },
+                    {"id_provider": id_provider},
                 )
             )
-            for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
-            if all(
-                getattr(provider, attr, None) == value
-                for attr, value in filters.items()
-            )
-        ]
-    )
+        )
+        for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
+        if all(
+            getattr(provider, attr, None) == value for attr, value in filters.items()
+        )
+    ]
 
 
 @routes.route("/providers", methods=["GET"])
@@ -305,7 +302,7 @@ def authorize(provider="local_provider"):
             client
         )
         if mobile_redirect_uri:
-            token = UserSchema().dump_with_token(authorize_result)["token"]
+            token = UserSensitiveSchema().dump_with_token(authorize_result)["token"]
             return redirect(f"{mobile_redirect_uri}?{urlencode({'token': token})}")
 
     return redirect(current_app.config["URL_APPLICATION"])
