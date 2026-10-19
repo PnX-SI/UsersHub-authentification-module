@@ -264,7 +264,12 @@ class OpenIDConnectProvider(OAuth2Provider):
         # Unlike plain OAuth2, OIDC already carries the user's identity in
         # the id_token: Authlib decodes and exposes it as token["userinfo"],
         # so no extra call to the userinfo endpoint is needed.
-        return token["userinfo"]
+        if "userinfo" in token:
+            return token["userinfo"]
+        # Authlib only parses the id_token in authorize_access_token(): a token
+        # obtained through the ROPC grant (fetch_access_token) has no
+        # "userinfo" key, so fall back to the userinfo endpoint.
+        return super()._fetch_userinfo(token)
 
     def configure(self, configuration: Union[dict, Any]) -> None:
         class OpenIDConnectProviderConfiguration(ProviderConfigurationSchema):
