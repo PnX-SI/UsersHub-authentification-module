@@ -79,8 +79,16 @@ routes = ConfigurableBlueprint("auth", __name__)
 from pypnusershub.decorators import check_auth
 
 
-@routes.route("/providers", methods=["GET"])
-def get_providers():
+def list_providers():
+    """List the configured authentication providers.
+
+    Returns
+    -------
+    list of dict
+        One entry per configured provider, exposing the same properties
+        as the ``/providers`` route - reused as-is by callers outside
+        this blueprint (e.g. GeoNature's ``t_mobile_apps`` route).
+    """
     from itertools import chain
 
     property_name = [
@@ -91,23 +99,26 @@ def get_providers():
         "logout_url",
         "is_secondary",
     ]
-    return jsonify(
-        [
-            dict(
-                chain.from_iterable(
-                    d.items()
-                    for d in (
-                        {
-                            _property: getattr(provider, _property)
-                            for _property in property_name
-                        },
-                        {"id_provider": id_provider},
-                    )
+    return [
+        dict(
+            chain.from_iterable(
+                d.items()
+                for d in (
+                    {
+                        _property: getattr(provider, _property)
+                        for _property in property_name
+                    },
+                    {"id_provider": id_provider},
                 )
             )
-            for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
-        ]
-    )
+        )
+        for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
+    ]
+
+
+@routes.route("/providers", methods=["GET"])
+def get_providers():
+    return jsonify(list_providers())
 
 
 @routes.route("/get_current_user")
