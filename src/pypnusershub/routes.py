@@ -105,8 +105,7 @@ def list_providers(**filters):
         "login_url",
         "logout_url",
         "is_secondary",
-        "web_support",
-        "mobile_support",
+        "is_hidden",
     ]
     return [
         dict(

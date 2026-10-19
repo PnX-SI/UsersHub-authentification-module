@@ -263,9 +263,9 @@ def test_authorize_not_implemented(provider):
         provider.authorize()
 
 
-def test_web_mobile_support_in_providers_route(app, provider):
-    """Listed (not hidden), with metadata letting clients filter
-    themselves - no browser flow, so not for the web login page."""
+def test_is_hidden_in_providers_route(app, provider):
+    """Still listed by /providers, but flagged `is_hidden` - no browser flow,
+    so not shown on the web login page."""
     providers = current_app.auth_manager.provider_authentication_cls
     providers["openid_token_exchange"] = provider
     try:
@@ -274,9 +274,8 @@ def test_web_mobile_support_in_providers_route(app, provider):
     finally:
         del providers["openid_token_exchange"]
     by_id = {p["id_provider"]: p for p in response.json}
-    assert by_id["openid_token_exchange"]["web_support"] is False
-    assert by_id["openid_token_exchange"]["mobile_support"] is True
-    assert "local_provider" in by_id
+    assert by_id["openid_token_exchange"]["is_hidden"] is True
+    assert by_id["local_provider"]["is_hidden"] is False
 
 
 # --- Token validation -------------------------------------------------------

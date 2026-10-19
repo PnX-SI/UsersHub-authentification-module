@@ -35,8 +35,7 @@ class ProviderConfigurationSchema(Schema):
     logo = fields.String()
     label = fields.String()
     is_secondary = fields.Boolean()
-    web_support = fields.Boolean(load_default=True)
-    mobile_support = fields.Boolean(load_default=False)
+    is_hidden = fields.Boolean(load_default=False)
     RECONCILIATE_ATTR = fields.String(
         load_default="email", validate=_validate_reconciliate_attr
     )
@@ -112,14 +111,10 @@ class Authentication:
     is_secondary = False
 
     """
-    Is the authentication provider usable from GeoNature's web login page?  (boolean)
+    Does the authentication provider is shown on the web portal ?  (boolean)
     """
-    web_support = True
 
-    """
-    Is the authentication provider meant for mobile/native clients?  (boolean)
-    """
-    mobile_support = False
+    is_hidden = False
 
     class ApiUnauthorized(Unauthorized):
         default_message = "Unauthorized"
@@ -242,8 +237,7 @@ class Authentication:
             "logout_url",
             "group_mapping",
             "is_secondary",
-            "web_support",
-            "mobile_support",
+            "is_hidden",
         ]:
             if field in configuration:
                 setattr(self, field, configuration[field])

@@ -60,8 +60,7 @@ class OpenIDTokenExchangeProvider(Authentication):
 
     logo = ""
     is_external = True
-    web_support = False  # no browser flow; not offered on GN's web login page
-    mobile_support = True
+    is_hidden = True
     reconciliate_attr = "email"
     identifier_claims = ["unique_name"]
 
