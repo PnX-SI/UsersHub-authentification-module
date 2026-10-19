@@ -96,7 +96,7 @@ Les paramètre concernant la gestion du cookie sont gérés par flask-admin : ht
 
 `REDIRECT_ON_FORBIDDEN` : paramètre de redirection utilisé par le décorateur `check_auth` lorsque les droits d'accès à une ressource/page sont insuffisants (par défaut lève une erreur 403)
 
-`AUTH_TOKEN_HEADER` : header dans lequel chercher le token GeoNature (par défaut : `Authorization`). Si absent ou vide, repli sur `Authorization` — mais pas si le header personnalisé est présent avec un token invalide. Utile derrière une passerelle qui impose déjà son propre token dans `Authorization`.
+`AUTH_TOKEN_HEADER` : header dans lequel chercher le token d'authentification (par défaut : `Authorization`). Si absent ou vide, repli sur `Authorization` — mais pas si le header personnalisé est présent avec un token invalide. Utile derrière une passerelle qui impose déjà son propre token dans `Authorization`.
 
 #### Lien avec UsersHub
 

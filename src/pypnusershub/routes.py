@@ -106,7 +106,7 @@ def get_providers():
                 )
             )
             for id_provider, provider in current_app.auth_manager.provider_authentication_cls.items()
-            if not provider.is_hidden
+            if provider.is_web
         ]
     )
 

@@ -8,32 +8,21 @@ import requests
 import sqlalchemy as sa
 from flask import Response, request
 from joserfc import jwt
-from joserfc.errors import BadSignatureError, InvalidKeyIdError, MissingKeyError
+from joserfc.errors import (
+    BadSignatureError,
+    ClaimError,
+    InvalidKeyIdError,
+    MissingKeyError,
+)
 from joserfc.jwk import KeySet
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, validate
 from sqlalchemy.exc import DataError, MultipleResultsFound
-from werkzeug.exceptions import InternalServerError, NotFound, Unauthorized
+from werkzeug.exceptions import NotFound, Unauthorized
 
 from pypnusershub.auth import Authentication, ProviderConfigurationSchema
 from pypnusershub.db import db, models
 
 log = logging.getLogger(__name__)
-
-
-# .columns, not .attrs (which forces mapper resolution at import time);
-# excludes secrets.
-_RECONCILIABLE_USER_ATTRS = set(sa.inspect(models.User).columns.keys()) - {
-    "_password",
-    "_password_plus",
-    "api_secret",
-}
-
-
-def _validate_user_attr(value: str) -> None:
-    if value not in _RECONCILIABLE_USER_ATTRS:
-        raise ValidationError(
-            f"{value!r} is not a usable User attribute for reconciliation"
-        )
 
 
 # Asymmetric only - the JWKS holds public keys, never a shared secret.
@@ -71,7 +60,8 @@ class OpenIDTokenExchangeProvider(Authentication):
 
     logo = ""
     is_external = True
-    is_hidden = True  # no browser flow at all
+    is_web = False  # no browser flow; not offered on GN's web login page
+    is_mobile = True
     reconciliate_attr = "email"
     identifier_claims = ["unique_name"]
 
@@ -112,9 +102,6 @@ class OpenIDTokenExchangeProvider(Authentication):
                 load_default=["unique_name"],
                 validate=validate.Length(min=1),
             )
-            RECONCILIATE_ATTR = fields.String(
-                load_default="email", validate=_validate_user_attr
-            )
             ALLOWED_CLIENTS = fields.List(
                 fields.String(validate=validate.Length(min=1)), load_default=[]
             )
@@ -154,8 +141,26 @@ class OpenIDTokenExchangeProvider(Authentication):
 
     @staticmethod
     def _import_jwks(jwks_data: dict) -> KeySet:
-        # One key at a time: import_key_set() fails the whole set on a
-        # single unusable key otherwise.
+        """Import the usable keys of a JWKS payload.
+
+        Keys are imported one at a time: ``import_key_set()`` fails the
+        whole set on a single unusable key otherwise.
+
+        Parameters
+        ----------
+        jwks_data : dict
+            Raw JWKS payload, as returned by the identity provider.
+
+        Returns
+        -------
+        KeySet
+            The subset of keys that could be imported.
+
+        Raises
+        ------
+        MissingKeyError
+            If none of the payload's keys could be imported.
+        """
         keys = []
         for key_data in jwks_data.get("keys", []):
             if not isinstance(key_data, dict):
@@ -233,9 +238,7 @@ class OpenIDTokenExchangeProvider(Authentication):
                     self._jwks_lock.release()
             # else another thread is already refreshing; use the cache as-is.
         if cache["keyset"] is None:
-            raise InternalServerError(
-                "Failed to load authentication keys from identity provider"
-            )
+            raise KeyError("Failed to load authentication keys from identity provider")
         return cache["keyset"]
 
     def _refresh_jwks(self) -> None:
@@ -264,14 +267,14 @@ class OpenIDTokenExchangeProvider(Authentication):
         )
         try:
             token_obj = jwt.decode(token, self._get_jwks(), algorithms=self.algorithms)
-        except InternalServerError:
+        except KeyError:
             raise  # JWKS unreachable, not an invalid token
         except self._KEY_ROTATION_ERRORS:
             try:
                 token_obj = jwt.decode(
                     token, self._get_jwks(refresh=True), algorithms=self.algorithms
                 )
-            except InternalServerError:
+            except KeyError:
                 raise
             except Exception as e:
                 log.info("Token decoding failed: %s", e)
@@ -282,7 +285,7 @@ class OpenIDTokenExchangeProvider(Authentication):
 
         try:
             registry.validate(token_obj.claims)
-        except Exception as e:
+        except ClaimError as e:
             log.info("Token validation failed: %s", e)
             raise Unauthorized("Invalid identity provider token")
 
@@ -331,8 +334,8 @@ class OpenIDTokenExchangeProvider(Authentication):
         raise NotFound(f"{self.id_provider} does not implement the /authorize flow")
 
     def authenticate(self, *args, **kwargs) -> Union[Response, models.User]:
-        bearer = request.headers.get(self.token_header_name, "")
-        parts = bearer.strip().split(None, 1)
+        bearer = request.headers.get(self.token_header_name, "").strip()
+        parts = bearer.split(None, 1)
         if not parts:
             raise Unauthorized("Missing identity provider token")
         token = (
