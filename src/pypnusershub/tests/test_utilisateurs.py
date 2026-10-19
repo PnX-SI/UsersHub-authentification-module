@@ -1,6 +1,13 @@
 from datetime import datetime
-from flask import url_for, session
+from urllib.parse import parse_qs, urlparse
+from flask import redirect, url_for, session
 import sqlalchemy as sa
+
+import pytest
+
+from pypnusershub.db.models import Organisme, User
+from pypnusershub.db.tools import decode_token
+
 from pypnusershub.organisms_manager import insert_or_update_organism, delete_organism
 from pypnusershub.schemas import OrganismeSchema, UserSafeSchema, UserSensitiveSchema
 from pypnusershub.tests.fixtures import *
@@ -250,6 +257,68 @@ class TestUtilisateurs:
         # the token expiration must be tz aware to avoid issue in date comparison
         assert datetime_expires.tzinfo is not None
 
+    def test_login_without_redirect_does_not_keep_client(
+        self, monkeypatch, group_and_users
+    ):
+        """A login that does not go through /authorize must not leave 'auth_client'
+        in session, otherwise a later /authorize would leak the token to the mobile app.
+        """
+        monkeypatch.setitem(
+            self.client.application.config,
+            "AUTHORIZED_MOBILE_CLIENTS",
+            {"mobile": "mobileapp://auth-callback"},
+        )
+        with self.client.session_transaction() as sess:
+            sess["auth_client"] = "mobile"
+
+        resp = self.client.post(
+            url_for("auth.login", client="mobile"),
+            json={"login": "user_of_group1", "password": "admin"},
+        )
+
+        assert resp.status_code == 200
+        assert "auth_client" not in session
+
+    def test_login_with_redirect_keeps_client(self, monkeypatch, group_and_users):
+        """When the provider redirects to the SSO, 'client' is kept for /authorize."""
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(
+            provider, "authenticate", lambda: redirect("https://sso.example.org/auth")
+        )
+        monkeypatch.setitem(
+            self.client.application.config,
+            "AUTHORIZED_MOBILE_CLIENTS",
+            {"mobile": "mobileapp://auth-callback"},
+        )
+
+        resp = self.client.get(
+            url_for("auth.login", provider="keycloak", client="mobile")
+        )
+
+        assert resp.status_code == 302
+        assert session["auth_client"] == "mobile"
+
+    def test_login_unknown_client_rejected(self, monkeypatch, group_and_users):
+        """A 'client' not declared in AUTHORIZED_MOBILE_CLIENTS is rejected before
+        the authentication starts."""
+        provider = auth_manager.get_provider("keycloak")
+        authenticate_called = []
+        monkeypatch.setattr(
+            provider,
+            "authenticate",
+            lambda: authenticate_called.append(True)
+            or redirect("https://sso.example.org/auth"),
+        )
+
+        resp = self.client.get(
+            url_for("auth.login", provider="keycloak", client="unknown-app")
+        )
+
+        assert resp.status_code == 400
+        assert "unknown-app" in resp.json["message"]
+        assert not authenticate_called
+        assert "auth_client" not in session
+
     def test_get_user_data(self, group_and_users):
         set_logged_user(self.client, group_and_users["user1"])
 
@@ -337,3 +406,104 @@ class TestUtilisateurs:
         assert providers["bis"]["ropc_flow"] is False
         # ... except for the provider that explicitly enables it in its config
         assert providers["keycloak_ropc"]["ropc_flow"] is True
+
+    def test_authorize_web(self, monkeypatch, group_and_users):
+        """Default (no 'client' stored in session) redirects to the front-end app."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+
+        response = self.client.get(
+            url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+        )
+
+        assert response.status_code == 302
+        assert response.location == self.client.application.config["URL_APPLICATION"]
+
+    def test_authorize_mobile_client(self, monkeypatch, group_and_users):
+        """When the login was initiated with 'client=mobile', /authorize must redirect
+        to the mobile app custom scheme with a usable JWT in the querystring."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+        monkeypatch.setitem(
+            self.client.application.config,
+            "AUTHORIZED_MOBILE_CLIENTS",
+            {"mobile": "mobileapp://auth-callback"},
+        )
+
+        with self.client.session_transaction() as sess:
+            sess["auth_client"] = "mobile"
+
+        response = self.client.get(
+            url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+        )
+
+        assert response.status_code == 302
+        assert response.location.startswith("mobileapp://auth-callback?")
+
+        query = parse_qs(urlparse(response.location).query)
+        token = query["token"][0]
+        claims = decode_token(token)
+        assert claims["id_role"] == user.id_role
+
+    def test_authorize_multiple_mobile_clients(self, monkeypatch, group_and_users):
+        """Each registered mobile client is redirected to its own callback."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+        monkeypatch.setitem(
+            self.client.application.config,
+            "AUTHORIZED_MOBILE_CLIENTS",
+            {
+                "app-a": "fr.example.appa://auth-callback",
+                "app-b": "fr.example.appb://auth-callback",
+            },
+        )
+
+        for client_id, redirect_uri in [
+            ("app-a", "fr.example.appa://auth-callback"),
+            ("app-b", "fr.example.appb://auth-callback"),
+        ]:
+            with self.client.session_transaction() as sess:
+                sess["auth_client"] = client_id
+            response = self.client.get(
+                url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+            )
+            assert response.status_code == 302
+            assert response.location.startswith(f"{redirect_uri}?")
+            token = parse_qs(urlparse(response.location).query)["token"][0]
+            assert decode_token(token)["id_role"] == user.id_role
+
+    def test_authorize_mobile_client_not_configured(self, monkeypatch, group_and_users):
+        """With the default (empty) AUTHORIZED_MOBILE_CLIENTS, 'client=mobile' gets the web redirect."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+        assert self.client.application.config["AUTHORIZED_MOBILE_CLIENTS"] == {}
+
+        with self.client.session_transaction() as sess:
+            sess["auth_client"] = "mobile"
+
+        response = self.client.get(
+            url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+        )
+
+        assert response.status_code == 302
+        assert response.location == self.client.application.config["URL_APPLICATION"]
+
+    def test_authorize_unknown_mobile_client(self, monkeypatch, group_and_users):
+        """An unregistered client falls back to the web redirect (no token leaked)."""
+        user = group_and_users["user1"]
+        provider = auth_manager.get_provider("keycloak")
+        monkeypatch.setattr(provider, "authorize", lambda: user)
+
+        with self.client.session_transaction() as sess:
+            sess["auth_client"] = "unknown-app"
+
+        response = self.client.get(
+            url_for("auth.authorize", provider="keycloak"), follow_redirects=False
+        )
+
+        assert response.status_code == 302
+        assert response.location == self.client.application.config["URL_APPLICATION"]

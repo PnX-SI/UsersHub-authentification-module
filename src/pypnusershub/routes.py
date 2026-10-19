@@ -64,6 +64,11 @@ class ConfigurableBlueprint(Blueprint):
         app.config["REMEMBER_COOKIE_DURATION"] = app.config.get(
             "COOKIE_EXPIRATION", 31557600
         )
+        # mobile apps allowed to receive the token through /authorize, as {client_id: redirect_uri}
+        # empty by default: no token is sent to a mobile app unless explicitly configured
+        app.config["AUTHORIZED_MOBILE_CLIENTS"] = app.config.get(
+            "AUTHORIZED_MOBILE_CLIENTS", {}
+        )
         parent = super(ConfigurableBlueprint, self)
         parent.register(app, *args, **kwargs)
         oauth.init_app(app)
@@ -180,10 +185,21 @@ def login(provider):
         - `token`: The JWT token.
     - If the authentication fails, it returns the result of the authentication.
     """
+    # reject unknown mobile clients before starting the authentication
+    client = request.args.get("client")
+    if client and client not in current_app.config["AUTHORIZED_MOBILE_CLIENTS"]:
+        return jsonify({"message": f"Unknown client '{client}'"}), 400
+
     auth_provider = current_app.auth_manager.get_provider(provider)
     session["current_provider"] = provider
     auth_result = auth_provider.authenticate()
+    # drop any client left by a previous unfinished login
+    session.pop("auth_client", None)
     if isinstance(auth_result, Response):
+        # the provider redirects to /authorize: if the client is a mobile app, store it in session
+        # to adapt the /authorize response (-> token in query string)
+        if client:
+            session["auth_client"] = client
         return auth_result
     if isinstance(auth_result, models.User):
         login_user(auth_result, remember=True)
@@ -282,6 +298,14 @@ def authorize(provider="local_provider"):
 
     if isinstance(authorize_result, models.User):
         login_user(authorize_result, remember=True)
+        # if the client is a registered mobile app, redirect to its callback with the token in querystring
+        # the mobile app intercepts its own redirect uri (see AUTHORIZED_MOBILE_CLIENTS) to catch the token
+        client = session.pop("auth_client", None)
+        mobile_redirect_uri = current_app.config["AUTHORIZED_MOBILE_CLIENTS"].get(
+            client
+        )
+        if mobile_redirect_uri:
+            token = UserSchema().dump_with_token(authorize_result)["token"]
+            return redirect(f"{mobile_redirect_uri}?{urlencode({'token': token})}")
 
-    # if auth_provider.is_external:
     return redirect(current_app.config["URL_APPLICATION"])
