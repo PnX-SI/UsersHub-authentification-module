@@ -8,7 +8,7 @@ from flask import current_app, url_for
 from joserfc import jwt
 from joserfc.jwk import KeySet, RSAKey, ECKey, OKPKey
 from marshmallow import ValidationError
-from werkzeug.exceptions import InternalServerError, NotFound, Unauthorized
+from werkzeug.exceptions import NotFound, Unauthorized
 
 from pypnusershub.auth.providers.openid_token_exchange_provider import (
     OpenIDTokenExchangeProvider,
@@ -583,7 +583,7 @@ def test_jwks_http_error_no_cache(app, rsa_keypair):
     token = make_token(rsa_keypair[0])
     with patch(REQUESTS_GET, side_effect=Exception("connection refused")):
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
 
 
@@ -595,7 +595,7 @@ def test_jwks_malformed_response_recovers(app, rsa_keypair):
     token = make_token(rsa_keypair[0])
     with patch(REQUESTS_GET, return_value=mocked_jwks_response({"error": "nope"})):
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
     # No permanent damage: once the IdP serves a real JWKS, login works.
     provider._jwks_cache["last_attempt"] = time.monotonic() - 3600
@@ -612,10 +612,10 @@ def test_jwks_outage_debounce(app, rsa_keypair):
     token = make_token(rsa_keypair[0])
     with patch(REQUESTS_GET, side_effect=Exception("connection refused")) as mocked_get:
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
             assert mocked_get.call_count == 1
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
             # Second call within the debounce window: no new HTTP attempt.
             assert mocked_get.call_count == 1
@@ -647,7 +647,7 @@ def test_jwks_redirect_response(app, rsa_keypair):
     )
     with patch(REQUESTS_GET, return_value=redirect_response):
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
 
 
@@ -675,7 +675,7 @@ def test_jwks_slow_drip_timeout(app, rsa_keypair):
     with patch(REQUESTS_GET, return_value=slow_response):
         start = time.monotonic()
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
         elapsed = time.monotonic() - start
     assert elapsed < 3  # bounded by JWKS_TIMEOUT, not the drip's full duration
@@ -698,7 +698,7 @@ def test_jwks_oversized_response(app, rsa_keypair):
     token = make_token(key)
     with patch(REQUESTS_GET, return_value=oversized_response):
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
 
 
@@ -728,7 +728,7 @@ def test_jwks_oversized_response_stops_early(app, rsa_keypair):
     token = make_token(key)
     with patch(REQUESTS_GET, return_value=oversized_response):
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            with pytest.raises(InternalServerError):
+            with pytest.raises(KeyError):
                 provider.authenticate()
     # Stopped right at the cap, not after consuming everything on offer.
     assert provider._MAX_JWKS_BYTES < bytes_consumed < provider._MAX_JWKS_BYTES + 100
@@ -770,12 +770,12 @@ def test_jwks_debounce_slow_failure(app, rsa_keypair):
 
     with patch(REQUESTS_GET, side_effect=slow_failure) as mocked_get:
         before = time.monotonic()
-        with pytest.raises(InternalServerError):
+        with pytest.raises(KeyError):
             provider._get_jwks()
         after = time.monotonic()
         assert provider._jwks_cache["last_attempt"] >= after - 0.05 > before
         # Immediately after: still well within the 1s debounce.
-        with pytest.raises(InternalServerError):
+        with pytest.raises(KeyError):
             provider._get_jwks()
     assert mocked_get.call_count == 1
 

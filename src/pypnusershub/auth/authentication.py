@@ -12,6 +12,22 @@ from werkzeug.exceptions import Unauthorized
 log = logging.getLogger(__name__)
 
 
+# .columns, not .attrs (which forces mapper resolution at import time);
+# excludes secrets.
+_RECONCILIABLE_USER_ATTRS = set(sa.inspect(models.User).columns.keys()) - {
+    "_password",
+    "_password_plus",
+    "api_secret",
+}
+
+
+def _validate_reconciliate_attr(value: str) -> None:
+    if value not in _RECONCILIABLE_USER_ATTRS:
+        raise ValidationError(
+            f"{value!r} is not a usable User attribute for reconciliation"
+        )
+
+
 class ProviderConfigurationSchema(Schema):
     module = fields.Str(required=True)
     id_provider = fields.Str(required=True)
@@ -19,7 +35,11 @@ class ProviderConfigurationSchema(Schema):
     logo = fields.String()
     label = fields.String()
     is_secondary = fields.Boolean()
-    is_hidden = fields.Boolean()
+    is_web = fields.Boolean()
+    is_mobile = fields.Boolean()
+    RECONCILIATE_ATTR = fields.String(
+        load_default="email", validate=_validate_reconciliate_attr
+    )
 
     @validates_schema
     def check_if_module_exists(self, data, **kwargs):
@@ -92,10 +112,14 @@ class Authentication:
     is_secondary = False
 
     """
-    Should this provider be excluded from /providers?  (boolean)
-    For providers with no browser flow at all.
+    Is the authentication provider usable from GeoNature's web login page?  (boolean)
     """
-    is_hidden = False
+    is_web = True
+
+    """
+    Is the authentication provider meant for mobile/native clients?  (boolean)
+    """
+    is_mobile = False
 
     class ApiUnauthorized(Unauthorized):
         default_message = "Unauthorized"
@@ -218,7 +242,8 @@ class Authentication:
             "logout_url",
             "group_mapping",
             "is_secondary",
-            "is_hidden",
+            "is_web",
+            "is_mobile",
         ]:
             if field in configuration:
                 setattr(self, field, configuration[field])
