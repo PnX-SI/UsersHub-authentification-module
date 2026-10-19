@@ -68,7 +68,7 @@ jobs:
         run: |
           alembic upgrade utilisateurs@head
         env:
-          SQLALCHEMY_URI: "postgresql://postgres:postgres@localhost/postgres"
+          SQLALCHEMY_URI: "postgresql+psycopg2://postgres:postgres@localhost/postgres"
       - name: Test with pytest
         run: |
           pytest -v --cov --cov-report xml

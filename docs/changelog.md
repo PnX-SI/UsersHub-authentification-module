@@ -1,11 +1,24 @@
 # CHANGELOG
 
-## 3.3.0 (unreleased)
+## 3.3.0 (2026-10-15)
+
+**🚨 Breaking Changes**
+
+- Le schéma `UserSchema` est renommé en `UserSensitiveSchema`. Il ne doit être utilisé que pour renvoyer ses propres informations à l'utilisateur connecté (#179 par @christophe-ramet)
 
 **🚀 Nouveautés**
 
-- Mise à jour de Utils-Flask-SQLAlchemy en 0.5.0 et ajout de la compitibilité avec SQLAlchemy 2.0.x (#123 par @jacquesfize)
-- Ajout du schéma `UserSafeSchema` qui n'expose que l'identifiant et le nom complet d'un utilisateur (par @jacquesfize)
+- Abandon de la compatibilité avec Python 3.9 : Python 3.10 ou supérieur est désormais requis (#167 par @jacquesfize)
+- Ajout de la compatibilité avec SQLAlchemy 2.0.x (#123 par @jacquesfize)
+- Remplacement de `authlib.jose` par `joserfc` pour la gestion des jetons JWT (#168 par @jacquesfize)
+- Ajout du schéma `UserSafeSchema` qui n'expose que les informations publiques d'un utilisateur : identifiant, nom complet, nom de l'organisme et présence d'une adresse email (`has_mail`) (#177, #180 par @jacquesfize et @christophe-ramet)
+- Ajout de la route `GET /login_exists` permettant de vérifier si un identifiant est déjà utilisé (#170 par @christophe-ramet)
+
+**🐛 Corrections**
+
+- Les champs `api_key` et `api_secret` ne sont plus renvoyés par les schémas utilisateur (#169 par @christophe-ramet)
+- Correction de la détection des sous-paquets `pypnusershub.db` et `pypnusershub.auth` lors de l'installation du paquet (#172 par @christophe-ramet)
+- Correction de l'import des _providers_ d'authentification (par @christophe-ramet)
 
 ## 3.2.2 (2026-06-08)
 
