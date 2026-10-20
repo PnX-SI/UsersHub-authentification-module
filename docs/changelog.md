@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 3.3.1 (2026-10-20)
+
+**🐛 Corrections**
+
+- La route `/public_login` renvoie désormais une erreur 403 (au lieu d'une erreur 500) lorsque l'utilisateur défini dans `PUBLIC_ACCESS_USERNAME` n'existe pas ou n'a pas accès à GeoNature (#186 par @jacquesfize)
+- Le champ `remarques` n'est plus exclu des données renvoyées par la route `/get_current_user` (#186 par @jacquesfize)
+
 ## 3.3.0 (2026-10-20)
 
 **🚨 Breaking Changes**
