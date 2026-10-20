@@ -154,7 +154,7 @@ def get_user_data():
         A dictionary containing the user data, token, and expiration time.
     """
     user_dict_with_token = UserSensitiveSchema(
-        exclude=["remarques"], only=["+max_level_profil", "+providers", "organisme"]
+        only=["+max_level_profil", "+providers", "organisme"]
     ).dump_with_token(g.current_user)
 
     return jsonify(user_dict_with_token)
@@ -216,7 +216,13 @@ def public_login():
         sa.select(models.User)
         .where(models.User.identifiant == login)
         .where(models.User.filter_by_app(code_app="GN"))
-    ).scalar_one()
+    ).scalar_one_or_none()
+    if user is None:
+        log.error(
+            "PUBLIC_ACCESS_USERNAME '%s' does not match any active user with access to GeoNature",
+            login,
+        )
+        raise Forbidden("Public access is misconfigured")
 
     login_user(user)
 
