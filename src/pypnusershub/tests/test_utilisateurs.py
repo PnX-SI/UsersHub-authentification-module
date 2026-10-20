@@ -397,6 +397,7 @@ class TestUtilisateurs:
             "logout_url",
             "is_secondary",
             "ropc_flow",
+            "is_hidden",
         }
         for provider in providers.values():
             assert set(provider) == expected_properties
