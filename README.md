@@ -238,16 +238,35 @@ Les routes déclarées par le _blueprint_ de `UsersHub-authentification-module` 
 
 Les routes suivantes sont implémentés dans `UsersHub-authentification-module`:
 
-| Route URI           | Action                                                                                                                                         | Paramètres                 | Retourne                         |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------- |
-| `/providers`        | Retourne l'ensemble des fournisseurs d'identités activés                                                                                       | NA                         |                                  |
-| `/get_current_user` | Retourne les informations de l'utilisateur connecté                                                                                            | NA                         | {user,expires,token}             |
-| `/login/<provider>` | Connecte un utilisateur avec le provider <provider>                                                                                            | Optionnel({user,password}) | {user,expires,token} ou redirect |
-| `/public_login`     | Connecte l'utilisateur permettant l'accès public à votre application                                                                           | NA                         | {user,expires,token}             |
-| `/logout`           | Déconnecte l'utilisateur courant                                                                                                               | NA                         | redirect                         |
-| `/authorize`        | Connecte un utilisateur à l'aide des infos retournées par le fournisseurs d'identités (Si redirection vers un portail de connexion par /login) | {data}                     | redirect                         |
+| Route URI           | Action                                                                                                                                                                                                                                                                                                                                        | Paramètres                 | Retourne                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------- |
+| `/providers`        | Retourne l'ensemble des fournisseurs d'identités activés                                                                                                                                                                                                                                                                                      | NA                         |                                  |
+| `/get_current_user` | Retourne les informations de l'utilisateur connecté                                                                                                                                                                                                                                                                                           | NA                         | {user,expires,token}             |
+| `/login/<provider>` | Connecte un utilisateur avec le provider <provider>. Pour une application mobile, appeler la route avec la querystring `client=<id_client>` (voir [Authentification depuis une application mobile](#authentification-depuis-une-application-mobile))                                                                                          | Optionnel({user,password}) | {user,expires,token} ou redirect |
+| `/public_login`     | Connecte l'utilisateur permettant l'accès public à votre application                                                                                                                                                                                                                                                                          | NA                         | {user,expires,token}             |
+| `/logout`           | Déconnecte l'utilisateur courant                                                                                                                                                                                                                                                                                                              | NA                         | redirect                         |
+| `/authorize`        | Connecte un utilisateur à l'aide des infos retournées par le fournisseurs d'identités (Si redirection vers un portail de connexion par /login). Si la route `/login` a été appelée avec `client=<id_client>` déclaré dans `AUTHORIZED_MOBILE_CLIENTS`, redirige vers l'URL de retour de l'application mobile : `<redirect_uri>?token=<token>` | {data}                     | redirect                         |
 
 En cas d'erreur d'autorisation, la route `/authorize` redirige vers la page de login avec un paramètre `login_error` (message destiné au frontend).
+
+### Authentification depuis une application mobile
+
+Lors d'une connexion via un fournisseur d'identité externe, une application mobile peut récupérer le token JWT à la fin du parcours de connexion :
+
+1. l'application ouvre `/login/<provider>?client=<id_client>` dans un navigateur (Custom Tab sous Android, `ASWebAuthenticationSession` sous iOS) ;
+2. l'utilisateur se connecte sur le portail du fournisseur d'identité, qui redirige vers `/authorize/<provider>` ;
+3. `/authorize` redirige vers l'URL de retour déclarée pour `<id_client>`, avec le token en querystring : `<redirect_uri>?token=<token>`. L'application intercepte cette URL pour récupérer le token.
+
+Les applications autorisées sont déclarées dans le paramètre de configuration `AUTHORIZED_MOBILE_CLIENTS`, sous la forme `{id_client: redirect_uri}`. Par défaut il est vide : aucun token n'est envoyé à une application mobile tant qu'elle n'y est pas déclarée. Un appel à `/login` avec un `client` non déclaré est refusé (erreur 400) avant le lancement de l'authentification.
+
+```python
+app.config["AUTHORIZED_MOBILE_CLIENTS"] = {
+    "occtax-mobile": "fr.geonature.occtax://auth-callback",
+    "geonature-sync": "fr.geonature.sync://auth-callback",
+}
+```
+
+Chaque application doit enregistrer auprès du système (Android/iOS) un scheme qui lui est propre (par ex. `fr.geonature.<app>`). Un scheme générique comme `mobileapp://` peut être déclaré par n'importe quelle autre application installée sur le téléphone, qui pourrait alors intercepter le token.
 
 ### Méthodes définies dans le module
 
@@ -292,7 +311,7 @@ providers_config = # Declare identity providers used to log into your app
       },
       # Other identity provider
       {
-        "module": "pypnusershub.auth.providers.openid_provider.OpenIDProvider",
+        "module": "pypnusershub.auth.providers.openid_provider.OAuth2Provider",
         "id_provider":"open_id_1",
         "ISSUER":"http://<realmKeycloak>",
         "CLIENT_ID":"secret",
@@ -321,6 +340,8 @@ Pour lancer la connexion sur un provider en particulier, il suffit d'appeler la 
 - `RECONCILIATE_ATTR` (string): Nom du champs qui servira à la réconciliation des utilisateurs existant (par défaut: "email").
 - `FIELDS_TO_OVERRIDE` (List(string)): Nom des champs qui seront écrasés lors d'une connexion. Ces champs prendront la valeur existante dans le provider (par défaut, nom, prénom et email). Les valeurs possibles sont les suivantes : "id_role", "identifiant", "nom_role", "prenom_role", "email","active"
 - `CODE_CHALLENGE_METHOD` (string): Ne devrait pas être modifié. Permet de configurer le type de challenge (par défaut: "S256" mais peut valoir plain si contraintes legacy).
+- `SSO_LOGOUT` (boolean, defaut = True), uniquement pour OpenIDConnect, permet de définir si le logout entraine une déconnexion totale du SSO (true), ou s'il déconnecte seulement de l'application en cours
+- `ROPC_FLOW` (boolean, défaut = False) : si true alors autorise l'authentication via flux OAuth 2.0 "Resource Owner Password Credentials" (ROPC): on peut se connecter programmatiquement via user/mdp sans redirection vers l'identidy provider (dans keycloak nécessite d'activer le "Direct Access Grant")
 
 **OpenIDTokenExchangeProvider**
 

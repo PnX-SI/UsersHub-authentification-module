@@ -18,7 +18,7 @@ AUTHENTICATION = {
             "WS_PASSWORD": "bidule",
         },
         {
-            "module": "pypnusershub.auth.providers.openid_provider.OpenIDProvider",
+            "module": "pypnusershub.auth.providers.openid_provider.OAuth2Provider",
             "id_provider": "keycloak",
             "label": "bidule",
             "ISSUER": "bidule",
@@ -41,6 +41,15 @@ AUTHENTICATION = {
             "label": "bidule",
             "login_url": "bidule",
             "logout_url": "bidule",
+        },
+        {
+            "module": "pypnusershub.auth.providers.openid_provider.OAuth2Provider",
+            "id_provider": "keycloak_ropc",
+            "label": "bidule",
+            "ISSUER": "bidule",
+            "CLIENT_ID": "bidule",
+            "CLIENT_SECRET": "bidule",
+            "ROPC_FLOW": True,
         },
     ]
 }
