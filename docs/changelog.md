@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.3.0 (2026-10-15)
+## 3.3.0 (2026-10-20)
 
 **🚨 Breaking Changes**
 
@@ -8,14 +8,26 @@
 
 **🚀 Nouveautés**
 
-- Abandon de la compatibilité avec Python 3.9 : Python 3.10 ou supérieur est désormais requis (#167 par @jacquesfize)
+- Abandon de la compatibilité avec Python 3.9 : la version Python 3.10 ou supérieure est désormais requis (#167 par @jacquesfize)
 - Ajout de la compatibilité avec SQLAlchemy 2.0.x (#123 par @jacquesfize)
 - Remplacement de `authlib.jose` par `joserfc` pour la gestion des jetons JWT (#168 par @jacquesfize)
 - Ajout du schéma `UserSafeSchema` qui n'expose que les informations publiques d'un utilisateur : identifiant, nom complet, nom de l'organisme et présence d'une adresse email (`has_mail`) (#177, #180 par @jacquesfize et @christophe-ramet)
-- Ajout de la route `GET /login_exists` permettant de vérifier si un identifiant est déjà utilisé (#170 par @christophe-ramet)
+- Ajout de la route `/login_exists` permettant de vérifier si un identifiant est déjà utilisé (#170 par @christophe-ramet)
+- Ajout du connecteur `OpenIDTokenExchangeProvider` permettant d'échanger en un seul appel (sans redirection) un token obtenu côté client auprès d'un fournisseur d'identité contre un token d'authentification (#182 par @LakshanOuidou)
+- Ajout du paramètre `AUTH_TOKEN_HEADER` pour choisir le header dans lequel lire le token d'authentification (par défaut : `Authorization`) (#182 par @LakshanOuidou)
+- Ajout du paramètre `is_hidden` et `RECONCILIATE_ATTR` dans la classe `Authentication` (#182 par @LakshanOuidou)
+- Refonte des connecteurs OAuth2/OpenID et ajout de la compatibilité mobile (#175 par @TheoLechemia) :
+  - Le connecteur `OpenIDProvider` est renommé en `OAuth2Provider` (l'ancien nom reste disponible pour la rétrocompatibilité)
+  - Ajout du paramètre `SSO_LOGOUT` au connecteur `OpenIDConnectProvider` pour choisir si la déconnexion déconnecte aussi du SSO ou seulement de l'application
+  - Ajout de l'authentification depuis une application mobile via un fournisseur d'identité externe : la route `/login/<provider>?client=<id_client>` permet, à l'issue de `/authorize`, de rediriger vers l'application mobile avec le token ; les applications autorisées sont déclarées dans le nouveau paramètre `AUTHORIZED_MOBILE_CLIENTS`
+  - Ajout du paramètre `ROPC_FLOW` aux connecteurs OAuth2/OpenID pour autoriser la connexion par identifiant et mot de passe sans redirection vers le fournisseur d'identité (_Resource Owner Password Credentials_)
+- Extraction de la logique de la route `/providers` dans une fonction `list_providers()` (#184 par @LakshanOuidou)
 
 **🐛 Corrections**
 
+- Correction du filtre sur les droits applicatifs (`filter_by_app`) qui laissait se connecter un utilisateur sans droit sur l'application (#182 par @LakshanOuidou)
+- Le connecteur `OAuth2Provider` récupère désormais les informations de l'utilisateur via l'endpoint `userinfo` du fournisseur d'identité (#175 par @TheoLechemia)
+- La révocation du token OAuth2 transmet désormais `client_id` et `client_secret`, puis redirige vers la page de connexion du fournisseur (#175 par @TheoLechemia)
 - Les champs `api_key` et `api_secret` ne sont plus renvoyés par les schémas utilisateur (#169 par @christophe-ramet)
 - Correction de la détection des sous-paquets `pypnusershub.db` et `pypnusershub.auth` lors de l'installation du paquet (#172 par @christophe-ramet)
 - Correction de l'import des _providers_ d'authentification (par @christophe-ramet)
