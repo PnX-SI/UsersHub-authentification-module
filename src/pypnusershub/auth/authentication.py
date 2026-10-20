@@ -12,6 +12,22 @@ from werkzeug.exceptions import Unauthorized
 log = logging.getLogger(__name__)
 
 
+# .columns, not .attrs (which forces mapper resolution at import time);
+# excludes secrets.
+_RECONCILIABLE_USER_ATTRS = set(sa.inspect(models.User).columns.keys()) - {
+    "_password",
+    "_password_plus",
+    "api_secret",
+}
+
+
+def _validate_reconciliate_attr(value: str) -> None:
+    if value not in _RECONCILIABLE_USER_ATTRS:
+        raise ValidationError(
+            f"{value!r} is not a usable User attribute for reconciliation"
+        )
+
+
 class ProviderConfigurationSchema(Schema):
     module = fields.Str(required=True)
     id_provider = fields.Str(required=True)
@@ -19,6 +35,10 @@ class ProviderConfigurationSchema(Schema):
     logo = fields.String()
     label = fields.String()
     is_secondary = fields.Boolean()
+    is_hidden = fields.Boolean(load_default=False)
+    RECONCILIATE_ATTR = fields.String(
+        load_default="email", validate=_validate_reconciliate_attr
+    )
 
     @validates_schema
     def check_if_module_exists(self, data, **kwargs):
@@ -89,6 +109,12 @@ class Authentication:
     Will affect login page presentation
     """
     is_secondary = False
+
+    """
+    Does the authentication provider is shown on the web portal ?  (boolean)
+    """
+
+    is_hidden = False
 
     class ApiUnauthorized(Unauthorized):
         default_message = "Unauthorized"
@@ -211,6 +237,7 @@ class Authentication:
             "logout_url",
             "group_mapping",
             "is_secondary",
+            "is_hidden",
         ]:
             if field in configuration:
                 setattr(self, field, configuration[field])

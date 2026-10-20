@@ -86,7 +86,7 @@ def list_providers(**filters):
     ----------
     **filters
         Only return providers whose attributes match, e.g.
-        ``mobile_support=True``. A provider without a given attribute
+        ``is_hidden=False``. A provider without a given attribute
         never matches a filter on it.
 
     Returns
@@ -105,6 +105,7 @@ def list_providers(**filters):
         "login_url",
         "logout_url",
         "is_secondary",
+        "is_hidden",
     ]
     return [
         dict(

@@ -361,6 +361,11 @@ class User(db.Model, UserMixin, PasswordMixin):
                 Application.id_application == UserApplicationRight.id_application,
             )
             .where(Application.code_application == code_app)
+            # Without this, SQLAlchemy auto-correlates t_roles out of the
+            # subquery (it's also the outer query's table), silently
+            # dropping every join depending on it and leaving only the
+            # unrelated t_applications filter - which matches everyone.
+            .correlate(None)
         )
         return cls.id_role.in_(subq)
 
