@@ -388,19 +388,23 @@ class TestUtilisateurs:
             "keycloak_ropc",
         }
 
-        expected_properties = {
-            "id_provider",
-            "is_external",
-            "logo",
-            "label",
-            "login_url",
-            "logout_url",
-            "is_secondary",
-            "ropc_flow",
-            "is_hidden",
-        }
-        for provider in providers.values():
-            assert set(provider) == expected_properties
+        for id_provider, provider_dict in providers.items():
+            provider_cls = auth_manager.get_provider(id_provider)
+            assert set(provider_dict) == set(provider_cls.public_properties) | {
+                "id_provider"
+            }
+
+        # local_provider/cas_inpn/ter have no OAuth2/OIDC config to expose
+        for id_provider in ("local_provider", "cas_inpn", "ter"):
+            assert "ropc_flow" not in providers[id_provider]
+            assert "issuer" not in providers[id_provider]
+
+        # keycloak/bis/keycloak_ropc are OAuth2Provider-based: issuer/client_id/scopes
+        # are exposed for native clients doing their own OIDC discovery/flow
+        for id_provider in ("keycloak", "bis", "keycloak_ropc"):
+            assert providers[id_provider]["issuer"] == "bidule"
+            assert providers[id_provider]["client_id"] == "bidule"
+            assert providers[id_provider]["scopes"] == ["openid", "email", "profile"]
 
         # ROPC is opt-in (ROPC_FLOW config) and disabled by default
         assert providers["keycloak"]["ropc_flow"] is False

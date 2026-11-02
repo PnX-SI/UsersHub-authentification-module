@@ -45,6 +45,14 @@ class OAuth2Provider(Authentication):
 
     logo = '<i class="fa fa-sign-in"></i>'
     is_external = True
+
+    public_properties = Authentication.public_properties + [
+        "ropc_flow",
+        "issuer",
+        "client_id",
+        "scopes",
+    ]
+
     """
     Name of the fields in the OpenID token that contains the groups info
     """
@@ -231,13 +239,14 @@ class OAuth2Provider(Authentication):
                 f"Error while loading OAuth2 provider configuration: {e}"
             )
 
+        scope = "openid email profile"
         oauth.register(
             name=configuration["id_provider"],
             client_id=configuration["CLIENT_ID"],
             client_secret=configuration["CLIENT_SECRET"],
             server_metadata_url=f'{configuration["ISSUER"]}/.well-known/openid-configuration',
             client_kwargs={
-                "scope": "openid email profile",
+                "scope": scope,
                 "issuer": configuration["ISSUER"],
                 "code_challenge_method": configuration["CODE_CHALLENGE_METHOD"],
             },
@@ -248,6 +257,11 @@ class OAuth2Provider(Authentication):
         self.fields_to_override = configuration["FIELDS_TO_OVERRIDE"]
         self.auto_validate_new_user = configuration["AUTO_VALIDATE_NEW_USER"]
         self.ropc_flow = configuration["ROPC_FLOW"]
+        # Exposed via the /providers route for native clients (e.g. mobile)
+        # performing their own OIDC discovery/flow instead of a web redirect.
+        self.issuer = configuration["ISSUER"]
+        self.client_id = configuration["CLIENT_ID"]
+        self.scopes = scope.split()
 
 
 class OpenIDConnectProvider(OAuth2Provider):
