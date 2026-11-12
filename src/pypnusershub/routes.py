@@ -103,16 +103,6 @@ def list_providers(**filters):
     """
     from itertools import chain
 
-    property_name = [
-        "is_external",
-        "logo",
-        "label",
-        "login_url",
-        "logout_url",
-        "is_secondary",
-        "is_hidden",
-        "ropc_flow",
-    ]
     return [
         dict(
             chain.from_iterable(
@@ -120,7 +110,7 @@ def list_providers(**filters):
                 for d in (
                     {
                         _property: getattr(provider, _property, False)
-                        for _property in property_name
+                        for _property in provider.public_properties
                     },
                     {"id_provider": id_provider},
                 )
