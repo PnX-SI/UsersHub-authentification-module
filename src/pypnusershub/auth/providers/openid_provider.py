@@ -50,7 +50,7 @@ class OAuth2Provider(Authentication):
         "ropc_flow",
         "issuer",
         "client_id",
-        "scopes",
+        "scope",
     ]
 
     """
@@ -261,7 +261,7 @@ class OAuth2Provider(Authentication):
         # performing their own OIDC discovery/flow instead of a web redirect.
         self.issuer = configuration["ISSUER"]
         self.client_id = configuration["CLIENT_ID"]
-        self.scopes = scope.split()
+        self.scope = scope
 
 
 class OpenIDConnectProvider(OAuth2Provider):

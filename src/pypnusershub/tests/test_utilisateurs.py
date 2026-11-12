@@ -399,12 +399,12 @@ class TestUtilisateurs:
             assert "ropc_flow" not in providers[id_provider]
             assert "issuer" not in providers[id_provider]
 
-        # keycloak/bis/keycloak_ropc are OAuth2Provider-based: issuer/client_id/scopes
+        # keycloak/bis/keycloak_ropc are OAuth2Provider-based: issuer/client_id/scope
         # are exposed for native clients doing their own OIDC discovery/flow
         for id_provider in ("keycloak", "bis", "keycloak_ropc"):
             assert providers[id_provider]["issuer"] == "bidule"
             assert providers[id_provider]["client_id"] == "bidule"
-            assert providers[id_provider]["scopes"] == ["openid", "email", "profile"]
+            assert providers[id_provider]["scope"] == "openid email profile"
 
         # ROPC is opt-in (ROPC_FLOW config) and disabled by default
         assert providers["keycloak"]["ropc_flow"] is False
