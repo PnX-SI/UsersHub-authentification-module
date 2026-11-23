@@ -287,7 +287,7 @@ class Authentication:
             )
         ).scalar_one_or_none()
         if user_exists:
-            if not user_exists.active:
+            if not user_exists.is_active:
                 raise Exception(
                     f"Cannot reconcile the user from provider '{self.id_provider}': "
                     f"the existing account matching on '{reconciliate_attr}' is inactive."

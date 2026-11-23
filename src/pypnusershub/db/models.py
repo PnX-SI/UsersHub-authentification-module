@@ -258,6 +258,14 @@ class User(db.Model, UserMixin, PasswordMixin):
     def get_id(self):
         return str(self.id_role)
 
+    @hybrid_property
+    def is_active(self):
+        return bool(self.active)
+
+    @is_active.expression
+    def is_active(cls):
+        return cls.active.is_(True)
+
     @property
     def password(self):
         return self._password_plus or self._password
