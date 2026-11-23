@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.3.2 (unreleased)
+
+**🐛 Corrections**
+
+- Un utilisateur désactivé ou un groupe ne peut plus s'authentifier (connexion locale, `/public_login`, jeton JWT, session) : `User.is_active` est redéfini et utilisable dans les requêtes (#188 par @jacquesfize)
+
 ## 3.3.1 (2026-10-20)
 
 **🐛 Corrections**
