@@ -271,6 +271,8 @@ class Authentication:
         Raises
         ------
         Exception
+            If the existing role matching `reconciliate_attr` is inactive or is a group
+        Exception
             If no group mapping indicated for the provider and DEFAULT_RECONCILIATION_GROUP_ID
             is not set
         KeyError
@@ -284,6 +286,17 @@ class Authentication:
                 getattr(models.User, reconciliate_attr) == user_dict[reconciliate_attr],
             )
         ).scalar_one_or_none()
+        if user_exists:
+            if not user_exists.active:
+                raise Exception(
+                    f"Cannot reconcile the user from provider '{self.id_provider}': "
+                    f"the existing account matching on '{reconciliate_attr}' is inactive."
+                )
+            if user_exists.groupe:
+                raise Exception(
+                    f"Cannot reconcile the user from provider '{self.id_provider}': "
+                    f"the existing role matching on '{reconciliate_attr}' is a group, not a user."
+                )
 
         provider = db.session.execute(
             sa.select(models.Provider).where(models.Provider.name == self.id_provider)
