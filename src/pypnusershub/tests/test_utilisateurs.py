@@ -257,6 +257,52 @@ class TestUtilisateurs:
         # the token expiration must be tz aware to avoid issue in date comparison
         assert datetime_expires.tzinfo is not None
 
+    @pytest.mark.parametrize("active", [False, None])
+    def test_login_inactive_user_rejected(self, group_and_users, active):
+        group_and_users["user1"].active = active
+        db.session.flush()
+        resp = self.client.post(
+            url_for("auth.login"), json={"login": "user_of_group1", "password": "admin"}
+        )
+        assert resp.status_code == 401
+
+    def test_login_group_rejected(self, group_and_users):
+        group = group_and_users["group1"]
+        group.password = "admin"
+        db.session.flush()
+        resp = self.client.post(
+            url_for("auth.login"), json={"login": "group1", "password": "admin"}
+        )
+        assert resp.status_code == 401
+
+    def test_is_active(self, group_and_users):
+        user1, user2 = group_and_users["user1"], group_and_users["user_no_group"]
+        assert user1.is_active
+        user2.active = None
+        assert not user2.is_active
+        user2.active = False
+        assert not user2.is_active
+        db.session.flush()
+        ids = db.session.scalars(
+            select(User.id_role).where(
+                User.is_active,
+                User.id_role.in_([user1.id_role, user2.id_role]),
+            )
+        ).all()
+        assert ids == [user1.id_role]
+
+    def test_insert_or_update_role_inactive_rejected(
+        self, provider_instance, group_and_users
+    ):
+        user = group_and_users["user1"]
+        user.active = False
+        db.session.flush()
+        with pytest.raises(Exception, match="inactive"):
+            provider_instance.insert_or_update_role(
+                user_dict={"email": user.email, "nom_role": "x"},
+                reconciliate_attr="email",
+            )
+
     def test_login_without_redirect_does_not_keep_client(
         self, monkeypatch, group_and_users
     ):
