@@ -317,7 +317,8 @@ class Authentication:
             db.session.commit()
             return user_exists
         else:
-            user_ = models.User(**user_dict)
+            # a user provisioned by a trusted provider is active by default
+            user_ = models.User(**{"active": True, **user_dict})
             group_id = ""
             # No group mapping indicated
             if not (self.group_mapping and source_groups):

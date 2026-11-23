@@ -291,6 +291,27 @@ class TestUtilisateurs:
         ).all()
         assert ids == [user1.id_role]
 
+    def test_provisioned_user_is_active(self, provider_instance, group_and_users):
+        """A user created by a provider without `active` must be active"""
+        group = group_and_users["group1"]
+        user = provider_instance.insert_or_update_role(
+            {
+                "identifiant": "provisioned.user",
+                "nom_role": "provisioned",
+                "prenom_role": "user",
+                "email": "provisioned@test.fr",
+                "groups": [group],
+            }
+        )
+        assert user.is_active
+
+    def test_user_inactive_by_default(self, app):
+        user = User(groupe=False, identifiant="default.inactive")
+        db.session.add(user)
+        db.session.flush()
+        assert user.active is False
+        assert not user.is_active
+
     def test_insert_or_update_role_inactive_rejected(
         self, provider_instance, group_and_users
     ):

@@ -86,6 +86,11 @@ INSERT INTO t_roles (groupe, identifiant, nom_role, prenom_role, desc_role, pass
     NULL
 );
 
+-- Les rôles exemples sont actifs (active vaut false par défaut)
+UPDATE t_roles SET active = true
+WHERE nom_role IN ('Grp_en_poste', 'Grp_admin')
+   OR identifiant IN ('admin', 'agent', 'partenaire', 'pierre.paul', 'validateur');
+
 -- Affectation des utilisateurs exemple dans des groupes
 INSERT INTO cor_roles (id_role_groupe, id_role_utilisateur) VALUES 
 (
