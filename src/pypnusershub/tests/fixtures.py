@@ -63,19 +63,20 @@ def applications(app):
 @pytest.fixture(scope="function")
 def group_and_users(app, applications, profils):
     with db.session.begin_nested():
-        group1 = User(groupe=True, identifiant="group1")
+        group1 = User(groupe=True, identifiant="group1", active=True)
         db.session.add(group1)
-        group2 = User(groupe=True, identifiant="group2")
+        group2 = User(groupe=True, identifiant="group2", active=True)
         db.session.add(group2)
         user1 = User(
             groupe=False,
+            active=True,
             identifiant="user_of_group1",
             email="user1@email.fr",
             prenom_role="prenom",
             nom_role="nom",
         )
         user1.password = "admin"
-        user_no_group = User(groupe=False, identifiant="user2")
+        user_no_group = User(groupe=False, identifiant="user2", active=True)
         user1.groups.append(group1)
         db.session.add(user1)
         db.session.add(user_no_group)
