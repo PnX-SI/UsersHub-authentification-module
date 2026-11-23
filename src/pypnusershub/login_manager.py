@@ -37,8 +37,8 @@ def load_user_from_request(request):
     try:
         user_dict = decode_token(jwt)
         user = db.session.get(User, user_dict["id_role"])
-        if not user.is_active:
-            raise ValueError("User must be active !")
+        if user.groupe or not user.is_active:
+            raise ValueError("User must be an active user, not a group")
         g.login_via_request = True
         return user
     except (ExpiredTokenError, JoseError, ValueError):

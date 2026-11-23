@@ -216,6 +216,7 @@ def public_login():
         sa.select(models.User)
         .where(models.User.identifiant == login)
         .where(models.User.filter_by_app(code_app="GN"))
+        .where(models.User.groupe.is_not(True))
         .where(models.User.is_active)
     ).scalar_one_or_none()
     if user is None:

@@ -34,6 +34,7 @@ class LocalProvider(Authentication):
                 sa.select(models.User)
                 .where(models.User.identifiant == username)
                 .where(models.User.filter_by_app())
+                .where(models.User.groupe.is_not(True))
                 .where(models.User.is_active)
             ).scalar_one()
 
