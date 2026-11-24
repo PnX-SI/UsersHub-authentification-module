@@ -34,6 +34,8 @@ class LocalProvider(Authentication):
                 sa.select(models.User)
                 .where(models.User.identifiant == username)
                 .where(models.User.filter_by_app())
+                .where(models.User.groupe.is_not(True))
+                .where(models.User.is_active)
             ).scalar_one()
 
         except exc.NoResultFound:
@@ -47,7 +49,7 @@ class LocalProvider(Authentication):
         ).scalar_one_or_none()
         if not provider:
             provider = models.Provider(name=self.id_provider, url=self.login_url)
-            db.session.add()
+            db.session.add(provider)
             db.session.commit()
         if not provider in user.providers:
             user.providers.append(provider)

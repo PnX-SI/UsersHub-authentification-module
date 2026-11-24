@@ -18,7 +18,7 @@ from packaging import version
 from flask import current_app
 from flask_login import UserMixin
 
-from sqlalchemy import ForeignKey, func, or_, select
+from sqlalchemy import ForeignKey, func, or_, select, true
 from sqlalchemy.dialects.postgresql import JSONB, UUID, array
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column, object_session, Session
@@ -192,7 +192,9 @@ class User(db.Model, UserMixin, PasswordMixin):
     champs_addi: Mapped[Optional[dict]] = mapped_column(JSONB)
     date_insert: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     date_update: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
-    active: Mapped[Optional[bool]] = mapped_column(db.Boolean)
+    active: Mapped[bool] = mapped_column(
+        db.Boolean, nullable=False, default=True, server_default=true()
+    )
     api_key: Mapped[Optional[str]] = mapped_column(db.Unicode)
     api_secret: Mapped[Optional[str]] = mapped_column(db.Unicode)
 
@@ -257,6 +259,14 @@ class User(db.Model, UserMixin, PasswordMixin):
 
     def get_id(self):
         return str(self.id_role)
+
+    @hybrid_property
+    def is_active(self):
+        return bool(self.active)
+
+    @is_active.expression
+    def is_active(cls):
+        return cls.active.is_(True)
 
     @property
     def password(self):

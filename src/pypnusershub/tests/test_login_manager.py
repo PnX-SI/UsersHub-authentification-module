@@ -16,7 +16,7 @@ from .fixtures import *
 @pytest.fixture()
 def existing_user(app):
     with db.session.begin_nested():
-        user = User(groupe=False, identifiant="login.manager.test.user")
+        user = User(groupe=False, identifiant="login.manager.test.user", active=True)
         db.session.add(user)
     return user
 
@@ -96,5 +96,19 @@ def test_expired_token(app, existing_user):
         {"id_role": existing_user.id_role, "exp": int(time.time()) - 3600},
         key,
     )
+    with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
+        assert load_user_from_request(flask_request) is None
+
+
+def test_inactive_user_rejected(app, existing_user):
+    existing_user.active = False
+    token = token_for(existing_user)
+    with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
+        assert load_user_from_request(flask_request) is None
+
+
+def test_group_rejected(app, existing_user):
+    existing_user.groupe = True
+    token = token_for(existing_user)
     with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
         assert load_user_from_request(flask_request) is None

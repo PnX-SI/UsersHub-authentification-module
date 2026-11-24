@@ -483,7 +483,9 @@ def test_duplicate_email_reconciliation(app, rsa_keypair, applications, profils)
     with db.session.begin_nested():
         for _ in range(2):
             user = User(
-                groupe=False, identifiant=f"user-{_}", email="shared@example.com"
+                groupe=False,
+                identifiant=f"user-{_}",
+                email="shared@example.com",
             )
             db.session.add(user)
             db.session.flush()

@@ -366,8 +366,7 @@ class OpenIDTokenExchangeProvider(Authentication):
                     .where(models.User.filter_by_app())
                     # filter_by_app() lets groups through
                     .where(models.User.groupe.is_(False))
-                    # not is_(True): active can be NULL
-                    .where(models.User.active.isnot(False))
+                    .where(models.User.is_active)
                 ).scalar_one_or_none()
         except (MultipleResultsFound, DataError):
             user = None
