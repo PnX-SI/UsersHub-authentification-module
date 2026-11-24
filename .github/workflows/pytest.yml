@@ -75,7 +75,8 @@ jobs:
         env:
           USERSHUB_AUTH_MODULE_SETTINGS: test_settings.py
       - name: Upload coverage to Codecov
-        if: ${{ matrix.debian-version == '12' }}
-        uses: codecov/codecov-action@v3
+        if: ${{ matrix.debian-version == '13' }}
+        uses: codecov/codecov-action@v4
         with:
           flags: pytest
+          token: ${{ secrets.CODECOV_TOKEN }}
