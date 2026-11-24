@@ -60,7 +60,6 @@ def add(identifiant, password, group, prenom_role, nom_role):
         identifiant=identifiant,
         prenom_role=prenom_role,
         nom_role=nom_role,
-        active=True,
     )
 
     user.password = password

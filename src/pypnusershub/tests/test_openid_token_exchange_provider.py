@@ -119,7 +119,7 @@ def provider(app, rsa_keypair):
 @pytest.fixture()
 def existing_user(app, applications, profils):
     with db.session.begin_nested():
-        user = User(groupe=False, identifiant="test.user", active=True)
+        user = User(groupe=False, identifiant="test.user")
         db.session.add(user)
         db.session.flush()
         db.session.add(
@@ -135,7 +135,7 @@ def existing_user(app, applications, profils):
 @pytest.fixture()
 def existing_group_with_app_rights(app, applications, profils):
     with db.session.begin_nested():
-        group = User(groupe=True, identifiant="test.user", active=True)
+        group = User(groupe=True, identifiant="test.user")
         db.session.add(group)
         db.session.flush()
         db.session.add(
@@ -151,7 +151,7 @@ def existing_group_with_app_rights(app, applications, profils):
 @pytest.fixture()
 def existing_user_without_app_rights(app):
     with db.session.begin_nested():
-        user = User(groupe=False, identifiant="test.user.no_rights", active=True)
+        user = User(groupe=False, identifiant="test.user.no_rights")
         db.session.add(user)
     return user
 
@@ -486,7 +486,6 @@ def test_duplicate_email_reconciliation(app, rsa_keypair, applications, profils)
                 groupe=False,
                 identifiant=f"user-{_}",
                 email="shared@example.com",
-                active=True,
             )
             db.session.add(user)
             db.session.flush()
