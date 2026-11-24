@@ -305,12 +305,12 @@ class TestUtilisateurs:
         )
         assert user.is_active
 
-    def test_user_inactive_by_default(self, app):
-        user = User(groupe=False, identifiant="default.inactive")
+    def test_active_by_default(self, app):
+        user = User(groupe=False, identifiant="default.active")
         db.session.add(user)
         db.session.flush()
-        assert user.active is False
-        assert not user.is_active
+        assert user.active is True
+        assert user.is_active
 
     def test_insert_or_update_role_inactive_rejected(
         self, provider_instance, group_and_users

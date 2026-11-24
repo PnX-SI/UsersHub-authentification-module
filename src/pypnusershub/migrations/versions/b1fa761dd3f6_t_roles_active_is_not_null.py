@@ -22,7 +22,7 @@ def upgrade():
     op.execute("UPDATE utilisateurs.t_roles SET active = false WHERE active IS NULL;")
     op.execute("""
         ALTER TABLE utilisateurs.t_roles
-            ALTER COLUMN active SET DEFAULT false,
+            ALTER COLUMN active SET DEFAULT true,
             ALTER COLUMN active SET NOT NULL;
         """)
 

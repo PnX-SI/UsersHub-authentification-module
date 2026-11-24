@@ -4,7 +4,10 @@
 
 **🐛 Corrections**
 
-- Un utilisateur désactivé ou un groupe ne peut plus s'authentifier (connexion locale, `/public_login`, jeton JWT, session) : `User.is_active` est redéfini et utilisable dans les requêtes (#188 par @jacquesfize)
+- Le champ `t_roles.active` devient obligatoire et vaut `true` par défaut. Les valeurs `NULL` existantes sont migrées vers `false` (#188 par @jacquesfize)
+- Un utilisateur désactivé ou un groupe ne peut plus s'authentifier (connexion locale, `/public_login`, jeton JWT, session) : `User.is_active` est redéfini et utilisable dans les requêtes
+- Ajout d'un index sur `cor_roles.id_role_utilisateur` et chargement des groupes avec l'utilisateur, utilisés par `User.is_active` (#188 par @jacquesfize)
+- La commande `user add` crée désormais des utilisateurs avec `active` à vrai (#188 par @jacquesfize)
 
 ## 3.3.1 (2026-10-20)
 
