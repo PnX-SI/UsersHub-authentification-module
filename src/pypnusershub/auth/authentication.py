@@ -116,6 +116,23 @@ class Authentication:
 
     is_hidden = False
 
+    """
+    Names of the attributes exposed by the ``/providers`` route (and
+    ``list_providers()``) for this provider. Subclasses extend this list
+    to expose their own non-sensitive configuration, e.g.:
+
+        public_properties = Authentication.public_properties + ["issuer"]
+    """
+    public_properties = [
+        "is_external",
+        "logo",
+        "label",
+        "login_url",
+        "logout_url",
+        "is_secondary",
+        "is_hidden",
+    ]
+
     class ApiUnauthorized(Unauthorized):
         default_message = "Unauthorized"
 
