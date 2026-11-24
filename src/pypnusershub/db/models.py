@@ -18,7 +18,7 @@ from packaging import version
 from flask import current_app
 from flask_login import UserMixin
 
-from sqlalchemy import ForeignKey, false, func, or_, select
+from sqlalchemy import ForeignKey, func, or_, select, true
 from sqlalchemy.dialects.postgresql import JSONB, UUID, array
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column, object_session, Session
@@ -193,7 +193,7 @@ class User(db.Model, UserMixin, PasswordMixin):
     date_insert: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     date_update: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     active: Mapped[bool] = mapped_column(
-        db.Boolean, nullable=False, default=False, server_default=false()
+        db.Boolean, nullable=False, default=True, server_default=true()
     )
     api_key: Mapped[Optional[str]] = mapped_column(db.Unicode)
     api_secret: Mapped[Optional[str]] = mapped_column(db.Unicode)

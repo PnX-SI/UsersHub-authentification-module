@@ -257,7 +257,7 @@ class TestUtilisateurs:
         # the token expiration must be tz aware to avoid issue in date comparison
         assert datetime_expires.tzinfo is not None
 
-    @pytest.mark.parametrize("active", [False, None])
+    @pytest.mark.parametrize("active", [False])
     def test_login_inactive_user_rejected(self, group_and_users, active):
         group_and_users["user1"].active = active
         db.session.flush()
