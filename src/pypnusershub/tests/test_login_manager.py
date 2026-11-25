@@ -9,7 +9,9 @@ from joserfc import jwt as joserfc_jwt
 from pypnusershub.db.models import User
 from pypnusershub.db.tools import encode_token
 from pypnusershub.env import db
-from pypnusershub.login_manager import load_user_from_request
+import sqlalchemy as sa
+
+from pypnusershub.login_manager import load_user, load_user_from_request
 from .fixtures import *
 
 
@@ -19,6 +21,11 @@ def existing_user(app):
         user = User(groupe=False, identifiant="login.manager.test.user", active=True)
         db.session.add(user)
     return user
+
+
+def unknown_id_role():
+    max_id = db.session.scalar(sa.select(sa.func.max(User.id_role)))
+    return (max_id or 0) + 1000
 
 
 def token_for(user):
@@ -112,3 +119,24 @@ def test_group_rejected(app, existing_user):
     token = token_for(existing_user)
     with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
         assert load_user_from_request(flask_request) is None
+
+
+def test_unknown_user_token_rejected(app):
+    # Valid signature, but the role no longer exists (deleted user, reset DB)
+    token = encode_token({"id_role": unknown_id_role()})
+    with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
+        assert load_user_from_request(flask_request) is None
+
+
+def test_load_user_from_session(app, existing_user):
+    assert load_user(existing_user.id_role) == existing_user
+
+
+def test_load_user_inactive(app, existing_user):
+    existing_user.active = False
+    assert load_user(existing_user.id_role) is None
+
+
+def test_load_user_unknown(app):
+    # Session cookie referencing a role that no longer exists must not crash
+    assert load_user(unknown_id_role()) is None
