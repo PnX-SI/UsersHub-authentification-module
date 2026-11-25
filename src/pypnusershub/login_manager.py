@@ -15,7 +15,8 @@ login_manager = LoginManager()
 @login_manager.user_loader
 def load_user(user_id):
     user = db.session.get(User, user_id)
-    if user.is_active:
+    # The session may reference a role that no longer exists (deleted user, reset DB)
+    if user is not None and user.is_active:
         return user
 
 
@@ -37,8 +38,8 @@ def load_user_from_request(request):
     try:
         user_dict = decode_token(jwt)
         user = db.session.get(User, user_dict["id_role"])
-        if user.groupe or not user.is_active:
-            raise ValueError("User must be an active user, not a group")
+        if user is None or user.groupe or not user.is_active:
+            raise ValueError("User must exist and be an active user, not a group")
         g.login_via_request = True
         return user
     except (ExpiredTokenError, JoseError, ValueError):

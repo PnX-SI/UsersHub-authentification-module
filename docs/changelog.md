@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.3.3 (2026-11-25)
+
+**🐛 Corrections**
+
+- Une session ou un jeton faisant référence à un utilisateur inexistant (supprimé, base réinitialisée) est désormais traité comme une session anonyme au lieu de provoquer une erreur 500 (`AttributeError` dans `load_user`) (#190 par @jacquesfize)
+
 ## 3.3.2 (2026-11-24)
 
 **🚀 Nouveautés**
